@@ -42,7 +42,7 @@ spec:
       value: 'Deployment'
     #... with label app=nginx ...
     - query: '$.metadata.labels.app'
-      regex: 'nginx'
+      value: 'nginx'
     #... and containers whose image matches nginx:1.14.*
     - query: '$.spec.template.spec.containers[*].image'
       regex: 'nginx:1\.14\..*'
