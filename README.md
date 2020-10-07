@@ -12,13 +12,13 @@ KubeMod is an implementation of a [Kubernetes Operator](https://kubernetes.io/do
 To install the operator, run:
 
 ```bash
-kubectl apply -f https://github.com/kubemod/kubemod/blob/v0.4.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.4.2/bundle.yaml
 ```
 
 To uninstall it, run:
 
 ```bash
-kubectl delete -f https://github.com/kubemod/kubemod/blob/v0.4.0/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.4.2/bundle.yaml
 ```
 
 ## Getting started
