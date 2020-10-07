@@ -3,7 +3,7 @@
 KubeMod is a universal Kubernetes resource mutator.
 
 It allows you to deploy to your Kubernetes cluster a set of declarative rules which will  perform targeted modifications
-to any Kubernetes resource at the time the resource is being created or updated.
+to specific Kubernetes resources at the time those resources are being created or updated.
 
 ## Installation
 
