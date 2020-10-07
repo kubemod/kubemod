@@ -1,0 +1,24 @@
+# permissions for end users to edit modrules.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: modrule-editor-role
+rules:
+- apiGroups:
+  - api.kubemod.io
+  resources:
+  - modrules
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - api.kubemod.io
+  resources:
+  - modrules/status
+  verbs:
+  - get

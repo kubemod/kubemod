@@ -1,0 +1,340 @@
+/*
+Licensed under the BSD 3-Clause License (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://opensource.org/licenses/BSD-3-Clause
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package core
+
+import (
+	"context"
+	"fmt"
+	"regexp"
+	"strings"
+	"text/template"
+
+	"sigs.k8s.io/yaml"
+
+	"github.com/PaesslerAG/gval"
+	evanjsonpatch "github.com/evanphx/json-patch/v5"
+	"github.com/go-logr/logr"
+	"github.com/kubemod/kubemod/api/v1beta1"
+)
+
+// ModRuleStoreItem wraps around a ModRule and holds a cache of the ModRule's
+// match queries, regexp expressions and value templates in compiled form.
+type ModRuleStoreItem struct {
+	modRule           *v1beta1.ModRule
+	compiledJSONPaths map[*v1beta1.Match]gval.Evaluable
+	compiledRegexes   map[*v1beta1.Match]*regexp.Regexp
+	compiledJSONPatch []*compiledJSONPatchOperation
+	log               logr.Logger
+}
+
+// compiledJSONPatchOperation stored a JSON patch operation with a pre-compiled go template.
+type compiledJSONPatchOperation struct {
+	op            v1beta1.PatchOperationType
+	path          string
+	valueTemplate *template.Template
+}
+
+// ModRuleStoreItemFactory is used to construct ModRuleStoreItems.
+type ModRuleStoreItemFactory struct {
+	jsonPathLanguage *gval.Language
+	log              logr.Logger
+}
+
+// NewModRuleStoreItemFactory constructs a new ModRuleStoreItem factory.
+func NewModRuleStoreItemFactory(jsonPathLanguage *gval.Language, log logr.Logger) *ModRuleStoreItemFactory {
+	return &ModRuleStoreItemFactory{
+		jsonPathLanguage: jsonPathLanguage,
+		log:              log.WithName("core"),
+	}
+}
+
+// NewModRuleStoreItem constructs a new ModRule store item.
+func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) (*ModRuleStoreItem, error) {
+	compiledJSONPaths, err := newCompiledJSONPaths(modRule.Spec.Matches, f.jsonPathLanguage)
+
+	if err != nil {
+		return nil, err
+	}
+
+	compiledRegexes, err := newCompiledRegexes(modRule.Spec.Matches)
+
+	if err != nil {
+		return nil, err
+	}
+
+	compiledJSONPatch, err := newCompiledJSONPatch(modRule.Spec.Patch)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &ModRuleStoreItem{
+			modRule:           modRule,
+			log:               f.log,
+			compiledJSONPaths: compiledJSONPaths,
+			compiledRegexes:   compiledRegexes,
+			compiledJSONPatch: compiledJSONPatch,
+		},
+		nil
+}
+
+// Given a slice of matches, construct a cache of compiled gval expressions.
+// Note that the cache is a map which uses the pointers to the match slice elements as keys.
+func newCompiledJSONPaths(matches []v1beta1.Match, jsonPathLanguage *gval.Language) (map[*v1beta1.Match]gval.Evaluable, error) {
+	var err error
+	cache := make(map[*v1beta1.Match]gval.Evaluable)
+
+	for i := range matches {
+		cache[&matches[i]], err = jsonPathLanguage.NewEvaluable(matches[i].Query)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return cache, nil
+}
+
+// Given a slice of matches, construct a cache of compiled regexp expressions.
+// Note that the cache is a map which uses the pointers to the match slice elements as keys.
+func newCompiledRegexes(matches []v1beta1.Match) (map[*v1beta1.Match]*regexp.Regexp, error) {
+	var err error
+	cache := make(map[*v1beta1.Match]*regexp.Regexp)
+
+	for i := range matches {
+		if matches[i].Regex != nil {
+			cache[&matches[i]], err = regexp.Compile(*matches[i].Regex)
+
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return cache, nil
+}
+
+// newCompiledJSONPatch converts ModRule patch to evanphx jsonpatch Patch.
+func newCompiledJSONPatch(patch []v1beta1.PatchOperation) ([]*compiledJSONPatchOperation, error) {
+	var compiledPatch = []*compiledJSONPatchOperation{}
+
+	for _, po := range patch {
+		// Default to JSON "null" value in case po.Value is nil.
+		value := "null"
+
+		if po.Value != nil {
+			value = *po.Value
+		}
+
+		tpl, err := template.New(po.Path).Parse(value)
+
+		if err != nil {
+			return nil, err
+		}
+
+		compiledPatch = append(compiledPatch, &compiledJSONPatchOperation{
+			op:            po.Operation,
+			path:          po.Path,
+			valueTemplate: tpl,
+		})
+	}
+
+	return compiledPatch, nil
+}
+
+// calculatePatch runs the patch templates and returns a list of patch operations.
+func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext, operationLog logr.Logger) (evanjsonpatch.Patch, error) {
+	var log logr.Logger
+
+	// If we are getting operation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
+	if operationLog != nil {
+		log = operationLog.WithName("core")
+	} else {
+		log = si.log
+	}
+
+	b := strings.Builder{}
+
+	b.WriteRune('[')
+
+	for index, cop := range si.compiledJSONPatch {
+		vb := strings.Builder{}
+
+		err := cop.valueTemplate.Execute(&vb, templateContext)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Here's the magic - convert the result to a JSON value.
+		jsonValue, err := modRuleValueToJSONValue(vb.String())
+
+		if err != nil {
+			return nil, err
+		}
+
+		if index > 0 {
+			b.WriteRune(',')
+		}
+
+		fmt.Fprintf(&b, `{"op": "%v", "path": "%v", "value": %v}`, cop.op, cop.path, jsonValue)
+	}
+
+	b.WriteRune(']')
+
+	patchText := b.String()
+	epatch, err := evanjsonpatch.DecodePatch([]byte(patchText))
+
+	if err != nil {
+		log.Error(err, "invalid JSON patch text", "patch text", patchText)
+	} else {
+		log.V(1).Info("modrule patch", "modrule", si.modRule.GetNamespacedName(), "patch", epatch)
+	}
+
+	return epatch, err
+}
+
+// modRuleValueToJSONValue converts a ModRule value to a JSON value.
+// modRuleValueToJSONValue performs some analysis of the ModRule value in order to infer its JSON type:
+// - If the value matches the format of a JavaScript number, it is considered to be a number.
+// - If the value matches a boolean literal (true/false), it is considered to be a boolean literal.
+// - If the value matches 'null', it is considered to be null.
+// - If the value is surrounded by double-quotes, it is considered to be a string.
+// - If the value is surrounded by brackets, it is considered to be a JSON array.
+// - If the value is surrounded by curly braces, it is considered to be a JSON object.
+// - If none of the above is true, the value is considered to be a string.
+func modRuleValueToJSONValue(modRuleValue string) (string, error) {
+	jsonb, err := yaml.YAMLToJSON([]byte(modRuleValue))
+	return string(jsonb), err
+}
+
+// IsMatch runs all the queries stored in the receiving store item against the given JSON object.
+// If all of the queries match, it returns true, otherwise, returns false.
+func (si *ModRuleStoreItem) IsMatch(jsonv interface{}) bool {
+	matches := si.modRule.Spec.Matches
+
+	for i := range matches {
+		match := &matches[i]
+
+		if !si.isMatch(match, jsonv) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (si *ModRuleStoreItem) isMatch(match *v1beta1.Match, jsonv interface{}) bool {
+
+	jsonPath := si.compiledJSONPaths[match]
+
+	result, err := jsonPath(context.Background(), jsonv)
+	if err != nil {
+		// There is at least one valid reason to be here - when the query tries to match a missing key
+		// such as metadata. label.missing_key.
+		// In this case we only want to log a DBG info message and negate the query.
+		si.log.V(1).Info("JSONPath query expression failure", "query", match.Query, "error", err)
+
+		return match.Negative
+	}
+
+	var expressionValues []interface{}
+
+	// Test the result and return negative match if we got nothing back from the query.
+	switch vresult := result.(type) {
+
+	// If the query evaluates to nil, this is a no-match.
+	case nil:
+		return match.Negative
+
+	// If the query itself returns a boolean, use that as the match.
+	// The query value will not be evaluated against match.value, match.values and match.regex.
+	case bool:
+		return vresult != match.Negative
+
+	// If the query returns an array, evaluate its contents against match.value, match.values and match.regex.
+	case []interface{}:
+		expressionValues = vresult
+
+	// If the query returns any type of value other than the ones above, evaluate that value against match.value, match.values and match.regex.
+	case interface{}:
+		expressionValues = []interface{}{vresult}
+
+	default:
+		return match.Negative
+	}
+
+	if len(expressionValues) == 0 {
+		return match.Negative
+	}
+
+	// Pre-extract the match regex if any - we don't want to waste cycles picking it up on every iteration over the expressionValues.
+	// Note that if the match contains no regex, matchRegexp will be nil
+	matchRegexp := si.compiledRegexes[match]
+
+	// Check if any of the resulting values match any of the criteria values.
+	for _, expressionValue := range expressionValues {
+		var ev *string
+
+		switch v := expressionValue.(type) {
+		case string:
+			ev = &v
+		default:
+			vstr := fmt.Sprintf("%v", v)
+			ev = &vstr
+		}
+
+		// We have a positive match? No need to look further.
+		if isStringMatch(match, matchRegexp, ev) == !match.Negative {
+			return !match.Negative
+		}
+	}
+
+	return match.Negative
+}
+
+func isStringMatch(match *v1beta1.Match, matchRegexp *regexp.Regexp, value *string) bool {
+	if match.Value != nil {
+		if *value == *match.Value {
+			return !match.Negative
+		}
+		// Match has a spec value, but it doesn't match - return negative match.
+		return match.Negative
+	}
+
+	if match.Values != nil && len(match.Values) > 0 {
+		for i := range match.Values {
+			if *value == match.Values[i] {
+				return !match.Negative
+			}
+		}
+
+		// Match has spec values, but none of them match - return negative match.
+		return match.Negative
+	}
+
+	if match.Regex != nil {
+		if matchRegexp.MatchString(*value) {
+			return !match.Negative
+		}
+
+		// Match has a regex, but it does not match - return negative match.
+		return match.Negative
+	}
+
+	// Match has no spec value, values or regex, but the query yielded a value.
+	// This is a positive match.
+	return !match.Negative
+}

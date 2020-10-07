@@ -1,0 +1,1 @@
+[{add /baz [hello]} {add /spec/securityContext/hello my-namespace} {add /spec/securityContext/hello2 nginx-8598fccb59-} {add /spec/securityContext/runAsUser 1000} {replace /metadata/labels/color whatever} {replace /spec/containers/0/ports/0/containerPort 8080} {replace /spec/securityContext/runAsNonRoot false}]

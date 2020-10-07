@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: crt-job
+  namespace: system
+spec:
+  serviceAccountName: 
+  template:
+    spec:
+      containers:
+      - name: kubemod-crt
+        image: kubemod/kubemod-crt:v1.0.0
+        command:
+        - /bin/sh
+        - -c
+        - ./renew-certificates.sh
+      restartPolicy: Never
+  backoffLimit: 4

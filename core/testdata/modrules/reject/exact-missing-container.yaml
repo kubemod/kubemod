@@ -1,0 +1,10 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Reject
+
+  matches:
+    - query: "$.spec.containers[123].ports[0].containerPort"
+      value: "80"

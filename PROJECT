@@ -1,0 +1,7 @@
+domain: kubemod.io
+repo: github.com/kubemod/kubemod
+resources:
+- group: api
+  kind: ModRule
+  version: v1beta1
+version: "2"

@@ -1,0 +1,29 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Patch
+
+  matches:
+    - query: '$.kind'
+      value: 'Deployment'
+
+    - query: '$.metadata.labels.app'
+      regex: 'nginx'
+
+    # Find deployments which include an nginx 1.14 container...
+    - query: '$.spec.template.spec.containers[*].image'
+      regex: 'nginx:1\.14\..*'
+    
+  patch:
+    - op: add
+      path: /metadata/labels/color
+      value: whatever
+
+    # Force their container port to be 8080
+    - op: add
+      path: /spec/template/spec/containers/0/ports
+      value: |-
+        - containerPort: 8080
+          protocol: TCP

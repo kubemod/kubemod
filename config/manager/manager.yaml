@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+    kubemod-system-namespace: "true"
+  name: system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator
+  namespace: system
+  labels:
+    control-plane: controller-manager
+    app.kubernetes.io/component: kubemod-operator
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+      app.kubernetes.io/component: kubemod-operator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+        app.kubernetes.io/component: kubemod-operator
+    spec:
+      containers:
+      - command:
+        - /manager
+        image: controller:latest
+        name: manager
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      terminationGracePeriodSeconds: 10

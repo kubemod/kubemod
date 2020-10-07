@@ -1,0 +1,14 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-3
+spec:
+  type: Patch
+
+  matches:
+    - query: '$.kind'
+      value: 'Pod'
+
+  patch:
+    - op: remove
+      path: /metadata/labels/nonexistent2

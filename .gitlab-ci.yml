@@ -1,0 +1,40 @@
+variables:
+  # Target Docker image name.
+  IMAGE_NAME: kubemod/kubemod
+
+stages:
+  - build_and_test
+  - deploy
+  - deploy_tag
+  - cleanup
+
+build_and_test:
+  stage: build_and_test
+  
+  script:
+    - make test
+
+deploy:
+  stage: deploy
+  only:
+   - master
+   - tags
+
+  script:
+    - make docker-build IMG=$IMAGE_NAME:latest
+    - docker push $IMAGE_NAME:latest
+
+deploy_tag:
+  stage: deploy_tag
+  only:
+   - tags
+
+  script:
+    - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$CI_COMMIT_TAG
+    - docker push $IMAGE_NAME:$CI_COMMIT_TAG
+
+cleanup:
+  stage: cleanup
+  script:
+    - ./build/cleanup.sh
+  when: always

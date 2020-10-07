@@ -1,0 +1,2 @@
+resources:
+- kubemod-crt-job.yaml

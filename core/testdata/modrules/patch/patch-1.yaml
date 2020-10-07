@@ -1,0 +1,38 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Patch
+
+  matches:
+    - query: '$.kind'
+      value: 'Pod'
+
+    - query: '$.spec.containers[*].image'
+      regex: 'nginx:1\.14\..*'
+
+  patch:
+    - op: add
+      path: /baz
+      value: '["hello"]'
+
+    - op: replace
+      path: /metadata/labels/color
+      # Empty value is the same as null
+      value: whatever
+
+    - op: replace
+      path: /spec/containers/0/ports/0/containerPort
+      # Empty value is the same as null
+      value: '8080'
+
+
+    - op: replace
+      path: /spec/securityContext
+      # Empty value is the same as null
+      value: |-
+        runAsNonRoot: false
+        runAsUser: 1000
+        hello: {{ .Namespace }}
+        hello2: {{ .Target.metadata.generateName }}

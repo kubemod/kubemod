@@ -1,0 +1,13 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Reject
+
+  matches:
+    - query: '$.kind'
+      value: Pod
+
+    - query: '$.spec.containers[?@.name =~ "nginx-.+"].image'
+      regex: 'nginx:1\.14\..*'

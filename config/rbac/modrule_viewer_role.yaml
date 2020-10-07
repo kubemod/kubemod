@@ -1,0 +1,20 @@
+# permissions for end users to view modrules.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: modrule-viewer-role
+rules:
+- apiGroups:
+  - api.kubemod.io
+  resources:
+  - modrules
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - api.kubemod.io
+  resources:
+  - modrules/status
+  verbs:
+  - get
