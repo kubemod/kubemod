@@ -71,7 +71,7 @@ spec:
 This will create ModRule `my-modrule` in the current default namespace.
  
 After the ModRule is created, the creation of any nginx Kubernetes Deployment resource in the same namespace will be intercepted by KubeMod and if
-the Deployment resource matches all the queries in the ModRule's `matches` section the resource will be patched with the `patch` operations **before**
+the Deployment resource matches all the queries in the ModRule's `matches` section, the resource will be patched with the `patch` operations **before**
 it is actually deployed to Kubernetes.
 
 See more examples of ModRules [here](https://github.com/kubemod/kubemod/tree/master/core/testdata/modrules).
