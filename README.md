@@ -9,13 +9,13 @@ to any Kubernetes resource at the time the resource is being created or updated.
 
 KubeMod is an implementation of a [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-To install KubeMod, run:
+To install the operator, run:
 
 ```bash
 kubectl apply -f https://github.com/kubemod/kubemod/blob/v0.4.0/bundle.yaml
 ```
 
-To uninstall KubeMod, run:
+To uninstall it, run:
 
 ```bash
 kubectl delete -f https://github.com/kubemod/kubemod/blob/v0.4.0/bundle.yaml
