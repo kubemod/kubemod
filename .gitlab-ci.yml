@@ -13,6 +13,7 @@ build_and_test:
   
   script:
     - make test
+    - bash <(curl -s https://codecov.io/bash)
 
 deploy:
   stage: deploy
@@ -23,6 +24,7 @@ deploy:
   script:
     - make docker-build IMG=$IMAGE_NAME:latest
     - docker push $IMAGE_NAME:latest
+    - bash <(curl -s https://codecov.io/bash)
 
 deploy_tag:
   stage: deploy_tag
