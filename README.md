@@ -9,23 +9,29 @@ to specific Kubernetes resources at the time those resources are being created o
 
 KubeMod is an implementation of a [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-To install the operator, run:
+To install/upgrade the operator, run:
 
 ```bash
+# Delete the kubemod certificate generation job in case kubemod has already been installed.
+kubectl.exe delete job -l job-name=kubemod-crt-job -n kubemod-system
+# Install/upgrade kubemod operator.
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.4.2/bundle.yaml
 ```
 
 To uninstall it, run:
 
 ```bash
+# Delete all kubemod-related resources.
 kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.4.2/bundle.yaml
 ```
 
+**Note**: Uninstalling kubemod operator will also remove all your ModRules.
+
 ## Getting started
 
-Once KubeMod is deployed, you can create `ModRules` which monitor for specific resources and perform modifications on them.
+Once KubeMod is deployed, you can create ModRules which monitor for specific resources and perform modifications on them.
 
-For example, here's a ModRule which enforces a `securityContext` and adds annotation `my-annotation` to any `Deployment`
+For example, here's a `ModRule` which enforces a `securityContext` and adds annotation `my-annotation` to any `Deployment`
 resource whose `app` label equals `nginx` and includes a container of any subversion of nginx `1.14`.
 
 ```yaml
@@ -95,7 +101,7 @@ Build the image once:
 ```bash
 make docker-build
 ```
-then deploy the whole shebang and start telepresence which will swap out the kubemod controller with your local host environment:
+Then deploy the kubemod operator resources and start telepresence which will swap out the kubemod controller with your local host environment:
 ```
 make deploy
 dev-env.sh
