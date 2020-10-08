@@ -1,3 +1,5 @@
+![ci-img]
+
 # KubeMod
 
 KubeMod is a universal Kubernetes resource mutator.
@@ -110,3 +112,5 @@ make deploy
 dev-env.sh
 ```
 At this point you can develop/debug kubemod locally.
+
+[ci-img]: https://gitlab.com/kubemod/kubemod/badges/master/pipeline.svg
