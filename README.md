@@ -79,9 +79,8 @@ spec:
 
 This will create ModRule `my-modrule` in the current default namespace.
  
-After the ModRule is created, the creation of any nginx Kubernetes Deployment resource in the same namespace will be intercepted by KubeMod and if
-the Deployment resource matches all the queries in the ModRule's `matches` section, the resource will be patched with the `patch` operations **before**
-it is actually deployed to Kubernetes.
+After the ModRule is created, the creation of any nginx Kubernetes Deployment resource in the same namespace will be intercepted by the KubeMod operator and if the Deployment resource matches all the queries in the ModRule's `matches` section, the resource will be patched with the `patch` operations
+**before** it is actually deployed to Kubernetes.
 
 See more examples of ModRules [here](https://github.com/kubemod/kubemod/tree/master/core/testdata/modrules).
 
@@ -94,7 +93,6 @@ or [create a PR](https://github.com/kubemod/kubemod/compare).
 
 * kubebuilder (2.3.1) (https://book.kubebuilder.io/quick-start.html)
 * kustomize (3.8.1) (https://kubernetes-sigs.github.io/kustomize/installation/binaries/)
-* cfssl (https://gist.github.com/tirumaraiselvan/b7eb1831d25dd9d59a785c11bd46c84b)
 * telepresence (https://www.telepresence.io/)
 * wire (https://github.com/google/wire)
 
