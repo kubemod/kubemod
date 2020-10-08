@@ -46,12 +46,15 @@ spec:
     # Match deployments ...
     - query: '$.kind'
       value: 'Deployment'
-    #... with label app=nginx ...
+    # ... with label app=nginx ...
     - query: '$.metadata.labels.app'
       value: 'nginx'
-    #... and containers whose image matches nginx:1.14.*
+    # ... and containers whose images match nginx:1.14.* ...
     - query: '$.spec.template.spec.containers[*].image'
       regex: 'nginx:1\.14\..*'
+    # ... but have no explicit runAsNonRoot security context (note the "negative: true" part):
+    - query: "$.spec.template.spec.securityContext.runAsNonRoot == true"
+      negative: true
     
   patch:
     # Add custom annotation.
