@@ -4,10 +4,11 @@
 
 KubeMod is a universal Kubernetes resource mutator.
 
-It allows you to deploy to your Kubernetes cluster declarative rules which perform targeted modifications to specific Kubernetes resources at the time those resources are
-deployed or updated.
+It allows you to deploy to your Kubernetes cluster declarative rules which perform targeted modifications to specific Kubernetes resources at the time
+those resources are deployed or updated.
 
-Essentially, KubeMod is a [Dynamic Admission Control operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/), which gives you the power of Kubernetes Mutating Webhooks without the need to develop a DAC webhook controller from scratch.
+Essentially, KubeMod is a [Dynamic Admission Control operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/),
+which gives you the power of Kubernetes Mutating Webhooks without the need to develop an admission webhook controller from scratch.
 
 ## Installation
 
