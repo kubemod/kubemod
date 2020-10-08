@@ -1,4 +1,4 @@
-![ci-img]
+![Build Status][ci-img] [![Go Report Card][goreport-img]][goreport] [![Code Coverage][cov-img]][cov]
 
 # KubeMod
 
@@ -114,3 +114,7 @@ dev-env.sh
 At this point you can develop/debug kubemod locally.
 
 [ci-img]: https://gitlab.com/kubemod/kubemod/badges/master/pipeline.svg
+[goreport-img]: https://goreportcard.com/badge/github.com/kubemod/kubemod
+[goreport]: https://goreportcard.com/report/github.com/kubemod/kubemod
+[cov-img]: https://codecov.io/gh/kubemod/kubemod/branch/master/graph/badge.svg
+[cov]: https://codecov.io/github/kubemod/kubemod/
