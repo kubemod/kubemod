@@ -110,12 +110,13 @@ This leads to issues such as:
 With the help of KubeMod ModRules one can alleviate such issues by intercepting the creation of resources and modifying them to perform the necessary modifications.
 
 That said, here are a number typical use cases for using ModRules.
+
 Some of them go beyond the original use case of fixing misbehaving operators.
 
 ### Sidecar injection
 
-With the help of ModRules, one can dynamically inject arbitrary sidecar containers into Deployments and StatefulSet objects.
-The `patch` part of the ModRule is a [Golang template](https://golang.org/pkg/text/template/) which takes the target object as an intrinsic context allowing for powerful declarative rules such as the following one which injects a [Jaeger Agent](https://www.jaegertracing.io/docs/1.19/architecture/#agent) sidecar into any Deployment tagged with annotation `my-inject-annotation` set to `"true"`:
+With the help of ModRules, one can dynamically inject arbitrary sidecar containers into Deployments and StatefulSet resources.
+The `patch` part of the ModRule is a [Golang template](https://golang.org/pkg/text/template/) which takes the target resource object as an intrinsic context allowing for powerful declarative rules such as the following one which injects a [Jaeger Agent](https://www.jaegertracing.io/docs/1.19/architecture/#agent) sidecar into any Deployment tagged with annotation `my-inject-annotation` set to `"true"`:
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
@@ -168,8 +169,8 @@ spec:
 Note the use of ``{{ .Target.metadata.name }}`` in the patch value to dynamically access the name of the deployment being patched and pass it to the Jaeger agent as a tracer tag.
 
 When a patch is evaluated, KubeMod executes the patch value as a [Golang template](https://golang.org/pkg/text/template/) and passes the following intrinsic items to it accessible through the template's context:
-* `.Target` - the original object being patched with all its properties.
-* `.Namespace` - the namespace of the object.
+* `.Target` - the original resource object being patched with all its properties.
+* `.Namespace` - the namespace of the resource object.
 
 
 ### Metadata modifications
@@ -274,12 +275,12 @@ spec:
 
 ModRules are not limited to the above use cases, nor are they limited to those Kubernetes resource types.
 
-ModRules can be developed to target any Kubernetes object, including Custom Resource objects.
+ModRules can be developed to target any Kubernetes resource object, including Custom Resource objects.
 The `match` section of a ModRule is not limited to metadata -- you can build complex match criteria against any part of the resource object.
 
 ## Gotchas
 
-When multiple ModRules match the same object, all of the ModRule patches are executed against the object in an indeterminate order.
+When multiple ModRules match the same resource object, all of the ModRule patches are executed against the object in an indeterminate order.
 
 This is by design.
 
