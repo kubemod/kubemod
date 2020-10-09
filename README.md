@@ -14,20 +14,25 @@ which gives you the power of Kubernetes Mutating Webhooks without the need to de
 
 KubeMod is an implementation of a [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-To install/upgrade the operator, run:
+To install the operator, run:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
+```
+
+To upgrade the operator, run:
 
 ```bash
 # Delete the kubemod certificate generation job in case kubemod has already been installed.
 kubectl.exe delete job -l job-name=kubemod-crt-job -n kubemod-system
-# Install/upgrade kubemod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.4.2/bundle.yaml
+# Upgrade kubemod operator.
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
 ```
 
 To uninstall it, run:
 
 ```bash
-# Delete all kubemod-related resources.
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.4.2/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
 ```
 
 **Note**: Uninstalling kubemod operator will also remove all your ModRules.
