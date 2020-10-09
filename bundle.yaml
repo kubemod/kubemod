@@ -36,10 +36,10 @@ spec:
         spec:
           description: ModRuleSpec defines the desired state of ModRule
           properties:
-            matches:
-              description: Matches is a list of queries and their match values. When all matches for an object are positive, the rule is in effect.
+            match:
+              description: Match is a list of match items which consist of queries and expected match values or regular expressions. When all match items for an object are positive, the rule is in effect.
               items:
-                description: Match represents a single match query.
+                description: MatchItem represents a single match query.
                 properties:
                   negative:
                     description: Negative indicates if the match should occur when the query/value comparison yields a negative result. Defaults to false.
@@ -94,7 +94,7 @@ spec:
               - Reject
               type: string
           required:
-          - matches
+          - match
           - type
           type: object
         status:
@@ -256,7 +256,7 @@ spec:
       containers:
       - command:
         - /manager
-        image: kubemod/kubemod:v0.4.2
+        image: kubemod/kubemod:latest
         name: manager
         ports:
         - containerPort: 9443

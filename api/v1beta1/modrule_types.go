@@ -34,10 +34,10 @@ type ModRuleSpec struct {
 	// - "Reject" - the rule rejects the creation of all matching resources.
 	Type ModRuleType `json:"type"`
 
-	// Matches is a list of queries and their match values.
-	// When all matches for an object are positive, the rule is in effect.
+	// Match is a list of match items which consist of queries and expected match values or regular expressions.
+	// When all match items for an object are positive, the rule is in effect.
 	// +kubebuilder:validation:MinItems=1
-	Matches []Match `json:"matches"`
+	Match []MatchItem `json:"match"`
 
 	// Patch is a list of patch operations to perform on the matching resources at the time of creation.
 	// The value part of a patch operation can be a golang template which accepts the resource as its context.
@@ -46,8 +46,8 @@ type ModRuleSpec struct {
 	Patch []PatchOperation `json:"patch,omitempty"`
 }
 
-// Match represents a single match query.
-type Match struct {
+// MatchItem represents a single match query.
+type MatchItem struct {
 	// Query is a JSONPath query expression: https://goessner.net/articles/JsonPath/ which yields zero or more values.
 	// If no match value or regex is specified, if the query yields a non-empty result, the match is considered positive.
 	Query string `json:"query,omitempty"`

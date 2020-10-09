@@ -4,7 +4,7 @@
 
 KubeMod is a universal Kubernetes resource mutator.
 
-It allows you to deploy to your Kubernetes cluster declarative rules which perform targeted modifications to specific Kubernetes resources at the time
+It allows you to deploy to Kubernetes declarative rules which perform targeted modifications to specific Kubernetes resources at the time
 those resources are deployed or updated.
 
 Essentially, KubeMod is a [Dynamic Admission Control operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/),
@@ -34,7 +34,7 @@ kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.4.2/bundl
 
 ## Getting started
 
-Once KubeMod is deployed, you can create ModRules which monitor for specific resources and perform modifications on them.
+Once KubeMod is installed, you can deploy ModRules which monitor for specific resources and perform modifications on them.
 
 For example, here's a `ModRule` which enforces a `securityContext` and adds annotation `my-annotation` to any `Deployment`
 resource whose `app` label equals `nginx` and includes a container of any subversion of nginx `1.14`.
@@ -47,7 +47,7 @@ metadata:
 spec:
   type: Patch
 
-  matches:
+  match:
     # Match deployments ...
     - query: '$.kind'
       value: 'Deployment'
@@ -77,14 +77,14 @@ spec:
         runAsNonRoot: true
 ```
  
- Save the above to file `my-modrule.yaml` and run:
+ Save the above ModRule to file `my-modrule.yaml` and run:
  ```bash
  kubectl apply -f my-modrule.yaml
 ```
 
-This will create ModRule `my-modrule` in the current default namespace.
+This will deploy the ModRule in the current default namespace.
  
-After the ModRule is created, the creation of any nginx Kubernetes Deployment resource in the same namespace will be intercepted by the KubeMod operator and if the Deployment resource matches all the queries in the ModRule's `matches` section, the resource will be patched with the `patch` operations
+After the ModRule is created, the creation of any nginx Kubernetes Deployment resource in the same namespace will be intercepted by the KubeMod operator and if the Deployment resource matches all the queries in the ModRule's `match` section, the resource will be patched with the `patch` operations
 **before** it is actually deployed to Kubernetes.
 
 See more examples of ModRules [here](https://github.com/kubemod/kubemod/tree/master/core/testdata/modrules).

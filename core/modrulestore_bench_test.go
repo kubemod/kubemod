@@ -44,11 +44,11 @@ func BenchmarkModRuleStorePutParallel(b *testing.B) {
 					Name:      namePool.GetNextName(),
 				},
 				Spec: v1beta1.ModRuleSpec{
-					Matches: []v1beta1.Match{
-						v1beta1.Match{
+					Match: []v1beta1.MatchItem{
+						v1beta1.MatchItem{
 							Query: `$.kind == "Pod"`,
 						},
-						v1beta1.Match{
+						v1beta1.MatchItem{
 							Query: `$.metadata.labels.app =~ "nginx"`,
 						},
 					},

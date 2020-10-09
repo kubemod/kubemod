@@ -5,6 +5,6 @@ metadata:
 spec:
   type: Reject
 
-  matches:
+  match:
     - query: "$.kind"
       value: "whatever"
