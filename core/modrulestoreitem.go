@@ -33,8 +33,8 @@ import (
 // match queries, regexp expressions and value templates in compiled form.
 type ModRuleStoreItem struct {
 	modRule           *v1beta1.ModRule
-	compiledJSONPaths map[*v1beta1.Match]gval.Evaluable
-	compiledRegexes   map[*v1beta1.Match]*regexp.Regexp
+	compiledJSONPaths map[*v1beta1.MatchItem]gval.Evaluable
+	compiledRegexes   map[*v1beta1.MatchItem]*regexp.Regexp
 	compiledJSONPatch []*compiledJSONPatchOperation
 	log               logr.Logger
 }
@@ -62,13 +62,13 @@ func NewModRuleStoreItemFactory(jsonPathLanguage *gval.Language, log logr.Logger
 
 // NewModRuleStoreItem constructs a new ModRule store item.
 func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) (*ModRuleStoreItem, error) {
-	compiledJSONPaths, err := newCompiledJSONPaths(modRule.Spec.Matches, f.jsonPathLanguage)
+	compiledJSONPaths, err := newCompiledJSONPaths(modRule.Spec.Match, f.jsonPathLanguage)
 
 	if err != nil {
 		return nil, err
 	}
 
-	compiledRegexes, err := newCompiledRegexes(modRule.Spec.Matches)
+	compiledRegexes, err := newCompiledRegexes(modRule.Spec.Match)
 
 	if err != nil {
 		return nil, err
@@ -90,14 +90,14 @@ func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) 
 		nil
 }
 
-// Given a slice of matches, construct a cache of compiled gval expressions.
+// Given a slice of matchItems, construct a cache of compiled gval expressions.
 // Note that the cache is a map which uses the pointers to the match slice elements as keys.
-func newCompiledJSONPaths(matches []v1beta1.Match, jsonPathLanguage *gval.Language) (map[*v1beta1.Match]gval.Evaluable, error) {
+func newCompiledJSONPaths(matchItems []v1beta1.MatchItem, jsonPathLanguage *gval.Language) (map[*v1beta1.MatchItem]gval.Evaluable, error) {
 	var err error
-	cache := make(map[*v1beta1.Match]gval.Evaluable)
+	cache := make(map[*v1beta1.MatchItem]gval.Evaluable)
 
-	for i := range matches {
-		cache[&matches[i]], err = jsonPathLanguage.NewEvaluable(matches[i].Query)
+	for i := range matchItems {
+		cache[&matchItems[i]], err = jsonPathLanguage.NewEvaluable(matchItems[i].Query)
 
 		if err != nil {
 			return nil, err
@@ -107,15 +107,15 @@ func newCompiledJSONPaths(matches []v1beta1.Match, jsonPathLanguage *gval.Langua
 	return cache, nil
 }
 
-// Given a slice of matches, construct a cache of compiled regexp expressions.
+// Given a slice of matchItems, construct a cache of compiled regexp expressions.
 // Note that the cache is a map which uses the pointers to the match slice elements as keys.
-func newCompiledRegexes(matches []v1beta1.Match) (map[*v1beta1.Match]*regexp.Regexp, error) {
+func newCompiledRegexes(matchItems []v1beta1.MatchItem) (map[*v1beta1.MatchItem]*regexp.Regexp, error) {
 	var err error
-	cache := make(map[*v1beta1.Match]*regexp.Regexp)
+	cache := make(map[*v1beta1.MatchItem]*regexp.Regexp)
 
-	for i := range matches {
-		if matches[i].Regex != nil {
-			cache[&matches[i]], err = regexp.Compile(*matches[i].Regex)
+	for i := range matchItems {
+		if matchItems[i].Regex != nil {
+			cache[&matchItems[i]], err = regexp.Compile(*matchItems[i].Regex)
 
 			if err != nil {
 				return nil, err
@@ -223,12 +223,12 @@ func modRuleValueToJSONValue(modRuleValue string) (string, error) {
 // IsMatch runs all the queries stored in the receiving store item against the given JSON object.
 // If all of the queries match, it returns true, otherwise, returns false.
 func (si *ModRuleStoreItem) IsMatch(jsonv interface{}) bool {
-	matches := si.modRule.Spec.Matches
+	matchItems := si.modRule.Spec.Match
 
-	for i := range matches {
-		match := &matches[i]
+	for i := range matchItems {
+		matchItem := &matchItems[i]
 
-		if !si.isMatch(match, jsonv) {
+		if !si.isMatch(matchItem, jsonv) {
 			return false
 		}
 	}
@@ -236,18 +236,18 @@ func (si *ModRuleStoreItem) IsMatch(jsonv interface{}) bool {
 	return true
 }
 
-func (si *ModRuleStoreItem) isMatch(match *v1beta1.Match, jsonv interface{}) bool {
+func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interface{}) bool {
 
-	jsonPath := si.compiledJSONPaths[match]
+	jsonPath := si.compiledJSONPaths[matchItem]
 
 	result, err := jsonPath(context.Background(), jsonv)
 	if err != nil {
 		// There is at least one valid reason to be here - when the query tries to match a missing key
 		// such as metadata. label.missing_key.
 		// In this case we only want to log a DBG info message and negate the query.
-		si.log.V(1).Info("JSONPath query expression failure", "query", match.Query, "error", err)
+		si.log.V(1).Info("JSONPath query expression failure", "query", matchItem.Query, "error", err)
 
-		return match.Negative
+		return matchItem.Negative
 	}
 
 	var expressionValues []interface{}
@@ -257,12 +257,12 @@ func (si *ModRuleStoreItem) isMatch(match *v1beta1.Match, jsonv interface{}) boo
 
 	// If the query evaluates to nil, this is a no-match.
 	case nil:
-		return match.Negative
+		return matchItem.Negative
 
 	// If the query itself returns a boolean, use that as the match.
 	// The query value will not be evaluated against match.value, match.values and match.regex.
 	case bool:
-		return vresult != match.Negative
+		return vresult != matchItem.Negative
 
 	// If the query returns an array, evaluate its contents against match.value, match.values and match.regex.
 	case []interface{}:
@@ -273,16 +273,16 @@ func (si *ModRuleStoreItem) isMatch(match *v1beta1.Match, jsonv interface{}) boo
 		expressionValues = []interface{}{vresult}
 
 	default:
-		return match.Negative
+		return matchItem.Negative
 	}
 
 	if len(expressionValues) == 0 {
-		return match.Negative
+		return matchItem.Negative
 	}
 
 	// Pre-extract the match regex if any - we don't want to waste cycles picking it up on every iteration over the expressionValues.
 	// Note that if the match contains no regex, matchRegexp will be nil
-	matchRegexp := si.compiledRegexes[match]
+	matchRegexp := si.compiledRegexes[matchItem]
 
 	// Check if any of the resulting values match any of the criteria values.
 	for _, expressionValue := range expressionValues {
@@ -297,44 +297,44 @@ func (si *ModRuleStoreItem) isMatch(match *v1beta1.Match, jsonv interface{}) boo
 		}
 
 		// We have a positive match? No need to look further.
-		if isStringMatch(match, matchRegexp, ev) == !match.Negative {
-			return !match.Negative
+		if isStringMatch(matchItem, matchRegexp, ev) == !matchItem.Negative {
+			return !matchItem.Negative
 		}
 	}
 
-	return match.Negative
+	return matchItem.Negative
 }
 
-func isStringMatch(match *v1beta1.Match, matchRegexp *regexp.Regexp, value *string) bool {
-	if match.Value != nil {
-		if *value == *match.Value {
-			return !match.Negative
+func isStringMatch(matchItem *v1beta1.MatchItem, matchRegexp *regexp.Regexp, value *string) bool {
+	if matchItem.Value != nil {
+		if *value == *matchItem.Value {
+			return !matchItem.Negative
 		}
-		// Match has a spec value, but it doesn't match - return negative match.
-		return match.Negative
+		// MatchItem has a spec value, but it doesn't match - return negative match.
+		return matchItem.Negative
 	}
 
-	if match.Values != nil && len(match.Values) > 0 {
-		for i := range match.Values {
-			if *value == match.Values[i] {
-				return !match.Negative
+	if matchItem.Values != nil && len(matchItem.Values) > 0 {
+		for i := range matchItem.Values {
+			if *value == matchItem.Values[i] {
+				return !matchItem.Negative
 			}
 		}
 
-		// Match has spec values, but none of them match - return negative match.
-		return match.Negative
+		// MatchItem has spec values, but none of them match - return negative match.
+		return matchItem.Negative
 	}
 
-	if match.Regex != nil {
+	if matchItem.Regex != nil {
 		if matchRegexp.MatchString(*value) {
-			return !match.Negative
+			return !matchItem.Negative
 		}
 
-		// Match has a regex, but it does not match - return negative match.
-		return match.Negative
+		// MatchItem has a regex, but it does not match - return negative match.
+		return matchItem.Negative
 	}
 
-	// Match has no spec value, values or regex, but the query yielded a value.
+	// MatchItem has no spec value, values or regex, but the query yielded a value.
 	// This is a positive match.
-	return !match.Negative
+	return !matchItem.Negative
 }

@@ -5,7 +5,7 @@ metadata:
 spec:
   type: Patch
 
-  matches:
+  match:
     - query: '$.kind'
       value: 'Pod'
 

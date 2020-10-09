@@ -96,19 +96,19 @@ func (r *ModRule) validateModRule() error {
 	}
 
 	// Validate the ModRule queries.
-	for i, match := range r.Spec.Matches {
+	for i, matchItem := range r.Spec.Match {
 		// First test the match query.
-		_, err = jsonPathLanguage.NewEvaluable(match.Query)
+		_, err = jsonPathLanguage.NewEvaluable(matchItem.Query)
 
 		if err != nil {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("matches").Index(i).Child("query"), match.Query, fmt.Sprintf("%v", err)))
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("query"), matchItem.Query, fmt.Sprintf("%v", err)))
 		}
 
 		// Then the optional target regexp.
-		if match.Regex != nil {
-			_, err = regexp.Compile(*match.Regex)
+		if matchItem.Regex != nil {
+			_, err = regexp.Compile(*matchItem.Regex)
 			if err != nil {
-				allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("matches").Index(i).Child("regex"), *match.Regex, fmt.Sprintf("%v", err)))
+				allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("regex"), *matchItem.Regex, fmt.Sprintf("%v", err)))
 			}
 		}
 	}

@@ -13,7 +13,6 @@ build_and_test:
   
   script:
     - make test
-    - bash <(curl -s https://codecov.io/bash)
 
 deploy:
   stage: deploy

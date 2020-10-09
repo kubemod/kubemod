@@ -5,7 +5,7 @@ metadata:
 spec:
   type: Reject
 
-  matches:
+  match:
     - query: "$.spec.containers[123].ports[0].containerPort"
       value: "80"
       negative: true
