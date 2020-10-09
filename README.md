@@ -109,7 +109,8 @@ This leads to issues such as:
 
 With the help of KubeMod ModRules one can alleviate such issues by intercepting the creation of resources and modifying them to perform the necessary modifications.
 
-There are a few typical use cases for using ModRules.
+That said, here are a number typical use cases for using ModRules.
+Some of them go beyond the original use case of fixing misbehaving operators.
 
 ### Sidecar injection
 
