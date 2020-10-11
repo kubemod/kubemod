@@ -9,5 +9,5 @@ fi
 
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-make build-docker IMG=kubemod/kubemod:$KUBEMOD_IMAGE_VERSION
-make push-docker IMG=kubemod/kubemod:$KUBEMOD_IMAGE_VERSION
+make docker-build IMG=kubemod/kubemod:$KUBEMOD_IMAGE_VERSION
+make docker-push IMG=kubemod/kubemod:$KUBEMOD_IMAGE_VERSION
