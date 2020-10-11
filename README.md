@@ -1,4 +1,4 @@
-![Build Status][ci-img] [![Go Report Card][goreport-img]][goreport] [![Code Coverage][cov-img]][cov]
+[![Go Report Card][goreport-img]][goreport] [![Code Coverage][cov-img]][cov]
 
 # KubeMod
 
