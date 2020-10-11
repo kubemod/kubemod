@@ -2,25 +2,27 @@
 
 # KubeMod
 
-KubeMod is a universal Kubernetes resource mutator.
+- Intercept and modify arbitrary Kubernetes resources on the fly.
+- Customize opaque Helm charts and Kubernetes operators.
+- Develop your own sidecar container injections - no coding required.
 
-It allows you to deploy to Kubernetes declarative rules which perform targeted modifications to specific Kubernetes resources at the time
-those resources are deployed or updated.
+
+## What is it
+
+KubeMod is a Kubernetes operator which applies targeted modifications to specific Kubernetes resources at the time those resources are deployed or updated.
 
 Essentially, KubeMod is a [Dynamic Admission Control operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/),
-which gives you the power of Kubernetes Mutating Webhooks without the need to develop an admission webhook controller from scratch.
+driven by simple declarative `ModRules` you deploy to your Kubernetes cluster.
 
 ## Installation
 
-KubeMod is an implementation of a [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
-
-To install the operator, run:
+To install KubeMod, run:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
 ```
 
-To upgrade the operator, run:
+To upgrade it, run:
 
 ```bash
 # Delete the kubemod certificate generation job in case kubemod has already been installed.
@@ -29,13 +31,13 @@ kubectl.exe delete job -l job-name=kubemod-crt-job -n kubemod-system
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
 ```
 
-To uninstall it, run:
+To uninstall KubeMod, run:
 
 ```bash
 kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
 ```
 
-**Note**: Uninstalling kubemod operator will also remove all your ModRules.
+**Note**: Uninstalling KubeMod will also remove all your ModRules.
 
 ## Getting started
 
@@ -56,7 +58,7 @@ spec:
     # Match deployments ...
     - query: '$.kind'
       value: 'Deployment'
-    # ... with label app=nginx ...
+    # ... with label app = nginx ...
     - query: '$.metadata.labels.app'
       value: 'nginx'
     # ... and at least one container whose image matches nginx:1.14.* ...
@@ -94,24 +96,99 @@ See more examples of ModRules [here](https://github.com/kubemod/kubemod/tree/mas
 
 ## Motivation and use cases
 
-Ironically, the development of the KubeMod operator was motivated by the proliferation of the Kubernetes Operator pattern itself.
+The creation of KubeMod was motivated by the proliferation of Kubernetes Operators and Helm charts which are sometimes opaque to customizations and lead to runtime issues.
 
-A large number of services and platforms are now being deployed to Kubernetes using bespoke customized operators instead of deploying primitive Kubernetes resources through Helm charts, kustomize or kubectl.
+Helm charts and Kubernetes operators greatly simplify the complexity of deploying a ton of primitive resources and reduce it down to a number of configuration values and domain-specific custom resources.
 
-This is all great as the operator pattern encapsulates the complexity of deploying a ton of primitive resources and boils it down to a number of domain-specific custom resources.
+But sometimes this simplicity introduces a challenge -- from a user's perspective, Helm charts and Kubernetes operators are black boxes which can only be controlled through the configuration values the chart/operator developer chose to expose.
 
-But the operator pattern introduces a challenge -- since the operator is a black-box sending primitive resources directly to the Kubernetes API, this makes it impossible to apply additional customizations to those resources prior to or at the time of deployment.
-
-This leads to issues such as:
+Ideally we would not need to control anything more than those configuration values, but in reality this opaqueness leads to issues such as these:
 
 - https://github.com/elastic/cloud-on-k8s/issues/2328
 - https://github.com/jaegertracing/jaeger-operator/issues/1096
 
-With the help of KubeMod ModRules one can alleviate such issues by intercepting the creation of resources and modifying them to perform the necessary modifications.
+Oftentimes these issues are showstoppers that render the chart/operator impossible to use for certain use cases.
 
-That said, here are a number typical use cases for using ModRules.
+With the help of KubeMod we can make those charts and operators work for us. Just deploy a cleverly developed ModRule which targets the problematic primitive resource and patch it on the fly at the time it is created.
 
-Some of them go beyond the original use case of fixing misbehaving operators.
+Here's a number of typical use cases for KubeMod.
+
+(Some of them, such as the **sidecar injection** and **resource rejection**, go beyond the original use case of fixing third-party misbehaving code).
+
+
+### Behavior modifications
+
+Here's a typical black-box operator issue which can be fixed with KubeMod: https://github.com/elastic/cloud-on-k8s/issues/2328.
+
+The issue is that when the [Elastic Search operator](https://github.com/elastic/cloud-on-k8s) creates Persistent Volume Claims, it attaches an `ownerReference` to them such that they are garbage-collected after the operator removes the Elastic Search stack of resources.
+
+This makes sense when we plan to dynamically scale Elastic Search up and down, but it doesn't make sense if we don't plan to scale dynamically, but we do want to keep the Elastic Search indexes during Elastic Search reinstallation (see comments [here](https://github.com/elastic/cloud-on-k8s/issues/2328#issuecomment-583254122) and [here](https://github.com/elastic/cloud-on-k8s/issues/2328#issuecomment-650335893)).
+
+A solution to this issue would be the following ModRule which simply removes the `ownerReference` from PVCs created by the Elastic Search operator at the time they are deployed, thus excluding those resources from Kubernetes garbage collection:
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: my-mod-rule
+spec:
+  type: Patch
+
+  matches:
+    # Match persistent volume claims ...
+    - query: '$.kind'
+      value: PersistentVolumeClaim
+    # ... created by the elasticsearch operator.
+    - query: '$.metadata.labels["common.k8s.elastic.co/type"]'
+      value: elasticsearch
+
+  patch:
+    # Remove the ownerReference if it exists, thus excluding the resource from Kubernetes garbage collection.
+    - op: remove
+      path: /metadata/ownerReferences/0
+```
+
+
+### Metadata modifications
+
+With the help of ModRules, one can dynamically modify the resources generated by one operator such that another operator can detect those resources.
+
+For example, [Istio's sidecar injection](https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/) can be controlled by pod annotation `sidecar.istio.io/inject`. If another operator creates a deployment which we want to explicitly exclude from Istio's injection mechanism, we can create a ModRule which modifies that deployment by adding this annotation with value `"false"`.
+
+The following ModRule explicitly excludes the Jaeger collector deployment created by the [Jaeger Operator](https://www.jaegertracing.io/docs/1.18/operator/) from Istio sidecar injection:
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: my-modrule
+spec:
+  type: Patch
+
+  match:
+    # Match deployments ...
+    - query: '$.kind'
+      value: 'Deployment'
+
+    # ... with label app = jaeger ...
+    - query: '$.metadata.labels.app'
+      value: 'jaeger'
+
+    # ... and label app.kubernetes.io/component = collector ...
+    - query: '$.metadata.labels["app.kubernetes.io/component"]'
+      value: 'collector'
+
+    # ... but with and no annotation sidecar.istio.io/inject.
+    - query: '$.metadata.annotations["sidecar.istio.io/inject"]'
+      negative: true
+    
+  patch:
+    # Add Istio annotation sidecar.istio.io/inject=false to exclude this deployment from Istio injection.
+    - op: add
+      path: /metadata/annotations/sidecar.istio.io~1inject
+      value: '"false"'
+```
+
 
 ### Sidecar injection
 
@@ -127,11 +204,13 @@ spec:
   type: Patch
 
   match:
+    # Match deployments ...
     - query: '$.kind'
       value: Deployment
+    # ... with annotation  my-inject-annotation = true ...
     - query: '$.metadata.annotations["my-inject-annotation"]'
       value: '"true"'
-    # Ensure that there isn't already a jaeger-agent container injected in the pod to avoid adding more containers on UPDATE operations.
+    # ... but ensure that there isn't already a jaeger-agent container injected in the pod template to avoid adding more containers on UPDATE operations.
     - query: '$.spec.template.spec.containers[*].name'
       value: 'jaeger-agent'
       negative: true
@@ -145,7 +224,6 @@ spec:
         image: jaegertracing/jaeger-agent:1.18.1
         imagePullPolicy: IfNotPresent
         args:
-          # Use template context {{ .Target }} and {{ .Namespace }} to extract the name of the deployment and the current namespace.
           - --jaeger.tags=deployment.name={{ .Target.metadata.name }},pod.namespace={{ .Namespace }},pod.id=${POD_ID:},host.ip=${HOST_IP:}
           - --reporter.grpc.host-port=dns:///jaeger-collector-headless.{{ .Namespace }}:14250
           - --reporter.type=grpc
@@ -166,91 +244,25 @@ spec:
           protocol: UDP
 ```
 
-Note the use of ``{{ .Target.metadata.name }}`` in the patch value to dynamically access the name of the deployment being patched and pass it to the Jaeger agent as a tracer tag.
+Note the use of ``{{ .Target.metadata.name }}`` in the patch `value` to dynamically access the name of the deployment being patched and pass it to the Jaeger agent as a tracer tag.
 
-When a patch is evaluated, KubeMod executes the patch value as a [Golang template](https://golang.org/pkg/text/template/) and passes the following intrinsic items to it accessible through the template's context:
+When a patch is evaluated, KubeMod executes the patch value as a [Golang template](https://golang.org/pkg/text/template/) and passes the following intrinsic items accessible through the template's context:
 * `.Target` - the original resource object being patched with all its properties.
 * `.Namespace` - the namespace of the resource object.
 
-
-### Metadata modifications
-
-With the help of ModRules, one can dynamically modify the resources generated by one operator such that another operator can detect those resources.
-
-For example, [Istio's sidecar injection](https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/) is controlled by pod annotation `sidecar.istio.io/inject`. If an operator creates a deployment which we want to explicitly include or exclude from Istio's injection mechanism, we can create a ModRule which modifies that deployment by adding this annotation.
-
-The following ModRule explicitly excludes the Jaeger collector deployment created by the [Jaeger Operator](https://www.jaegertracing.io/docs/1.18/operator/) from Istio injection:
-
-```yaml
-apiVersion: api.kubemod.io/v1beta1
-kind: ModRule
-metadata:
-  name: my-modrule
-spec:
-  type: Patch
-
-  match:
-    - query: '$.kind'
-      value: 'Deployment'
-
-    - query: '$.metadata.labels.app'
-      value: 'jaeger'
-
-    - query: '$.metadata.labels["app.kubernetes.io/component"]'
-      value: 'collector'
-
-    # Exclude all deployments which already have annotation sidecar.istio.io/inject applied.
-    - query: '$.metadata.annotations["sidecar.istio.io/inject"]'
-      negative: true
-    
-  patch:
-    # Add Istio annotation to exclude this deployment from Istio injection.
-    - op: add
-      path: /metadata/annotations/sidecar.istio.io~1inject
-      value: '"false"'
-```
-
-
-### Behavior modifications
-
-Here's a typical black-box operator issue which can be fixed with KubeMod: https://github.com/elastic/cloud-on-k8s/issues/2328.
-
-The issue is that the when the Elastic Search operator creates Persistent Volumes, it attaches an `ownerReference` to them such that they are removed after the operator removes the Elastic Search stack of resources.
-
-This makes sense when we plan to dynamically scale Elastic Search up and and down, but it doesn't make sense if we don't plan to scale dynamically, but we do want to keep the PVC such that it can be reused on the next deployment of an Elastic Search stack (see comments [here](https://github.com/elastic/cloud-on-k8s/issues/2328#issuecomment-583254122) and [here](https://github.com/elastic/cloud-on-k8s/issues/2328#issuecomment-650335893).
-
-A solution to this issue would be the following ModRule which simply removes the `ownerReference` from the PVC before it is actually deployed, thus keeping the PVC persist after the stack is removed:
-
-```yaml
-apiVersion: api.kubemod.io/v1beta1
-kind: ModRule
-metadata:
-  name: my-mod-rule
-spec:
-  type: Patch
-
-  matches:
-    - query: '$.kind'
-      value: PersistentVolumeClaim
-    - query: '$.metadata.labels["common.k8s.elastic.co/type"]'
-      value: elasticsearch
-
-  patch:
-    - op: remove
-      path: /metadata/ownerReferences/0
-```
 
 ### Resource rejection
 
 There are two types of ModRules -- `Patch` and `Reject`.
 
-So far all the examples we've seen have been of type `Patch`.
+All of the examples we've seen so far have been of type `Patch`.
 
 `Reject` ModRules are simpler as they only have a `match` section.
-If a resource matches that `match` section of a `Reject` ModRule, it's creation\update will be rejected.
-This allows us to develop a system of policy ModRules which enforce certain rules for the namespace they are deployed to.
 
-For example, here's a `Reject` ModRule which rejects the deployment of any `Deployment` or `StatefulSet` resource which does not explicitly require non-root containers:
+If a resource matches the `match` section of a `Reject` ModRule, its creation/update will be rejected.
+This enables the development of a system of policy ModRules which enforce certain security restrictions in the namespace they are deployed to.
+
+For example, here's a `Reject` ModRule which rejects the deployment of any `Deployment` or `StatefulSet` resource that does not explicitly require non-root containers:
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
@@ -261,12 +273,12 @@ spec:
   type: Reject
 
   match:
-    # Match Deployments and StatefulSets...
+    # Match (thus reject) Deployments and StatefulSets...
     - query: '$.kind'
       values:
         - 'Deployment'
         - 'StatefulSet'
-    # ... that have no explicit runAsNonRoot security context:
+    # ... that have no explicit runAsNonRoot security context.
     - query: "$.spec.template.spec.securityContext.runAsNonRoot == true"
       negative: true
 ```
