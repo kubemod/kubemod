@@ -1,6 +1,6 @@
 name: 'CI Test Workflow'
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
 
@@ -9,20 +9,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Whatever
-      run: echo ${{ github.ref }}
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.7'
 
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.14.7'
+      - uses: actions/checkout@v2
 
-    - uses: actions/checkout@v2
+      - name: Test
+        run: make test
 
-    - name: Test
-      run: make test
+  deploy:
+    name: Deploy Latest
+    if: github.ref == "refs/heads/master"
+    runs-on: ubuntu-latest
+    needs: test
 
-  # deploy:
-  #   name: Deploy
-  #   runs-on: ubuntu-latest
-  #   needs: test
-  #   if: 'github.ref'
+    steps:
+
+      - name: Deploy Latest
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          KUBEMOD_IMAGE_VERSION: latest
+
+        run: |
+          ./build/deploy-image.sh
+          bash <(curl -s https://codecov.io/bash)
+
+  deploy_tag:
+    name: Deploy Tag
+    if: startsWith(github.ref, "refs/tags/")
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+
+      - name: Deploy Tag
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+        run: ./build/deploy-image.sh
