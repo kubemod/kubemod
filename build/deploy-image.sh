@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Get the version of the image - default to the latest tag.
 KUBEMOD_IMAGE_VERSION=${KUBEMOD_IMAGE_VERSION:-$(git describe --tags)}
