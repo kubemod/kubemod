@@ -4,7 +4,7 @@
 KUBEMOD_IMAGE_VERSION=${KUBEMOD_IMAGE_VERSION:-$(git describe --tags)}
 
 if [[ $KUBEMOD_IMAGE_VERSION == v* ]]; then
-    KUBEMOD_IMAGE_VERSION=$(echo ${OPERATOR_VERSION} | grep -Po "(v[\d\.]+)")
+    KUBEMOD_IMAGE_VERSION=$(echo ${KUBEMOD_IMAGE_VERSION} | grep -Po "(v[\d\.]+)")
 fi
 
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin

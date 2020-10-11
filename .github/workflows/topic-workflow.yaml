@@ -12,6 +12,8 @@ jobs:
   test:
     name: Test topic branch
     runs-on: ubuntu-latest
+    if: contains(toJson(github.event.commits), '[skip ci]') == false
+
     steps:
 
       - uses: actions/setup-go@v2

@@ -10,6 +10,7 @@ jobs:
   deploy:
     name: Test and deploy latest master
     runs-on: ubuntu-latest
+    if: contains(toJson(github.event.commits), '[skip ci]') == false
 
     steps:
 
