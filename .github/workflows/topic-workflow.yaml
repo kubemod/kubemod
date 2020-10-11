@@ -1,0 +1,26 @@
+name: 'Topic Workflow'
+
+on:
+  push:
+    branches-ignore:
+      - 'master'
+    tags-ignore:
+      - 'v*'
+
+jobs:
+
+  test:
+    name: Test topic branch
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.7'
+
+      - uses: actions/checkout@v2
+
+      - name: Test
+        run: |
+          make test
+          bash <(curl -s https://codecov.io/bash)
