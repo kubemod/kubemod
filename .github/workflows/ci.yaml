@@ -26,6 +26,13 @@ jobs:
 
     steps:
 
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.7'
+
+      - uses: actions/checkout@v2
+
+
       - name: Deploy Latest
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -33,8 +40,6 @@ jobs:
           KUBEMOD_IMAGE_VERSION: latest
 
         run: |
-          pwd
-          ls -lh
           ./build/deploy-image.sh
           bash <(curl -s https://codecov.io/bash)
 
@@ -44,6 +49,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.7'
+
+      - uses: actions/checkout@v2
 
       - name: Deploy Tag
         env:
