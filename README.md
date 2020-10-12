@@ -14,7 +14,7 @@ Use KubeMod to:
 
 KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) deployed in its own namespace `kubemod-system`.
 
-To install KubeMod, run:
+Install it by running:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
