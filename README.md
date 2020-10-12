@@ -2,19 +2,17 @@
 
 # KubeMod
 
-- Intercept and modify arbitrary Kubernetes resources on the fly.
-- Customize opaque Helm charts and Kubernetes operators.
-- Develop your own sidecar container injections - no coding required.
+KubeMod unlocks the power of [Kubernetes Mutating Webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) by introducing `ModRule` - a custom resource which allows you to declaratively apply modifications to specific Kubernetes resources at runtime.
 
+Use KubeMod to:
 
-## What is it
-
-KubeMod is a Kubernetes operator which applies targeted modifications to specific Kubernetes resources at the time those resources are deployed or updated.
-
-Essentially, KubeMod is a [Dynamic Admission Control operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/),
-driven by simple declarative `ModRules` you deploy to your Kubernetes cluster.
+- Customize opaque Helm charts and Kubernetes operators
+- Build a system of policy rules to reject misbehaving resources
+- Develop your own sidecar container injections - no coding required
 
 ## Installation
+
+KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) deployed in its own namespace `kubemod-system`.
 
 To install KubeMod, run:
 
