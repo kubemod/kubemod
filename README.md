@@ -2,8 +2,6 @@
 
 <h1><img valign="middle" src="https://github.com/kubemod/kubemod/blob/5-document-modrule-specification/logo.svg"></img>&nbsp;KubeMod</h1>
 
-# KubeMod
-
 KubeMod unlocks the power of [Kubernetes Mutating Webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) by introducing `ModRule` - a custom resource which allows you to declaratively apply modifications to specific Kubernetes resources at runtime.
 
 Use KubeMod to:
