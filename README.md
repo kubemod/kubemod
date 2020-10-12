@@ -2,7 +2,7 @@
 
 # KubeMod
 
-KubeMod unlocks the power of [Kubernetes Mutating Webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) by introducing `ModRule` - a custom Kubernetes resource which allows you to declaratively apply modifications to specific Kubernetes resources at runtime.
+KubeMod unlocks the power of [Kubernetes Mutating Webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) by introducing `ModRule` - a custom Kubernetes resource which allows you to intercept the creation of any Kubernetes object and apply targeted modifications to it before it is deployed to the cluster.
 
 Use KubeMod to:
 
