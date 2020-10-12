@@ -12,7 +12,7 @@ Use KubeMod to:
 
 ## Installation
 
-KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) deployed in its own namespace `kubemod-system`.
+KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) deployed to its own namespace `kubemod-system`.
 
 Install it by running:
 
