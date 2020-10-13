@@ -6,5 +6,5 @@ spec:
   type: Reject
 
   match:
-    - query: "$.kind"
+    - select: "$.kind"
       matchValue: "whatever"

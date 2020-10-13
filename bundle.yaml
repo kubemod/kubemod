@@ -60,6 +60,8 @@ spec:
                   select:
                     description: 'Select is a JSONPath query expression: https://goessner.net/articles/JsonPath/ which yields zero or more values. If no match value or regex is specified, if the query yields a non-empty result, the match is considered positive.'
                     type: string
+                required:
+                - select
                 type: object
               minItems: 1
               type: array

@@ -50,7 +50,7 @@ type ModRuleSpec struct {
 type MatchItem struct {
 	// Select is a JSONPath query expression: https://goessner.net/articles/JsonPath/ which yields zero or more values.
 	// If no match value or regex is specified, if the query yields a non-empty result, the match is considered positive.
-	Select string `json:"select,omitempty"`
+	Select string `json:"select"`
 
 	// MatchValue specifies the exact value to match the result of Select by.
 	// The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to matchValue.

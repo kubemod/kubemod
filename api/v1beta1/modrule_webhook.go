@@ -97,11 +97,16 @@ func (r *ModRule) validateModRule() error {
 
 	// Validate the ModRule queries.
 	for i, matchItem := range r.Spec.Match {
-		// First test the match query.
-		_, err = jsonPathLanguage.NewEvaluable(matchItem.Select)
+		// Test the match query for being non-empty.
+		if matchItem.Select == "" {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("select"), matchItem.Select, "spec.match[].select in body must be non-empty string"))
+		} else {
+			// Test the match query.
+			_, err = jsonPathLanguage.NewEvaluable(matchItem.Select)
 
-		if err != nil {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("select"), matchItem.Select, fmt.Sprintf("%v", err)))
+			if err != nil {
+				allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("select"), matchItem.Select, fmt.Sprintf("%v", err)))
+			}
 		}
 
 		// Then the optional target regexp.

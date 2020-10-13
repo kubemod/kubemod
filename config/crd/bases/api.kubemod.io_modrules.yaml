@@ -73,6 +73,8 @@ spec:
                       is specified, if the query yields a non-empty result, the match
                       is considered positive.'
                     type: string
+                required:
+                - select
                 type: object
               minItems: 1
               type: array
