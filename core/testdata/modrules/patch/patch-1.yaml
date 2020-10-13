@@ -10,7 +10,7 @@ spec:
       matchValue: 'Pod'
 
     - select: '$.spec.containers[*].image'
-      regex: 'nginx:1\.14\..*'
+      matchRegex: 'nginx:1\.14\..*'
 
   patch:
     - op: add

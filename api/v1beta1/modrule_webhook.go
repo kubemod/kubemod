@@ -105,10 +105,10 @@ func (r *ModRule) validateModRule() error {
 		}
 
 		// Then the optional target regexp.
-		if matchItem.Regex != nil {
-			_, err = regexp.Compile(*matchItem.Regex)
+		if matchItem.MatchRegex != nil {
+			_, err = regexp.Compile(*matchItem.MatchRegex)
 			if err != nil {
-				allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("regex"), *matchItem.Regex, fmt.Sprintf("%v", err)))
+				allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("matchRegex"), *matchItem.MatchRegex, fmt.Sprintf("%v", err)))
 			}
 		}
 	}

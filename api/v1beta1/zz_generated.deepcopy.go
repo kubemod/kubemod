@@ -35,8 +35,8 @@ func (in *MatchItem) DeepCopyInto(out *MatchItem) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	if in.Regex != nil {
-		in, out := &in.Regex, &out.Regex
+	if in.MatchRegex != nil {
+		in, out := &in.MatchRegex, &out.MatchRegex
 		*out = new(string)
 		**out = **in
 	}

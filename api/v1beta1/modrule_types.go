@@ -53,19 +53,19 @@ type MatchItem struct {
 	Select string `json:"select,omitempty"`
 
 	// MatchValue specifies the exact value to match the result of Select by.
-	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to matchValue.
+	// The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to matchValue.
 	// +nullable
 	MatchValue *string `json:"matchValue,omitempty"`
 
 	// MatchValues specifies a list of values to match the result of Select by.
-	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to any of the values in the array.
+	// The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to any of the values in the array.
 	// +optional
 	MatchValues []string `json:"matchValues,omitempty"`
 
-	// Regex specifies the regular expression to compare the result of Select by.
-	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to value.
+	// MatchRegex specifies the regular expression to compare the result of Select by.
+	// The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to value.
 	// +nullable
-	Regex *string `json:"regex,omitempty"`
+	MatchRegex *string `json:"matchRegex,omitempty"`
 
 	// Negative indicates if the match should occur when the query/value comparison yields a negative result.
 	// Defaults to false.

@@ -114,8 +114,8 @@ func newCompiledRegexes(matchItems []v1beta1.MatchItem) (map[*v1beta1.MatchItem]
 	cache := make(map[*v1beta1.MatchItem]*regexp.Regexp)
 
 	for i := range matchItems {
-		if matchItems[i].Regex != nil {
-			cache[&matchItems[i]], err = regexp.Compile(*matchItems[i].Regex)
+		if matchItems[i].MatchRegex != nil {
+			cache[&matchItems[i]], err = regexp.Compile(*matchItems[i].MatchRegex)
 
 			if err != nil {
 				return nil, err
@@ -325,16 +325,16 @@ func isStringMatch(matchItem *v1beta1.MatchItem, matchRegexp *regexp.Regexp, val
 		return matchItem.Negative
 	}
 
-	if matchItem.Regex != nil {
+	if matchItem.MatchRegex != nil {
 		if matchRegexp.MatchString(*value) {
 			return !matchItem.Negative
 		}
 
-		// MatchItem has a regex, but it does not match - return negative match.
+		// MatchItem has a matchRegex, but it does not match - return negative match.
 		return matchItem.Negative
 	}
 
-	// MatchItem has no spec matchValue, matchValues or regex, but the query yielded a value.
+	// MatchItem has no spec matchValue, matchValues or matchRegex, but the query yielded a value.
 	// This is a positive match.
 	return !matchItem.Negative
 }

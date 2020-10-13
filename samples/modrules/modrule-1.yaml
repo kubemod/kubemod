@@ -10,11 +10,11 @@ spec:
       matchValue: 'Deployment'
 
     - select: '$.metadata.labels.app'
-      regex: 'nginx'
+      matchValue: 'nginx'
 
     # Find deployments which include an nginx 1.14 container...
     - select: '$.spec.template.spec.containers[*].image'
-      regex: 'nginx:1\.14\..*'
+      matchRegex: 'nginx:1\.14\..*'
     
   patch:
     - op: add

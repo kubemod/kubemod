@@ -61,7 +61,7 @@ spec:
       matchValue: 'nginx'
     # ... and at least one container whose image matches nginx:1.14.* ...
     - select: '$.spec.template.spec.containers[*].image'
-      regex: 'nginx:1\.14\..*'
+      matchRegex: 'nginx:1\.14\..*'
     # ... but has no explicit runAsNonRoot security context (note the "negative: true" part):
     - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
       negative: true
