@@ -10,4 +10,4 @@ spec:
       matchValues:
         - Pod
         - Deployment
-      negative: true
+      negate: true

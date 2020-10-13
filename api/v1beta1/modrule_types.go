@@ -67,10 +67,10 @@ type MatchItem struct {
 	// +nullable
 	MatchRegex *string `json:"matchRegex,omitempty"`
 
-	// Negative indicates if the match should occur when the query/value comparison yields a negative result.
+	// Negate indicates whether the match result should be to inverted.
 	// Defaults to false.
 	// +optional
-	Negative bool `json:"negative,omitempty"`
+	Negate bool `json:"negate,omitempty"`
 }
 
 // PatchOperation represents a single JSON Patch operation.

@@ -11,4 +11,4 @@ spec:
       
     - select: "$.spec.containers[0].ports[0].containerPort"
       matchValue: "80"
-      negative: true
+      negate: true

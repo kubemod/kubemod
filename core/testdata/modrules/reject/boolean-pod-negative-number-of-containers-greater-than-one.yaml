@@ -10,4 +10,4 @@ spec:
       matchValue: "Pod"
       
     - select: "length($.spec.containers) > 1"
-      negative: true
+      negate: true

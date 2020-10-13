@@ -8,4 +8,4 @@ spec:
   match:
     - select: "$.kind"
       matchValue: "Pod"
-      negative: true
+      negate: true

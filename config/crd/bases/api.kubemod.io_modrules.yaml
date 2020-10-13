@@ -63,10 +63,9 @@ spec:
                     items:
                       type: string
                     type: array
-                  negative:
-                    description: Negative indicates if the match should occur when
-                      the query/value comparison yields a negative result. Defaults
-                      to false.
+                  negate:
+                    description: Negate indicates whether the match result should
+                      be to inverted. Defaults to false.
                     type: boolean
                   select:
                     description: 'Select is a JSONPath query expression: https://goessner.net/articles/JsonPath/

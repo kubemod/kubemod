@@ -15,4 +15,4 @@ spec:
       matchValues:
         - red
         - blue
-      negative: true
+      negate: true

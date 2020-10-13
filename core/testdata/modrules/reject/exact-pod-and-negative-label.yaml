@@ -11,4 +11,4 @@ spec:
       
     - select: "$.metadata.labels.app"
       matchValue: "nginx"
-      negative: true
+      negate: true

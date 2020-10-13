@@ -62,9 +62,9 @@ spec:
     # ... and at least one container whose image matches nginx:1.14.* ...
     - select: '$.spec.template.spec.containers[*].image'
       matchRegex: 'nginx:1\.14\..*'
-    # ... but has no explicit runAsNonRoot security context (note the "negative: true" part):
+    # ... but has no explicit runAsNonRoot security context (note the "negate: true" part):
     - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
-      negative: true
+      negate: true
     
   patch:
     # Add custom annotation.
@@ -178,7 +178,7 @@ spec:
 
     # ... but with and no annotation sidecar.istio.io/inject.
     - select: '$.metadata.annotations["sidecar.istio.io/inject"]'
-      negative: true
+      negate: true
     
   patch:
     # Add Istio annotation sidecar.istio.io/inject=false to exclude this deployment from Istio injection.
@@ -211,7 +211,7 @@ spec:
     # ... but ensure that there isn't already a jaeger-agent container injected in the pod template to avoid adding more containers on UPDATE operations.
     - select: '$.spec.template.spec.containers[*].name'
       matchValue: 'jaeger-agent'
-      negative: true
+      negate: true
 
   patch:
     - op: add
@@ -278,7 +278,7 @@ spec:
         - 'StatefulSet'
     # ... that have no explicit runAsNonRoot security context.
     - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
-      negative: true
+      negate: true
 ```
 
 ### Other
