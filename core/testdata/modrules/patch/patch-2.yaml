@@ -6,7 +6,7 @@ spec:
   type: Patch
 
   match:
-    - query: '$.kind'
+    - select: '$.kind'
       value: 'Pod'
 
   patch:

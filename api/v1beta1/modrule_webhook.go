@@ -98,10 +98,10 @@ func (r *ModRule) validateModRule() error {
 	// Validate the ModRule queries.
 	for i, matchItem := range r.Spec.Match {
 		// First test the match query.
-		_, err = jsonPathLanguage.NewEvaluable(matchItem.Query)
+		_, err = jsonPathLanguage.NewEvaluable(matchItem.Select)
 
 		if err != nil {
-			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("query"), matchItem.Query, fmt.Sprintf("%v", err)))
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("select"), matchItem.Select, fmt.Sprintf("%v", err)))
 		}
 
 		// Then the optional target regexp.

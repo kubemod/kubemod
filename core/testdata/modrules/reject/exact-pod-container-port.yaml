@@ -6,8 +6,8 @@ spec:
   type: Reject
 
   match:
-    - query: "$.kind"
+    - select: "$.kind"
       value: "Pod"
       
-    - query: "$.spec.containers[0].ports[0].containerPort"
+    - select: "$.spec.containers[0].ports[0].containerPort"
       value: "80"

@@ -6,7 +6,7 @@ spec:
   type: Reject
 
   match:
-    - query: "$.kind"
+    - select: "$.kind"
       value: "Pod"
       
-    - query: "length($.spec.containers) > 1"
+    - select: "length($.spec.containers) > 1"

@@ -134,10 +134,10 @@ var _ = Describe("ModRuleStore", func() {
 					Spec: v1beta1.ModRuleSpec{
 						Match: []v1beta1.MatchItem{
 							v1beta1.MatchItem{
-								Query: `$.kind == "Pod"`,
+								Select: `$.kind == "Pod"`,
 							},
 							v1beta1.MatchItem{
-								Query: `$.metadata.labels.app =~ "nginx"`,
+								Select: `$.metadata.labels.app =~ "nginx"`,
 							},
 						},
 					},

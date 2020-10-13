@@ -97,7 +97,7 @@ func newCompiledJSONPaths(matchItems []v1beta1.MatchItem, jsonPathLanguage *gval
 	cache := make(map[*v1beta1.MatchItem]gval.Evaluable)
 
 	for i := range matchItems {
-		cache[&matchItems[i]], err = jsonPathLanguage.NewEvaluable(matchItems[i].Query)
+		cache[&matchItems[i]], err = jsonPathLanguage.NewEvaluable(matchItems[i].Select)
 
 		if err != nil {
 			return nil, err
@@ -245,7 +245,7 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 		// There is at least one valid reason to be here - when the query tries to match a missing key
 		// such as metadata. label.missing_key.
 		// In this case we only want to log a DBG info message and negate the query.
-		si.log.V(1).Info("JSONPath query expression failure", "query", matchItem.Query, "error", err)
+		si.log.V(1).Info("JSONPath query expression failure", "select", matchItem.Select, "error", err)
 
 		return matchItem.Negative
 	}

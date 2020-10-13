@@ -46,29 +46,29 @@ spec:
                       the query/value comparison yields a negative result. Defaults
                       to false.
                     type: boolean
-                  query:
-                    description: 'Query is a JSONPath query expression: https://goessner.net/articles/JsonPath/
-                      which yields zero or more values. If no match value or regex
-                      is specified, if the query yields a non-empty result, the match
-                      is considered positive.'
-                    type: string
                   regex:
                     description: Regex specifies the regular expression to compare
-                      the result of Query by. The match is considered positive if
+                      the result of Select by. The match is considered positive if
                       at least one of the results of evaluating the query yields a
                       match when compared to value.
                     nullable: true
                     type: string
+                  select:
+                    description: 'Select is a JSONPath query expression: https://goessner.net/articles/JsonPath/
+                      which yields zero or more values. If no match value or regex
+                      is specified, if the query yields a non-empty result, the match
+                      is considered positive.'
+                    type: string
                   value:
                     description: Value specifies the exact value to match the result
-                      of Query by. The match is considered positive if at least one
+                      of Select by. The match is considered positive if at least one
                       of the results of evaluating the query yields a match when compared
                       to value.
                     nullable: true
                     type: string
                   values:
                     description: Values specifies a list of values to match the result
-                      of Query by. The match is considered positive if at least one
+                      of Select by. The match is considered positive if at least one
                       of the results of evaluating the query yields a match when compared
                       to any of the values in the array.
                     items:

@@ -54,16 +54,16 @@ spec:
 
   match:
     # Match deployments ...
-    - query: '$.kind'
+    - select: '$.kind'
       value: 'Deployment'
     # ... with label app = nginx ...
-    - query: '$.metadata.labels.app'
+    - select: '$.metadata.labels.app'
       value: 'nginx'
     # ... and at least one container whose image matches nginx:1.14.* ...
-    - query: '$.spec.template.spec.containers[*].image'
+    - select: '$.spec.template.spec.containers[*].image'
       regex: 'nginx:1\.14\..*'
     # ... but has no explicit runAsNonRoot security context (note the "negative: true" part):
-    - query: "$.spec.template.spec.securityContext.runAsNonRoot == true"
+    - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
       negative: true
     
   patch:
@@ -134,10 +134,10 @@ spec:
 
   matches:
     # Match persistent volume claims ...
-    - query: '$.kind'
+    - select: '$.kind'
       value: PersistentVolumeClaim
     # ... created by the elasticsearch operator.
-    - query: '$.metadata.labels["common.k8s.elastic.co/type"]'
+    - select: '$.metadata.labels["common.k8s.elastic.co/type"]'
       value: elasticsearch
 
   patch:
@@ -165,19 +165,19 @@ spec:
 
   match:
     # Match deployments ...
-    - query: '$.kind'
+    - select: '$.kind'
       value: 'Deployment'
 
     # ... with label app = jaeger ...
-    - query: '$.metadata.labels.app'
+    - select: '$.metadata.labels.app'
       value: 'jaeger'
 
     # ... and label app.kubernetes.io/component = collector ...
-    - query: '$.metadata.labels["app.kubernetes.io/component"]'
+    - select: '$.metadata.labels["app.kubernetes.io/component"]'
       value: 'collector'
 
     # ... but with and no annotation sidecar.istio.io/inject.
-    - query: '$.metadata.annotations["sidecar.istio.io/inject"]'
+    - select: '$.metadata.annotations["sidecar.istio.io/inject"]'
       negative: true
     
   patch:
@@ -203,13 +203,13 @@ spec:
 
   match:
     # Match deployments ...
-    - query: '$.kind'
+    - select: '$.kind'
       value: Deployment
     # ... with annotation  my-inject-annotation = true ...
-    - query: '$.metadata.annotations["my-inject-annotation"]'
+    - select: '$.metadata.annotations["my-inject-annotation"]'
       value: '"true"'
     # ... but ensure that there isn't already a jaeger-agent container injected in the pod template to avoid adding more containers on UPDATE operations.
-    - query: '$.spec.template.spec.containers[*].name'
+    - select: '$.spec.template.spec.containers[*].name'
       value: 'jaeger-agent'
       negative: true
 
@@ -272,12 +272,12 @@ spec:
 
   match:
     # Match (thus reject) Deployments and StatefulSets...
-    - query: '$.kind'
+    - select: '$.kind'
       values:
         - 'Deployment'
         - 'StatefulSet'
     # ... that have no explicit runAsNonRoot security context.
-    - query: "$.spec.template.spec.securityContext.runAsNonRoot == true"
+    - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
       negative: true
 ```
 

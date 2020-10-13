@@ -48,21 +48,21 @@ type ModRuleSpec struct {
 
 // MatchItem represents a single match query.
 type MatchItem struct {
-	// Query is a JSONPath query expression: https://goessner.net/articles/JsonPath/ which yields zero or more values.
+	// Select is a JSONPath query expression: https://goessner.net/articles/JsonPath/ which yields zero or more values.
 	// If no match value or regex is specified, if the query yields a non-empty result, the match is considered positive.
-	Query string `json:"query,omitempty"`
+	Select string `json:"select,omitempty"`
 
-	// Value specifies the exact value to match the result of Query by.
+	// Value specifies the exact value to match the result of Select by.
 	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to value.
 	// +nullable
 	Value *string `json:"value,omitempty"`
 
-	// Values specifies a list of values to match the result of Query by.
+	// Values specifies a list of values to match the result of Select by.
 	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to any of the values in the array.
 	// +optional
 	Values []string `json:"values,omitempty"`
 
-	// Regex specifies the regular expression to compare the result of Query by.
+	// Regex specifies the regular expression to compare the result of Select by.
 	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to value.
 	// +nullable
 	Regex *string `json:"regex,omitempty"`

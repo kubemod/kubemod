@@ -6,8 +6,8 @@ spec:
   type: Reject
 
   match:
-    - query: '$.kind'
+    - select: '$.kind'
       value: Pod
 
-    - query: '$.spec.containers[?@.name =~ "nginx-.+"].image'
+    - select: '$.spec.containers[?@.name =~ "nginx-.+"].image'
       regex: 'nginx:1\.14\..*'
