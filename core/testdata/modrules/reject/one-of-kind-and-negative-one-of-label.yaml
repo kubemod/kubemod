@@ -7,12 +7,12 @@ spec:
 
   match:
     - select: "$.kind"
-      values:
+      matchValues:
         - Pod
         - Deployment
         
     - select: "$.metadata.labels.color"
-      values:
+      matchValues:
         - red
         - blue
       negative: true

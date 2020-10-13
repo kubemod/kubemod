@@ -260,15 +260,15 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 		return matchItem.Negative
 
 	// If the query itself returns a boolean, use that as the match.
-	// The query value will not be evaluated against match.value, match.values and match.regex.
+	// The query value will not be evaluated against match.matchValue, match.matchValues and match.matchRegex.
 	case bool:
 		return vresult != matchItem.Negative
 
-	// If the query returns an array, evaluate its contents against match.value, match.values and match.regex.
+	// If the query returns an array, evaluate its contents against match.matchValue, match.matchValues and match.matchRegex.
 	case []interface{}:
 		expressionValues = vresult
 
-	// If the query returns any type of value other than the ones above, evaluate that value against match.value, match.values and match.regex.
+	// If the query returns any type of value other than the ones above, evaluate that value against match.matchValue, match.matchValues and match.matchRegex.
 	case interface{}:
 		expressionValues = []interface{}{vresult}
 
@@ -314,14 +314,14 @@ func isStringMatch(matchItem *v1beta1.MatchItem, matchRegexp *regexp.Regexp, val
 		return matchItem.Negative
 	}
 
-	if matchItem.Values != nil && len(matchItem.Values) > 0 {
-		for i := range matchItem.Values {
-			if *value == matchItem.Values[i] {
+	if matchItem.MatchValues != nil && len(matchItem.MatchValues) > 0 {
+		for i := range matchItem.MatchValues {
+			if *value == matchItem.MatchValues[i] {
 				return !matchItem.Negative
 			}
 		}
 
-		// MatchItem has spec values, but none of them match - return negative match.
+		// MatchItem has spec matchValues, but none of them match - return negative match.
 		return matchItem.Negative
 	}
 
@@ -334,7 +334,7 @@ func isStringMatch(matchItem *v1beta1.MatchItem, matchRegexp *regexp.Regexp, val
 		return matchItem.Negative
 	}
 
-	// MatchItem has no spec value, values or regex, but the query yielded a value.
+	// MatchItem has no spec matchValue, matchValues or regex, but the query yielded a value.
 	// This is a positive match.
 	return !matchItem.Negative
 }

@@ -7,7 +7,7 @@ spec:
 
   match:
     - select: "$.kind"
-      values:
+      matchValues:
         - Pod
         - Deployment
       negative: true

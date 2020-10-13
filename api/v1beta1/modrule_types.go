@@ -34,7 +34,7 @@ type ModRuleSpec struct {
 	// - "Reject" - the rule rejects the creation of all matching resources.
 	Type ModRuleType `json:"type"`
 
-	// Match is a list of match items which consist of queries and expected match values or regular expressions.
+	// Match is a list of match items which consist of select queries and expected match values or regular expressions.
 	// When all match items for an object are positive, the rule is in effect.
 	// +kubebuilder:validation:MinItems=1
 	Match []MatchItem `json:"match"`
@@ -57,10 +57,10 @@ type MatchItem struct {
 	// +nullable
 	MatchValue *string `json:"matchValue,omitempty"`
 
-	// Values specifies a list of values to match the result of Select by.
+	// MatchValues specifies a list of values to match the result of Select by.
 	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to any of the values in the array.
 	// +optional
-	Values []string `json:"values,omitempty"`
+	MatchValues []string `json:"matchValues,omitempty"`
 
 	// Regex specifies the regular expression to compare the result of Select by.
 	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to value.

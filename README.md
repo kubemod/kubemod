@@ -273,7 +273,7 @@ spec:
   match:
     # Match (thus reject) Deployments and StatefulSets...
     - select: '$.kind'
-      values:
+      matchValues:
         - 'Deployment'
         - 'StatefulSet'
     # ... that have no explicit runAsNonRoot security context.

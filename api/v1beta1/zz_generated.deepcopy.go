@@ -30,8 +30,8 @@ func (in *MatchItem) DeepCopyInto(out *MatchItem) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.Values != nil {
-		in, out := &in.Values, &out.Values
+	if in.MatchValues != nil {
+		in, out := &in.MatchValues, &out.MatchValues
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
