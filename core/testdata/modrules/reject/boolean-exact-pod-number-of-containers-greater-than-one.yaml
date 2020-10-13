@@ -7,7 +7,7 @@ spec:
 
   match:
     - select: "$.kind"
-      value: "Pod"
+      matchValue: "Pod"
       
     - select: "length($.spec.containers) > 1"
-      value: false
+      matchValue: false

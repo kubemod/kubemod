@@ -7,8 +7,8 @@ spec:
 
   match:
     - select: "$.kind"
-      value: "Pod"
+      matchValue: "Pod"
       
     - select: "$.metadata.labels.app"
-      value: "nginx"
+      matchValue: "nginx"
       negative: true

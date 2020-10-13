@@ -7,4 +7,4 @@ spec:
 
   match:
     - query: "$.kind"
-      value: "whatever"
+      matchValue: "whatever"

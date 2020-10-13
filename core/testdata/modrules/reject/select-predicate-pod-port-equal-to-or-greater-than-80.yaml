@@ -7,6 +7,6 @@ spec:
 
   match:
     - select: "$.kind"
-      value: Pod
+      matchValue: Pod
 
     - select: '$.spec.containers..ports[?@.containerPort >= 80]'

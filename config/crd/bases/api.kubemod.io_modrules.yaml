@@ -41,6 +41,13 @@ spec:
               items:
                 description: MatchItem represents a single match query.
                 properties:
+                  matchValue:
+                    description: MatchValue specifies the exact value to match the
+                      result of Select by. The match is considered positive if at
+                      least one of the results of evaluating the query yields a match
+                      when compared to matchValue.
+                    nullable: true
+                    type: string
                   negative:
                     description: Negative indicates if the match should occur when
                       the query/value comparison yields a negative result. Defaults
@@ -58,13 +65,6 @@ spec:
                       which yields zero or more values. If no match value or regex
                       is specified, if the query yields a non-empty result, the match
                       is considered positive.'
-                    type: string
-                  value:
-                    description: Value specifies the exact value to match the result
-                      of Select by. The match is considered positive if at least one
-                      of the results of evaluating the query yields a match when compared
-                      to value.
-                    nullable: true
                     type: string
                   values:
                     description: Values specifies a list of values to match the result

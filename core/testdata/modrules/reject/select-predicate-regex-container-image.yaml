@@ -7,7 +7,7 @@ spec:
 
   match:
     - select: '$.kind'
-      value: Pod
+      matchValue: Pod
 
     - select: '$.spec.containers[?@.name =~ "nginx-.+"].image'
       regex: 'nginx:1\.14\..*'

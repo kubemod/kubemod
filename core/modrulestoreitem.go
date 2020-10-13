@@ -306,8 +306,8 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 }
 
 func isStringMatch(matchItem *v1beta1.MatchItem, matchRegexp *regexp.Regexp, value *string) bool {
-	if matchItem.Value != nil {
-		if *value == *matchItem.Value {
+	if matchItem.MatchValue != nil {
+		if *value == *matchItem.MatchValue {
 			return !matchItem.Negative
 		}
 		// MatchItem has a spec value, but it doesn't match - return negative match.

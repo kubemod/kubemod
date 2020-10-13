@@ -7,7 +7,7 @@ spec:
 
   match:
     - select: '$.kind'
-      value: 'Deployment'
+      matchValue: 'Deployment'
 
     - select: '$.metadata.labels.app'
       regex: 'nginx'

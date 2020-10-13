@@ -55,10 +55,10 @@ spec:
   match:
     # Match deployments ...
     - select: '$.kind'
-      value: 'Deployment'
+      matchValue: 'Deployment'
     # ... with label app = nginx ...
     - select: '$.metadata.labels.app'
-      value: 'nginx'
+      matchValue: 'nginx'
     # ... and at least one container whose image matches nginx:1.14.* ...
     - select: '$.spec.template.spec.containers[*].image'
       regex: 'nginx:1\.14\..*'
@@ -135,10 +135,10 @@ spec:
   matches:
     # Match persistent volume claims ...
     - select: '$.kind'
-      value: PersistentVolumeClaim
+      matchValue: PersistentVolumeClaim
     # ... created by the elasticsearch operator.
     - select: '$.metadata.labels["common.k8s.elastic.co/type"]'
-      value: elasticsearch
+      matchValue: elasticsearch
 
   patch:
     # Remove the ownerReference if it exists, thus excluding the resource from Kubernetes garbage collection.
@@ -166,15 +166,15 @@ spec:
   match:
     # Match deployments ...
     - select: '$.kind'
-      value: 'Deployment'
+      matchValue: 'Deployment'
 
     # ... with label app = jaeger ...
     - select: '$.metadata.labels.app'
-      value: 'jaeger'
+      matchValue: 'jaeger'
 
     # ... and label app.kubernetes.io/component = collector ...
     - select: '$.metadata.labels["app.kubernetes.io/component"]'
-      value: 'collector'
+      matchValue: 'collector'
 
     # ... but with and no annotation sidecar.istio.io/inject.
     - select: '$.metadata.annotations["sidecar.istio.io/inject"]'
@@ -204,13 +204,13 @@ spec:
   match:
     # Match deployments ...
     - select: '$.kind'
-      value: Deployment
+      matchValue: Deployment
     # ... with annotation  my-inject-annotation = true ...
     - select: '$.metadata.annotations["my-inject-annotation"]'
-      value: '"true"'
+      matchValue: '"true"'
     # ... but ensure that there isn't already a jaeger-agent container injected in the pod template to avoid adding more containers on UPDATE operations.
     - select: '$.spec.template.spec.containers[*].name'
-      value: 'jaeger-agent'
+      matchValue: 'jaeger-agent'
       negative: true
 
   patch:

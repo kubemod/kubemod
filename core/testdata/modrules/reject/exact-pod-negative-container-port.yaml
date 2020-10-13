@@ -7,8 +7,8 @@ spec:
 
   match:
     - select: "$.kind"
-      value: "Pod"
+      matchValue: "Pod"
       
     - select: "$.spec.containers[0].ports[0].containerPort"
-      value: "80"
+      matchValue: "80"
       negative: true
