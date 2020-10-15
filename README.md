@@ -6,9 +6,9 @@ KubeMod unlocks the power of [Kubernetes Mutating Webhooks](https://kubernetes.i
 
 Use KubeMod to:
 
-- Customize opaque Helm charts and Kubernetes operators
-- Build a system of policy rules to reject misbehaving resources
-- Develop your own sidecar container injections - no coding required
+* Customize opaque Helm charts and Kubernetes operators
+* Build a system of policy rules to reject misbehaving resources
+* Develop your own sidecar container injections - no coding required
 
 ## Installation
 
@@ -102,8 +102,8 @@ But sometimes this simplicity introduces a challenge -- from a user's perspectiv
 
 Ideally we would not need to control anything more than those configuration values, but in reality this opaqueness leads to issues such as these:
 
-- https://github.com/elastic/cloud-on-k8s/issues/2328
-- https://github.com/jaegertracing/jaeger-operator/issues/1096
+* https://github.com/elastic/cloud-on-k8s/issues/2328
+* https://github.com/jaegertracing/jaeger-operator/issues/1096
 
 Oftentimes these issues are showstoppers that render the chart/operator impossible to use for certain use cases.
 
@@ -316,17 +316,17 @@ A ModRule is considered to have a match with the Kubernetes object definition wh
 
 A criteria item contains a required `select` expression and optional `matchValue`, `matchValues`, `matchRegex` and `negate` properties.
 
-- `select` - a [JSONPath](https://goessner.net/articles/JsonPath/) expression which, when evaluated against the Kubernetes object definition, yields zero or more values.
-- `matchValue` - a string matched against the result of `select`.
-- `matchValues` - an array of strings matched against the result of `select`.
-- `matchRegex` - a regular expression matched against the result of `select`.
+* `select` - a [JSONPath](https://goessner.net/articles/JsonPath/) expression which, when evaluated against the Kubernetes object definition, yields zero or more values.
+* `matchValue` - a string matched against the result of `select`.
+* `matchValues` - an array of strings matched against the result of `select`.
+* `matchRegex` - a regular expression matched against the result of `select`.
 
 A criteria item is considered positive when its `select` expression yields one or more values and one of the following is true:
  
-  - No `matchValue`, `matchValues` or `matchRegex` are specified for the criteria item.
-  - `matchValue` is specified and one or more of the values resulting from `select` exactly matches that value.
-  - `matchValues` is specified and one or more of the values resulting from `select` exactly matches one or more of the values in `matchValues`.
-  - `matchRegex` is specified and one or more of the values resulting from `select` matches that regular expression.
+* No `matchValue`, `matchValues` or `matchRegex` are specified for the criteria item.
+* `matchValue` is specified and one or more of the values resulting from `select` exactly matches that value.
+* `matchValues` is specified and one or more of the values resulting from `select` exactly matches one or more of the values in `matchValues`.
+* `matchRegex` is specified and one or more of the values resulting from `select` matches that regular expression.
  
 The result of a criteria item can be inverted by setting its `negate` to `true`.
 
@@ -336,10 +336,11 @@ Section `patch` is an array of [RFC6902 JSON Patch](https://tools.ietf.org/html/
 
 The implementation of JSON Patch used in KubeMod includes the following extensions to RFC6902:
 
-- Negative array indices mean starting at the end of the array.
-- Operations which attempt to remove a non-existent path in the JSON object are ignored
+* Negative array indices mean starting at the end of the array.
+* Operations which attempt to remove a non-existent path in the JSON object are ignored.
 
 In addition, when a patch is evaluated, KubeMod executes the patch `value` as a [Golang template](https://golang.org/pkg/text/template/) and passes the following intrinsic items accessible through the template's context:
+
 * `.Target` - the original resource object being patched with all its properties.
 * `.Namespace` - the namespace of the resource object.
 
