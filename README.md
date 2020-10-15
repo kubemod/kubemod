@@ -10,6 +10,21 @@ Use KubeMod to:
 * Build a system of policy rules to reject misbehaving resources
 * Develop your own sidecar container injections - no coding required
 
+---
+
+* [Installation](#installation)
+* [Getting started](#getting-started)
+* [Motivation and use cases](#motivation-and-use-cases)
+  * [Behavior modifications](#behavior-modifications)
+  * [Metadata modifications](#metadata-modifications)
+  * [Sidecar injection](#sidecar-injection)
+  * [Resource rejection](#resource-rejection)
+  * [Other](#other)
+* [ModRule specification](#modrule-specification)
+* [Debugging ModRules](#debugging-modrules)
+* [Gotchas](#gotchas)
+* [Contributing](#contributing)
+
 ## Installation
 
 KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) deployed to its own namespace `kubemod-system`.
@@ -288,14 +303,6 @@ ModRules are not limited to the above use cases, nor are they limited to those K
 ModRules can be developed to target any Kubernetes resource object, including Custom Resource objects.
 The `match` section of a ModRule is not limited to metadata -- you can build complex match criteria against any part of the resource object.
 
-## Gotchas
-
-When multiple ModRules match the same resource object, all of the ModRule patches are executed against the object in an indeterminate order.
-
-This is by design.
-
-Be careful when creating ModRules such that their match criteria and patch sections don't overlap leading to unexpected behavior.
-
 ## ModRule specification
 
 A `ModRule` has a `type`, a required `match` section and an optional `patch` section.
@@ -343,6 +350,49 @@ In addition, when a patch is evaluated, KubeMod executes the patch `value` as a 
 
 * `.Target` - the original resource object being patched with all its properties.
 * `.Namespace` - the namespace of the resource object.
+
+
+## Debugging ModRules
+
+To list the ModRules deployed to a namespace, run the following command:
+
+```bash
+kubectl get modrules
+```
+
+When a ModRule does not behave as expected, your best bet is to analyze KubeMod's operator logs.
+
+Follow these steps:
+
+* Deploy your ModRule to the namespace where you will be deploying the Kubernetes resources the ModRule should intercept.
+* Find the KubeMod operator pod - run the following command and grab the name of the pod that begins with `kubemod-operator`:
+
+```bash
+kubectl get pods -n kubemod-system
+```
+
+* Tail the logs of the pod:
+
+```bash
+kubectl logs kubemod-operator-xxxxxxxx-xxxx -n kubemod-system -f
+```
+
+* In another terminal deploy the Kubernetes object your ModRule is designed to intercept.
+* Watch the operator pod logs.
+
+If your ModRule is a Patch rule, KubeMod operator will log the full JSON Patch applied to the target Kubernetes object at the time of interception.
+
+If there are any errors at the time the patch is calculated, you will see them in the logs.
+
+If the operator log is silent at the time you deploy the target object, this means that your ModRule's `match` criteria did not yield a positive match for the target object.
+
+## Gotchas
+
+When multiple ModRules match the same resource object, all of the ModRule patches are executed against the object in an indeterminate order.
+
+This is by design.
+
+Be careful when creating ModRules such that their match criteria and patch sections don't overlap leading to unexpected behavior.
 
 
 ## Contributing
