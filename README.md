@@ -298,7 +298,47 @@ Be careful when creating ModRules such that their match criteria and patch secti
 
 ## ModRule specification
 
-**WIP**
+A `ModRule` has a `type`, a required `match` section and an optional `patch` section.
+
+### type
+
+Can be one of the following:
+- `Patch` - this type of `ModRule` applies patches to objects which match the `match` section. Section `patch` is required for `Patch` ModRules.
+- `Reject` - this type of `ModRule` rejects objects which match the `match` section.
+
+### match
+
+Section `match` is an array of individual criteria items.
+
+When a new object is deployed to Kubernetes, KubeMod intercepts the operation and attempts to match the new object's definition against all ModRules deployed to the namespace where the object is being deployed.
+
+A ModRule is considered to have a match with the Kubernetes object definition when all criteria items in its `match` section yield a positive match.
+
+A criteria item contains a required `select` expression and optional `matchValue`, `matchValues`, `matchRegex` and `negate` properties.
+
+- `select` - a [JSONPath](https://goessner.net/articles/JsonPath/) expression which, when evaluated against the target object definition, yields zero or more values.
+- `matchValue` - a string matched against the result of `select`
+- `matchValues` - an array of strings matched against the result of `select`
+- `matchRegex` - a regular expression matched against the result of `select`
+
+A criteria item is considered positive when its `select` expression yields one or more values and one of the following is true:
+ 
+  - No `matchValue`, `matchValues` or `matchRegex` is specified for the match expression item
+  - `matchValue` is specified and one or more of the values resulting from `select` exactly match that value
+  - `matchValues` is specified and one or more of the values resulting from `select` exactly matches one or more of the values in `matchValues`
+  - `matchRegex` is specified and one or more of the values resulting from `select` match that regular expression.
+ 
+The result of a `match` expression can be inverted by setting its `negate` to `true`.
+
+### patch
+
+Section `patch` is an array of [RFC6902 JSON Patch](https://tools.ietf.org/html/rfc6902) operations.
+
+The implementation of JSON Patch used in KubeMod includes the following extensions to RFC6902:
+
+- Negative array indices mean starting at the end of the array.
+- Operations which attempt to remove a non-existent path in the JSON object are ignored
+
 
 ## Contributing
 
