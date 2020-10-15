@@ -25,6 +25,8 @@ Use KubeMod to:
 * [Gotchas](#gotchas)
 * [Contributing](#contributing)
 
+---
+
 ## Installation
 
 KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) deployed to its own namespace `kubemod-system`.
