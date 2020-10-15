@@ -17,7 +17,7 @@ KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-ku
 Install it by running:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.6.0/bundle.yaml
 ```
 
 To upgrade it, run:
@@ -26,13 +26,13 @@ To upgrade it, run:
 # Delete the kubemod certificate generation job in case kubemod has already been installed.
 kubectl.exe delete job -l job-name=kubemod-crt-job -n kubemod-system
 # Upgrade kubemod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.6.0/bundle.yaml
 ```
 
 To uninstall KubeMod, run:
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.6.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules.
