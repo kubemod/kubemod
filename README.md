@@ -300,13 +300,13 @@ Be careful when creating ModRules such that their match criteria and patch secti
 
 A `ModRule` has a `type`, a required `match` section and an optional `patch` section.
 
-### type
+### `type`
 
 Can be one of the following:
 - `Patch` - this type of `ModRule` applies patches to objects which match the `match` section. Section `patch` is required for `Patch` ModRules.
 - `Reject` - this type of `ModRule` rejects objects which match the `match` section.
 
-### match
+### `match`
 
 Section `match` is an array of individual criteria items.
 
@@ -330,7 +330,7 @@ A criteria item is considered positive when its `select` expression yields one o
  
 The result of a criteria item can be inverted by setting its `negate` to `true`.
 
-### patch
+### `patch`
 
 Section `patch` is an array of [RFC6902 JSON Patch](https://tools.ietf.org/html/rfc6902) operations.
 
