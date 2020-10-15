@@ -128,7 +128,7 @@ With the help of KubeMod we can make those charts and operators work for us. Jus
 
 Here's a number of typical use cases for KubeMod.
 
-(Some of them, such as the **sidecar injection** and **resource rejection**, go beyond the original use case of fixing third-party misbehaving code).
+(Some of them, such as the **sidecar injection** and **resource rejection**, go beyond the original use case of patching operator-created resources).
 
 
 ### Behavior modifications
