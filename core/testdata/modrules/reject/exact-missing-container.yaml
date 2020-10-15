@@ -6,5 +6,5 @@ spec:
   type: Reject
 
   match:
-    - query: "$.spec.containers[123].ports[0].containerPort"
-      value: "80"
+    - select: "$.spec.containers[123].ports[0].containerPort"
+      matchValue: "80"

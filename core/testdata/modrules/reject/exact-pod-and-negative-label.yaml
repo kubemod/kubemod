@@ -6,9 +6,9 @@ spec:
   type: Reject
 
   match:
-    - query: "$.kind"
-      value: "Pod"
+    - select: "$.kind"
+      matchValue: "Pod"
       
-    - query: "$.metadata.labels.app"
-      value: "nginx"
-      negative: true
+    - select: "$.metadata.labels.app"
+      matchValue: "nginx"
+      negate: true

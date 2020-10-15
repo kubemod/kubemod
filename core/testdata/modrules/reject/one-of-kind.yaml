@@ -6,8 +6,8 @@ spec:
   type: Reject
 
   match:
-    - query: "$.kind"
-      values:
+    - select: "$.kind"
+      matchValues:
         - Pod
         - Deployment
   

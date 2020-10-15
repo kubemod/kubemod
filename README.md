@@ -2,24 +2,22 @@
 
 # KubeMod
 
-- Intercept and modify arbitrary Kubernetes resources on the fly.
-- Customize opaque Helm charts and Kubernetes operators.
-- Develop your own sidecar container injections - no coding required.
+KubeMod unlocks the power of [Kubernetes Mutating Webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) by introducing `ModRule` - a custom Kubernetes resource which allows you to intercept the creation of any Kubernetes object and apply targeted modifications to it before it is deployed to the cluster.
 
+Use KubeMod to:
 
-## What is it
-
-KubeMod is a Kubernetes operator which applies targeted modifications to specific Kubernetes resources at the time those resources are deployed or updated.
-
-Essentially, KubeMod is a [Dynamic Admission Control operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/),
-driven by simple declarative `ModRules` you deploy to your Kubernetes cluster.
+* Customize opaque Helm charts and Kubernetes operators
+* Build a system of policy rules to reject misbehaving resources
+* Develop your own sidecar container injections - no coding required
 
 ## Installation
 
-To install KubeMod, run:
+KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) deployed to its own namespace `kubemod-system`.
+
+Install it by running:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.6.0/bundle.yaml
 ```
 
 To upgrade it, run:
@@ -28,13 +26,13 @@ To upgrade it, run:
 # Delete the kubemod certificate generation job in case kubemod has already been installed.
 kubectl.exe delete job -l job-name=kubemod-crt-job -n kubemod-system
 # Upgrade kubemod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.6.0/bundle.yaml
 ```
 
 To uninstall KubeMod, run:
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.5.0/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.6.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules.
@@ -56,17 +54,17 @@ spec:
 
   match:
     # Match deployments ...
-    - query: '$.kind'
-      value: 'Deployment'
+    - select: '$.kind'
+      matchValue: 'Deployment'
     # ... with label app = nginx ...
-    - query: '$.metadata.labels.app'
-      value: 'nginx'
+    - select: '$.metadata.labels.app'
+      matchValue: 'nginx'
     # ... and at least one container whose image matches nginx:1.14.* ...
-    - query: '$.spec.template.spec.containers[*].image'
-      regex: 'nginx:1\.14\..*'
-    # ... but has no explicit runAsNonRoot security context (note the "negative: true" part):
-    - query: "$.spec.template.spec.securityContext.runAsNonRoot == true"
-      negative: true
+    - select: '$.spec.template.spec.containers[*].image'
+      matchRegex: 'nginx:1\.14\..*'
+    # ... but has no explicit runAsNonRoot security context (note the "negate: true" part):
+    - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
+      negate: true
     
   patch:
     # Add custom annotation.
@@ -104,8 +102,8 @@ But sometimes this simplicity introduces a challenge -- from a user's perspectiv
 
 Ideally we would not need to control anything more than those configuration values, but in reality this opaqueness leads to issues such as these:
 
-- https://github.com/elastic/cloud-on-k8s/issues/2328
-- https://github.com/jaegertracing/jaeger-operator/issues/1096
+* https://github.com/elastic/cloud-on-k8s/issues/2328
+* https://github.com/jaegertracing/jaeger-operator/issues/1096
 
 Oftentimes these issues are showstoppers that render the chart/operator impossible to use for certain use cases.
 
@@ -136,11 +134,11 @@ spec:
 
   matches:
     # Match persistent volume claims ...
-    - query: '$.kind'
-      value: PersistentVolumeClaim
+    - select: '$.kind'
+      matchValue: PersistentVolumeClaim
     # ... created by the elasticsearch operator.
-    - query: '$.metadata.labels["common.k8s.elastic.co/type"]'
-      value: elasticsearch
+    - select: '$.metadata.labels["common.k8s.elastic.co/type"]'
+      matchValue: elasticsearch
 
   patch:
     # Remove the ownerReference if it exists, thus excluding the resource from Kubernetes garbage collection.
@@ -167,20 +165,20 @@ spec:
 
   match:
     # Match deployments ...
-    - query: '$.kind'
-      value: 'Deployment'
+    - select: '$.kind'
+      matchValue: 'Deployment'
 
     # ... with label app = jaeger ...
-    - query: '$.metadata.labels.app'
-      value: 'jaeger'
+    - select: '$.metadata.labels.app'
+      matchValue: 'jaeger'
 
     # ... and label app.kubernetes.io/component = collector ...
-    - query: '$.metadata.labels["app.kubernetes.io/component"]'
-      value: 'collector'
+    - select: '$.metadata.labels["app.kubernetes.io/component"]'
+      matchValue: 'collector'
 
     # ... but with and no annotation sidecar.istio.io/inject.
-    - query: '$.metadata.annotations["sidecar.istio.io/inject"]'
-      negative: true
+    - select: '$.metadata.annotations["sidecar.istio.io/inject"]'
+      negate: true
     
   patch:
     # Add Istio annotation sidecar.istio.io/inject=false to exclude this deployment from Istio injection.
@@ -205,15 +203,15 @@ spec:
 
   match:
     # Match deployments ...
-    - query: '$.kind'
-      value: Deployment
+    - select: '$.kind'
+      matchValue: Deployment
     # ... with annotation  my-inject-annotation = true ...
-    - query: '$.metadata.annotations["my-inject-annotation"]'
-      value: '"true"'
+    - select: '$.metadata.annotations["my-inject-annotation"]'
+      matchValue: '"true"'
     # ... but ensure that there isn't already a jaeger-agent container injected in the pod template to avoid adding more containers on UPDATE operations.
-    - query: '$.spec.template.spec.containers[*].name'
-      value: 'jaeger-agent'
-      negative: true
+    - select: '$.spec.template.spec.containers[*].name'
+      matchValue: 'jaeger-agent'
+      negate: true
 
   patch:
     - op: add
@@ -274,13 +272,13 @@ spec:
 
   match:
     # Match (thus reject) Deployments and StatefulSets...
-    - query: '$.kind'
-      values:
+    - select: '$.kind'
+      matchValues:
         - 'Deployment'
         - 'StatefulSet'
     # ... that have no explicit runAsNonRoot security context.
-    - query: "$.spec.template.spec.securityContext.runAsNonRoot == true"
-      negative: true
+    - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
+      negate: true
 ```
 
 ### Other
@@ -300,7 +298,52 @@ Be careful when creating ModRules such that their match criteria and patch secti
 
 ## ModRule specification
 
-**WIP**
+A `ModRule` has a `type`, a required `match` section and an optional `patch` section.
+
+### `type`
+
+Can be one of the following:
+- `Patch` - this type of `ModRule` applies patches to objects which match the `match` section. Section `patch` is required for `Patch` ModRules.
+- `Reject` - this type of `ModRule` rejects objects which match the `match` section.
+
+### `match`
+
+Section `match` is an array of individual criteria items.
+
+When a new object is deployed to Kubernetes, KubeMod intercepts the operation and attempts to match the new object's definition against all ModRules deployed to the namespace where the object is being deployed.
+
+A ModRule is considered to have a match with the Kubernetes object definition when all criteria items in its `match` section yield a positive match.
+
+A criteria item contains a required `select` expression and optional `matchValue`, `matchValues`, `matchRegex` and `negate` properties.
+
+* `select` - a [JSONPath](https://goessner.net/articles/JsonPath/) expression which, when evaluated against the Kubernetes object definition, yields zero or more values.
+* `matchValue` - a string matched against the result of `select`.
+* `matchValues` - an array of strings matched against the result of `select`.
+* `matchRegex` - a regular expression matched against the result of `select`.
+
+A criteria item is considered positive when its `select` expression yields one or more values and one of the following is true:
+ 
+* No `matchValue`, `matchValues` or `matchRegex` are specified for the criteria item.
+* `matchValue` is specified and one or more of the values resulting from `select` exactly matches that value.
+* `matchValues` is specified and one or more of the values resulting from `select` exactly matches one or more of the values in `matchValues`.
+* `matchRegex` is specified and one or more of the values resulting from `select` matches that regular expression.
+ 
+The result of a criteria item can be inverted by setting its `negate` to `true`.
+
+### `patch`
+
+Section `patch` is an array of [RFC6902 JSON Patch](https://tools.ietf.org/html/rfc6902) operations.
+
+The implementation of JSON Patch used in KubeMod includes the following extensions to RFC6902:
+
+* Negative array indices mean starting at the end of the array.
+* Operations which attempt to remove a non-existent path in the JSON object are ignored.
+
+In addition, when a patch is evaluated, KubeMod executes the patch `value` as a [Golang template](https://golang.org/pkg/text/template/) and passes the following intrinsic items accessible through the template's context:
+
+* `.Target` - the original resource object being patched with all its properties.
+* `.Namespace` - the namespace of the resource object.
+
 
 ## Contributing
 

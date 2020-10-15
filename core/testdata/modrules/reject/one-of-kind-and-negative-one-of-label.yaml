@@ -6,13 +6,13 @@ spec:
   type: Reject
 
   match:
-    - query: "$.kind"
-      values:
+    - select: "$.kind"
+      matchValues:
         - Pod
         - Deployment
         
-    - query: "$.metadata.labels.color"
-      values:
+    - select: "$.metadata.labels.color"
+      matchValues:
         - red
         - blue
-      negative: true
+      negate: true

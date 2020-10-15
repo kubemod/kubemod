@@ -6,8 +6,8 @@ spec:
   type: Reject
 
   match:
-    - query: "$.kind"
-      value: Pod
+    - select: "$.kind"
+      matchValue: Pod
 
-    - query: "$.spec.securityContext.runAsNonRoot == true"
-      negative: true
+    - select: "$.spec.securityContext.runAsNonRoot == true"
+      negate: true

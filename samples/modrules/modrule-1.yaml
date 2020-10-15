@@ -6,15 +6,15 @@ spec:
   type: Patch
 
   match:
-    - query: '$.kind'
-      value: 'Deployment'
+    - select: '$.kind'
+      matchValue: 'Deployment'
 
-    - query: '$.metadata.labels.app'
-      regex: 'nginx'
+    - select: '$.metadata.labels.app'
+      matchValue: 'nginx'
 
     # Find deployments which include an nginx 1.14 container...
-    - query: '$.spec.template.spec.containers[*].image'
-      regex: 'nginx:1\.14\..*'
+    - select: '$.spec.template.spec.containers[*].image'
+      matchRegex: 'nginx:1\.14\..*'
     
   patch:
     - op: add

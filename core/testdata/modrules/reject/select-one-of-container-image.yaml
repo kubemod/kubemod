@@ -6,10 +6,10 @@ spec:
   type: Reject
 
   match:
-    - query: '$.kind'
-      value: Pod
+    - select: '$.kind'
+      matchValue: Pod
 
-    - query: '$.spec.containers[*].image'
-      values:
+    - select: '$.spec.containers[*].image'
+      matchValues:
         - 'nginx:1.13.4'
         - 'nginx:1.14.2'

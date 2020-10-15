@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1 Tiny//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd'>
+<svg baseProfile="tiny" height="38px" width="38px" id="Layer_1" version="1.1" viewBox="0 0 512 512" xml:space="preserve"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <g>
+      <g>
+        <polygon fill="#0A77B7" points="123,303.193 123,184.973 27,136.655 27,254.875    "/>
+        <polygon fill="#EE77B7" points="146,314.855 242,363.193 242,244.967 146,196.636    "/>
+        <polygon fill="#0A77B7" points="146,343.428 146,461.635 242,509.92 242,391.752    "/>
+        <polygon fill="#0A77B7" points="123,331.765 27,283.453 27,401.622 123,449.946    "/>
+      </g>
+      <g>
+        <polygon fill="#0A77B7" points="390,303.193 390,184.973 486,136.655 486,254.875    "/>
+        <polygon fill="#EE77B7" points="367,314.855 271,363.193 271,244.967 367,196.636    "/>
+        <polygon fill="#0A77B7" points="367,343.428 367,461.635 271,509.92 271,391.752    "/>
+        <polygon fill="#0A77B7" points="390,331.765 486,283.453 486,401.622 390,449.946    "/>
+      </g>
+    </g>
+    <g>
+      <polygon fill="#0A77B7" points="255.796,94.214 353.971,46.11 255.718,1.305 157.738,46.844   "/>
+      <polygon fill="#0A77B7" points="280.36,106.078 385.919,157.071 484.074,105.467 378.516,57.312   "/>
+      <polygon fill="#EE77B7" points="255.815,118.259 150.679,170.493 255.978,225.415 361.373,170.006   "/>
+      <polygon fill="#0A77B7" points="231.276,106.24 133.296,58.201 28.627,106.85 126.212,157.733   "/>
+    </g>
+  </g>
+</svg>

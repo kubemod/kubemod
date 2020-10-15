@@ -6,8 +6,8 @@ spec:
   type: Reject
 
   match:
-    - query: '$.kind'
-      value: Pod
+    - select: '$.kind'
+      matchValue: Pod
 
-    - query: '$.spec.containers[*].image'
-      regex: 'nginx:1\.14\..*'
+    - select: '$.spec.containers[*].image'
+      matchRegex: 'nginx:1\.14\..*'

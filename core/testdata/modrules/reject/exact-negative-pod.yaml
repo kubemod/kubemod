@@ -6,6 +6,6 @@ spec:
   type: Reject
 
   match:
-    - query: "$.kind"
-      value: "Pod"
-      negative: true
+    - select: "$.kind"
+      matchValue: "Pod"
+      negate: true

@@ -34,7 +34,7 @@ type ModRuleSpec struct {
 	// - "Reject" - the rule rejects the creation of all matching resources.
 	Type ModRuleType `json:"type"`
 
-	// Match is a list of match items which consist of queries and expected match values or regular expressions.
+	// Match is a list of match items which consist of select queries and expected match values or regular expressions.
 	// When all match items for an object are positive, the rule is in effect.
 	// +kubebuilder:validation:MinItems=1
 	Match []MatchItem `json:"match"`
@@ -48,29 +48,29 @@ type ModRuleSpec struct {
 
 // MatchItem represents a single match query.
 type MatchItem struct {
-	// Query is a JSONPath query expression: https://goessner.net/articles/JsonPath/ which yields zero or more values.
+	// Select is a JSONPath query expression: https://goessner.net/articles/JsonPath/ which yields zero or more values.
 	// If no match value or regex is specified, if the query yields a non-empty result, the match is considered positive.
-	Query string `json:"query,omitempty"`
+	Select string `json:"select"`
 
-	// Value specifies the exact value to match the result of Query by.
-	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to value.
+	// MatchValue specifies the exact value to match the result of Select by.
+	// The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to matchValue.
 	// +nullable
-	Value *string `json:"value,omitempty"`
+	MatchValue *string `json:"matchValue,omitempty"`
 
-	// Values specifies a list of values to match the result of Query by.
-	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to any of the values in the array.
+	// MatchValues specifies a list of values to match the result of Select by.
+	// The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to any of the values in the array.
 	// +optional
-	Values []string `json:"values,omitempty"`
+	MatchValues []string `json:"matchValues,omitempty"`
 
-	// Regex specifies the regular expression to compare the result of Query by.
-	// The match is considered positive if at least one of the results of evaluating the query yields a match when compared to value.
+	// MatchRegex specifies the regular expression to compare the result of Select by.
+	// The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to value.
 	// +nullable
-	Regex *string `json:"regex,omitempty"`
+	MatchRegex *string `json:"matchRegex,omitempty"`
 
-	// Negative indicates if the match should occur when the query/value comparison yields a negative result.
+	// Negate indicates whether the match result should be to inverted.
 	// Defaults to false.
 	// +optional
-	Negative bool `json:"negative,omitempty"`
+	Negate bool `json:"negate,omitempty"`
 }
 
 // PatchOperation represents a single JSON Patch operation.
