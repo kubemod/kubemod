@@ -9,10 +9,10 @@ spec:
     spec:
       containers:
       - name: kubemod-crt
-        image: kubemod/kubemod-crt:v1.0.0
+        image: kubemod/kubemod-crt:v1.1.0
         command:
         - /bin/sh
         - -c
-        - ./renew-certificates.sh
+        - ./cert-renew.sh
       restartPolicy: Never
   backoffLimit: 4

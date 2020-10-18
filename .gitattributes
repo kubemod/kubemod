@@ -1,3 +1,20 @@
 # Keep Unix line endings for text files
 * text=auto
 * text eol=lf
+
+# These files are binary and should be left untouched
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.flv binary
+*.fla binary
+*.swf binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.ttf binary
