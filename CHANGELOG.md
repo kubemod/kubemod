@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* 8: Switch to nonroot certificate generation
+
 ## 0.6.0 - 2020-10-15
 
 * 5: Document ModRule spec
