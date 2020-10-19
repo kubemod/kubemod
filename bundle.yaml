@@ -296,8 +296,8 @@ spec:
       - command:
         - /bin/sh
         - -c
-        - ./renew-certificates.sh
-        image: kubemod/kubemod-crt:v1.0.0
+        - ./cert-renew.sh
+        image: kubemod/kubemod-crt:v1.1.0
         name: kubemod-crt
       restartPolicy: Never
 ---
