@@ -27,6 +27,30 @@ import (
 	"github.com/kubemod/kubemod/api/v1beta1"
 )
 
+var _ = Describe("constructPathFromSelectKey", func() {
+
+	constructPathFromSelectKeyTableFunction := func(selectKey string, pathTemplate string, expectedPath string) {
+		pathSprintfTemplate := pathTemplateToSprintfTemplate(pathTemplate)
+		path := constructPathFromSelectKey(selectKey, pathSprintfTemplate)
+		Expect(path).To(Equal(expectedPath))
+	}
+
+	DescribeTable("constructPathFromSelectKey", constructPathFromSelectKeyTableFunction,
+		Entry("constructPathFromSelectKey should work as expected", ``, "", ""),
+		Entry("constructPathFromSelectKey should work as expected", `$`, "", ""),
+		Entry("constructPathFromSelectKey should work as expected", `$`, "/", "/"),
+		Entry("constructPathFromSelectKey should work as expected", `$["0"]`, "/", "/"),
+		Entry("constructPathFromSelectKey should work as expected", `$`, "/a/b/c", "/a/b/c"),
+		Entry("constructPathFromSelectKey should work as expected", `$`, "/#0", "/#(BADINDEX)"),
+		Entry("constructPathFromSelectKey should work as expected", `$["12"]`, "/#0", "/12"),
+		Entry("constructPathFromSelectKey should work as expected", `$["12"]["24"]`, "/#0", "/12"),
+		Entry("constructPathFromSelectKey should work as expected", `$["a"]["b"]["c"]`, "/hello/#2/whatever/#1/foo/#2/#0", "/hello/c/whatever/b/foo/c/a"),
+		Entry("constructPathFromSelectKey should work as expected", `$["a"]["b"]["c"]`, "/hello/#2/whatever/#1/foo/#20/#0", "/hello/c/whatever/b/foo/#(BADINDEX)/a"),
+		Entry("constructPathFromSelectKey should work as expected", `$["a"]["b"]["c"]`, "/hello/#hello/whatever", "/hello/#hello/whatever"),
+		Entry("constructPathFromSelectKey should work as expected", `$["a"]["XXX"]["c"]`, "/hello/#1hello/whatever", "/hello/XXXhello/whatever"),
+	)
+})
+
 var _ = Describe("ModRuleStoreItem", func() {
 
 	var (

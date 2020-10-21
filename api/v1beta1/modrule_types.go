@@ -79,6 +79,15 @@ type PatchOperation struct {
 	// Operation is the type of JSON Path operation to perform against the target element.
 	Operation PatchOperationType `json:"op"`
 
+	// Optional JSONPath query expression: https://goessner.net/articles/JsonPath/ used to construct path.
+	// A patch operation is created for each result of the query.
+	// A placeholder is created for each wildcard and filter in the expression.
+	// These placeholders can be used when constructing "path".
+	// For example, if select is "$.spec.containers[*].ports[?@.containerPort == 80]"
+	// placeholder #0 will point to the index of "containers" and #1 will point to the index of "ports".
+	// This allows us to define paths such as "/spec/template/spec/containers/#0/securityContext"
+	Select *string `json:"select,omitempty"`
+
 	// Path is the JSON path to the target element.
 	Path string `json:"path"`
 

@@ -150,7 +150,7 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 
 	// Apply the patches of each matching rule.
 	for _, mrsi := range matchingModRules {
-		epatch, err := mrsi.calculatePatch(&templateContext, operationLog)
+		epatch, err := mrsi.calculatePatch(&templateContext, jsonv, operationLog)
 
 		if err != nil {
 			return nil, err
