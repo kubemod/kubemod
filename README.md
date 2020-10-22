@@ -2,7 +2,9 @@
 
 # KubeMod
 
-KubeMod unlocks the power of [Kubernetes Mutating Webhooks](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) by introducing `ModRule` - a custom Kubernetes resource which allows you to intercept the creation of any Kubernetes object and apply targeted modifications to it before it is deployed to the cluster.
+KubeMod is a universal [Kubernetes mutating operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/).
+
+It introduces `ModRule` &mdash; a custom Kubernetes resource which allows you to intercept the deployment of any Kubernetes object and apply targeted modifications to it before it is deployed to the cluster.
 
 Use KubeMod to:
 
@@ -29,7 +31,7 @@ Use KubeMod to:
 
 ## Installation
 
-KubeMod is a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) deployed into its own namespace `kubemod-system`.
+As a [Kubernetes operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/), KubeMod is deployed into its own namespace &mdash; `kubemod-system`.
 
 Install it by running:
 
@@ -115,7 +117,7 @@ The creation of KubeMod was motivated by the proliferation of Kubernetes Operato
 
 Helm charts and Kubernetes operators greatly simplify the complexity of deploying a ton of primitive resources and reduce it down to a number of configuration values and domain-specific custom resources.
 
-But sometimes this simplicity introduces a challenge -- from a user's perspective, Helm charts and Kubernetes operators are black boxes which can only be controlled through the configuration values the chart/operator developer chose to expose.
+But sometimes this simplicity introduces a challenge &mdash; from a user's perspective, Helm charts and Kubernetes operators are black boxes which can only be controlled through the configuration values the chart/operator developer chose to expose.
 
 Ideally we would not need to control anything more than those configuration values, but in reality this opaqueness leads to issues such as these:
 
@@ -268,7 +270,7 @@ When a patch is evaluated, KubeMod executes the patch value as a [Golang templat
 
 ### Resource rejection
 
-There are two types of ModRules -- `Patch` and `Reject`.
+There are two types of ModRules &mdash; `Patch` and `Reject`.
 
 All of the examples we've seen so far have been of type `Patch`.
 
@@ -303,7 +305,7 @@ spec:
 ModRules are not limited to the above use cases, nor are they limited to those Kubernetes resource types.
 
 ModRules can be developed to target any Kubernetes resource object, including Custom Resource objects.
-The `match` section of a ModRule is not limited to metadata -- you can build complex match criteria against any part of the resource object.
+The `match` section of a ModRule is not limited to metadata &mdash; you can build complex match criteria against any part of the resource object.
 
 ## ModRule specification
 
