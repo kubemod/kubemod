@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* 12: Add ability to construct patches based on select expression
 * 8: Switch to nonroot certificate generation
 
 ## 0.6.0 - 2020-10-15
