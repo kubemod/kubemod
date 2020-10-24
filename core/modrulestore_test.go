@@ -80,10 +80,14 @@ var _ = Describe("ModRuleStore", func() {
 	}
 
 	DescribeTable("CalculatePatch", modRuleStoreCalculatePatchTableFunction,
-		Entry("patch-4 on pod-5 should work as expected", []string{"patch/patch-4.yaml"}, "pod-5.json", "patch-4-pod-5.txt"),
 		Entry("patch-1 on pod-1 should work as expected", []string{"patch/patch-1.yaml"}, "pod-1.json", "patch-1-pod-1.txt"),
 		Entry("patch-2 on pod-1 should work as expected", []string{"patch/patch-2.yaml"}, "pod-1.json", "patch-2-pod-1.txt"),
 		Entry("patch-3 on pod-1 should work as expected", []string{"patch/patch-3.yaml"}, "pod-1.json", "patch-3-pod-1.txt"),
+		Entry("patch-4 on pod-5 should work as expected", []string{"patch/patch-4.yaml"}, "pod-5.json", "patch-4-pod-5.txt"),
+		Entry("patch-5 on pod-5 should work as expected", []string{"patch/patch-5.yaml"}, "pod-5.json", "patch-5-pod-5.txt"),
+		Entry("patch-6 on pod-5 should work as expected", []string{"patch/patch-6.yaml"}, "pod-5.json", "patch-6-pod-5.txt"),
+		Entry("patch-7 on pod-5 should work as expected", []string{"patch/patch-7.yaml"}, "pod-5.json", "patch-7-pod-5.txt"),
+		Entry("patch-7 on pod-5 should work as expected", []string{"patch/patch-8.yaml"}, "pod-5.json", "patch-8-pod-5.txt"),
 	)
 })
 

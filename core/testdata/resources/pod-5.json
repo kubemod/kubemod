@@ -92,7 +92,7 @@
       },
       {
         "name": "nginx-3",
-        "image": "nginx:1.14.2",
+        "image": "nginx:1.15.2",
         "ports": [
           {
             "containerPort": 82,
@@ -122,7 +122,7 @@
       },
       {
         "name": "nginx-4",
-        "image": "nginx:1.14.2",
+        "image": "nginx:1.15.2",
         "ports": [
           {
             "containerPort": 80,

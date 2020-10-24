@@ -12,17 +12,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package core
+package util
 
-// PatchTemplateContext is an internal structure which is passed as context to all patch template executions.
-type PatchTemplateContext struct {
+import "regexp"
 
-	// Namespace is the namespace of the resource being patched.
-	Namespace string
+var (
+	rexValueTemplatePlaceholder = regexp.MustCompile(`\.#(\d+)`)
+)
 
-	// Target hosts the data of the resource being patched.
-	Target interface{}
-
-	// SelectKeyParts contains the indexes collected from the patch select operation.
-	SelectKeyParts []interface{}
+// PreProcessModRuleGoTemplate converts special tokens such as .#0 to .I0
+// which are actual properties on the ModRule golang template context.
+func PreProcessModRuleGoTemplate(template string) string {
+	return rexValueTemplatePlaceholder.ReplaceAllString(template, "(index .SelectKeyParts $1)")
 }
