@@ -21,9 +21,8 @@ spec:
       path: /metadata/labels/color
       value: whatever
 
-    # Force their container port to be 8080
+    # Change all nginx containers' ports from 80 to 8080
     - op: add
-      path: /spec/template/spec/containers/0/ports
-      value: |-
-        - containerPort: 8080
-          protocol: TCP
+      select: $.spec.template.spec.containers[? @.image =~ "nginx" ].ports[? @.containerPort == 80]
+      path: /spec/template/spec/containers/#0/ports/#1/containerPort
+      value: '8080'

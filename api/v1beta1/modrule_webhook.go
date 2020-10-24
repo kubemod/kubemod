@@ -20,6 +20,7 @@ import (
 	"regexp"
 
 	"github.com/kubemod/kubemod/expressions"
+	"github.com/kubemod/kubemod/util"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -95,9 +96,9 @@ func (r *ModRule) validateModRule() error {
 		allErrs = append(allErrs, field.Required(field.NewPath("spec").Child("patch"), "field 'patch' cannot be empty for ModRules of type Patch"))
 	}
 
-	// Validate the ModRule queries.
+	// Validate the ModRule select queries and regexes.
 	for i, matchItem := range r.Spec.Match {
-		// Test the match query for being non-empty.
+		// match.select is required.
 		if matchItem.Select == "" {
 			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("select"), matchItem.Select, "spec.match[].select in body must be non-empty string"))
 		} else {
@@ -118,15 +119,25 @@ func (r *ModRule) validateModRule() error {
 		}
 	}
 
-	// Validate the patch value templates.
+	// Validate the patch value templates and optional select queries.
 	for i, po := range r.Spec.Patch {
 		if po.Value != nil {
 			value := *po.Value
 
-			_, err := template.New(po.Path).Parse(value)
+			// Test the template.
+			_, err := template.New(po.Path).Parse(util.PreProcessModRuleGoTemplate(value))
 
 			if err != nil {
 				allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("patch").Index(i).Child("value"), value, fmt.Sprintf("%v", err)))
+			}
+
+			// Test the select query.
+			if po.Select != nil && *po.Select != "" {
+				_, err = jsonPathLanguage.NewEvaluable(*po.Select)
+
+				if err != nil {
+					allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("patch").Index(i).Child("select"), *po.Select, fmt.Sprintf("%v", err)))
+				}
 			}
 		}
 	}

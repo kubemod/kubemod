@@ -1,0 +1,1 @@
+[{replace /spec/containers/0/ports/0/containerPort 1234} {replace /spec/containers/1/ports/0/containerPort 1234} {replace /spec/containers/2/ports/0/containerPort 1234} {replace /spec/containers/3/ports/0/containerPort 1234}]

@@ -1,0 +1,22 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Patch
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Pod'
+
+    - select: '$.spec.containers[*].image'
+      matchRegex: 'nginx:1\.14\..*'
+
+  patch:
+    - op: add
+      select: '$.spec.containers[*].ports[*]'
+      path: /spec/containers/#0/ports
+      value: |-
+        - containerPort: 1234
+          protocol: TCP
+          name: {{ index (index .Target.spec.containers .#0) "name" }}

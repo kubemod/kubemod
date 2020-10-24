@@ -97,6 +97,16 @@ spec:
                   path:
                     description: Path is the JSON path to the target element.
                     type: string
+                  select:
+                    description: 'Optional JSONPath query expression: https://goessner.net/articles/JsonPath/
+                      used to construct path. A patch operation is created for each
+                      result of the query. A placeholder is created for each wildcard
+                      and filter in the expression. These placeholders can be used
+                      when constructing "path". For example, if select is "$.spec.containers[*].ports[?@.containerPort
+                      == 80]" placeholder #0 will point to the index of "containers"
+                      and #1 will point to the index of "ports". This allows us to
+                      define paths such as "/spec/template/spec/containers/#0/securityContext"'
+                    type: string
                   value:
                     description: 'Value is the JSON representation of the modification.
                       The value is a golang template which is evaluated against the

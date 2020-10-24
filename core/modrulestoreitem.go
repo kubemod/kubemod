@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -27,23 +28,17 @@ import (
 	evanjsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/go-logr/logr"
 	"github.com/kubemod/kubemod/api/v1beta1"
+	"github.com/kubemod/kubemod/util"
 )
 
 // ModRuleStoreItem wraps around a ModRule and holds a cache of the ModRule's
 // match queries, regexp expressions and value templates in compiled form.
 type ModRuleStoreItem struct {
-	modRule           *v1beta1.ModRule
-	compiledJSONPaths map[*v1beta1.MatchItem]gval.Evaluable
-	compiledRegexes   map[*v1beta1.MatchItem]*regexp.Regexp
-	compiledJSONPatch []*compiledJSONPatchOperation
-	log               logr.Logger
-}
-
-// compiledJSONPatchOperation stored a JSON patch operation with a pre-compiled go template.
-type compiledJSONPatchOperation struct {
-	op            v1beta1.PatchOperationType
-	path          string
-	valueTemplate *template.Template
+	modRule              *v1beta1.ModRule
+	compiledMatchSelects map[*v1beta1.MatchItem]gval.Evaluable
+	compiledRegexes      map[*v1beta1.MatchItem]*regexp.Regexp
+	compiledJSONPatch    []*compiledJSONPatchOperation
+	log                  logr.Logger
 }
 
 // ModRuleStoreItemFactory is used to construct ModRuleStoreItems.
@@ -51,6 +46,26 @@ type ModRuleStoreItemFactory struct {
 	jsonPathLanguage *gval.Language
 	log              logr.Logger
 }
+
+// compiledJSONPatchOperation stored a JSON patch operation with a pre-compiled select JSON Path and go template.
+type compiledJSONPatchOperation struct {
+	op                  v1beta1.PatchOperationType
+	patchSelect         gval.Evaluable
+	path                string
+	pathSprintfTemplate string
+	valueTemplate       *template.Template
+}
+
+// patchPathItem is used by the patch calculation logic.
+type patchPathItem struct {
+	path           string
+	selectKeyParts []interface{}
+}
+
+var (
+	rexSelectKeySegment        = regexp.MustCompile(`\["([^\[\]"]+)"\]`)
+	rexPathTemplatePlaceholder = regexp.MustCompile(`#(\d+)`)
+)
 
 // NewModRuleStoreItemFactory constructs a new ModRuleStoreItem factory.
 func NewModRuleStoreItemFactory(jsonPathLanguage *gval.Language, log logr.Logger) *ModRuleStoreItemFactory {
@@ -62,7 +77,7 @@ func NewModRuleStoreItemFactory(jsonPathLanguage *gval.Language, log logr.Logger
 
 // NewModRuleStoreItem constructs a new ModRule store item.
 func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) (*ModRuleStoreItem, error) {
-	compiledJSONPaths, err := newCompiledJSONPaths(modRule.Spec.Match, f.jsonPathLanguage)
+	compiledMatchSelects, err := newCompiledMatchSelects(modRule.Spec.Match, f.jsonPathLanguage)
 
 	if err != nil {
 		return nil, err
@@ -74,25 +89,25 @@ func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) 
 		return nil, err
 	}
 
-	compiledJSONPatch, err := newCompiledJSONPatch(modRule.Spec.Patch)
+	compiledJSONPatch, err := newCompiledJSONPatch(modRule.Spec.Patch, f.jsonPathLanguage)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &ModRuleStoreItem{
-			modRule:           modRule,
-			log:               f.log,
-			compiledJSONPaths: compiledJSONPaths,
-			compiledRegexes:   compiledRegexes,
-			compiledJSONPatch: compiledJSONPatch,
+			modRule:              modRule,
+			log:                  f.log,
+			compiledMatchSelects: compiledMatchSelects,
+			compiledRegexes:      compiledRegexes,
+			compiledJSONPatch:    compiledJSONPatch,
 		},
 		nil
 }
 
 // Given a slice of matchItems, construct a cache of compiled gval expressions.
 // Note that the cache is a map which uses the pointers to the match slice elements as keys.
-func newCompiledJSONPaths(matchItems []v1beta1.MatchItem, jsonPathLanguage *gval.Language) (map[*v1beta1.MatchItem]gval.Evaluable, error) {
+func newCompiledMatchSelects(matchItems []v1beta1.MatchItem, jsonPathLanguage *gval.Language) (map[*v1beta1.MatchItem]gval.Evaluable, error) {
 	var err error
 	cache := make(map[*v1beta1.MatchItem]gval.Evaluable)
 
@@ -127,27 +142,45 @@ func newCompiledRegexes(matchItems []v1beta1.MatchItem) (map[*v1beta1.MatchItem]
 }
 
 // newCompiledJSONPatch converts ModRule patch to evanphx jsonpatch Patch.
-func newCompiledJSONPatch(patch []v1beta1.PatchOperation) ([]*compiledJSONPatchOperation, error) {
+func newCompiledJSONPatch(patch []v1beta1.PatchOperation, jsonPathLanguage *gval.Language) ([]*compiledJSONPatchOperation, error) {
+	var err error
 	var compiledPatch = []*compiledJSONPatchOperation{}
 
 	for _, po := range patch {
 		// Default to JSON "null" value in case po.Value is nil.
-		value := "null"
+		var value string = "null"
+		var patchSelect gval.Evaluable = nil
 
 		if po.Value != nil {
 			value = *po.Value
 		}
 
-		tpl, err := template.New(po.Path).Parse(value)
+		// Compile the patch select if any.
+		if po.Select != nil {
+			selectExpression := fmt.Sprintf(`{#: %s}`, *po.Select)
+			patchSelect, err = jsonPathLanguage.NewEvaluable(selectExpression)
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// If the path contains placeholders such as #0 and #1, we need to convert them to Sprintf template.
+		pathSprintfTemplate := pathTemplateToSprintfTemplate(po.Path)
+
+		// Compile the go template value.
+		tpl, err := template.New(po.Path).Parse(util.PreProcessModRuleGoTemplate(value))
 
 		if err != nil {
 			return nil, err
 		}
 
 		compiledPatch = append(compiledPatch, &compiledJSONPatchOperation{
-			op:            po.Operation,
-			path:          po.Path,
-			valueTemplate: tpl,
+			op:                  po.Operation,
+			patchSelect:         patchSelect,
+			path:                po.Path,
+			pathSprintfTemplate: pathSprintfTemplate,
+			valueTemplate:       tpl,
 		})
 	}
 
@@ -155,8 +188,9 @@ func newCompiledJSONPatch(patch []v1beta1.PatchOperation) ([]*compiledJSONPatchO
 }
 
 // calculatePatch runs the patch templates and returns a list of patch operations.
-func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext, operationLog logr.Logger) (evanjsonpatch.Patch, error) {
+func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext, jsonv interface{}, operationLog logr.Logger) (evanjsonpatch.Patch, error) {
 	var log logr.Logger
+	var operationIndex = 0
 
 	// If we are getting operation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
 	if operationLog != nil {
@@ -169,27 +203,69 @@ func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext
 
 	b.WriteRune('[')
 
-	for index, cop := range si.compiledJSONPatch {
-		vb := strings.Builder{}
+	for _, cop := range si.compiledJSONPatch {
+		// Calculate the actual set of patches to be performed.
+		// If there is no select expression, just create a single operation with the given path.
+		// If there is a select provided, execute the select query and generate one patch operation per result
+		// using the paths generated by gval.
+		pathItems := []patchPathItem{}
 
-		err := cop.valueTemplate.Execute(&vb, templateContext)
+		if cop.patchSelect != nil {
+			result, err := cop.patchSelect(context.Background(), jsonv)
 
-		if err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
+
+			for key := range result.(map[string]interface{}) {
+				selectKeyParts := keyPartsFromSelectKey(key)
+				path := pathFromKeyParts(selectKeyParts, cop.pathSprintfTemplate)
+
+				if strings.Contains(path, "(BADINDEX)") {
+					return nil, fmt.Errorf("failed to generate Patch path from path template \"%v\": generated value \"%v\" ", cop.path, path)
+				}
+
+				pathItems = append(pathItems, patchPathItem{
+					path:           path,
+					selectKeyParts: selectKeyParts,
+				})
+			}
+		} else {
+			// No select expression? Add a simple path with no select key parts.
+			pathItems = append(pathItems, patchPathItem{
+				path:           cop.path,
+				selectKeyParts: []interface{}{},
+			})
 		}
 
-		// Here's the magic - convert the result to a JSON value.
-		jsonValue, err := modRuleValueToJSONValue(vb.String())
+		for _, pathItem := range pathItems {
 
-		if err != nil {
-			return nil, err
+			vb := strings.Builder{}
+
+			// Bake in the select-key parts into the template context.
+			templateContext.SelectKeyParts = pathItem.selectKeyParts
+
+			err := cop.valueTemplate.Execute(&vb, templateContext)
+
+			if err != nil {
+				return nil, err
+			}
+
+			// Here's the magic - convert the result to a JSON value.
+			jsonValue, err := modRuleValueToJSONValue(vb.String())
+
+			if err != nil {
+				return nil, err
+			}
+
+			if operationIndex > 0 {
+				b.WriteRune(',')
+			}
+
+			fmt.Fprintf(&b, `{"op": "%v", "path": "%v", "value": %v}`, cop.op, pathItem.path, jsonValue)
+
+			operationIndex++
 		}
-
-		if index > 0 {
-			b.WriteRune(',')
-		}
-
-		fmt.Fprintf(&b, `{"op": "%v", "path": "%v", "value": %v}`, cop.op, cop.path, jsonValue)
 	}
 
 	b.WriteRune(']')
@@ -204,6 +280,68 @@ func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext
 	}
 
 	return epatch, err
+}
+
+// Given a select key in the form of $["0"]["0"]["3"], and pathSprintfTemplate in the form of
+// /abc/%[1]v/def/%[2]v/xyz produce a path by replacing %[i]v with the value of the given key.
+func pathFromKeyParts(selectKeyParts []interface{}, pathSprintfTemplate string) string {
+	ret := fmt.Sprintf(pathSprintfTemplate, selectKeyParts...)
+	ret = strings.ReplaceAll(ret, "%!v(BADINDEX)", "#(BADINDEX)")
+
+	// In case we have passed in more keys than needed, remove the %!(EXTRA part inserted by fmt.Sprintf.
+	extraIndex := strings.Index(ret, "%!(EXTRA")
+
+	if extraIndex != -1 {
+		ret = ret[0:extraIndex]
+	}
+
+	return ret
+}
+
+// Convert a select key in the form of $["0"]["abc"]["3"], to a golang slice [0, "abc", 3]
+func keyPartsFromSelectKey(selectKey string) []interface{} {
+	return extractMatches(selectKey, rexSelectKeySegment, true)
+}
+
+// Convert a pathTemplate in the form of "/abc/#0/xyz/#1/bcd" to a
+// fmt.Sprintf format of the form /abc/%[1]v/xyz/%[2]v/bcd
+func pathTemplateToSprintfTemplate(pathTemplate string) string {
+	// Extract the values of the placeholder indices.
+	matches := extractMatches(pathTemplate, rexPathTemplatePlaceholder, false)
+
+	// Convert these values to integers and add 1 as we need to switch from zero-based to one-based
+	// placeholders (Sprintf works with one-based indices).
+	for i := range matches {
+		val, _ := strconv.Atoi(matches[i].(string))
+		matches[i] = strconv.Itoa(val + 1)
+	}
+
+	sprintfTemplate := rexPathTemplatePlaceholder.ReplaceAllString(pathTemplate, `%%[%v]v`)
+	return fmt.Sprintf(sprintfTemplate, matches...)
+}
+
+// Given a string and a regex, run the regex and extract all strings captured by is capturing groups
+// in a slice of strings.
+// If typeDetection is true, the function analyzes the contents of the extraction and converts strings to integers if they look like integers
+// otherwise it keeps them as strings.
+func extractMatches(source string, rex *regexp.Regexp, typeDetection bool) []interface{} {
+	matches := rex.FindAllStringSubmatch(source, -1)
+
+	ret := []interface{}{}
+
+	for _, match := range matches {
+		if typeDetection {
+			if num, err := strconv.Atoi(match[1]); err == nil {
+				ret = append(ret, num)
+			} else {
+				ret = append(ret, match[1])
+			}
+		} else {
+			ret = append(ret, match[1])
+		}
+	}
+
+	return ret
 }
 
 // modRuleValueToJSONValue converts a ModRule value to a JSON value.
@@ -237,10 +375,9 @@ func (si *ModRuleStoreItem) IsMatch(jsonv interface{}) bool {
 }
 
 func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interface{}) bool {
+	matchSelect := si.compiledMatchSelects[matchItem]
 
-	jsonPath := si.compiledJSONPaths[matchItem]
-
-	result, err := jsonPath(context.Background(), jsonv)
+	result, err := matchSelect(context.Background(), jsonv)
 	if err != nil {
 		// There is at least one valid reason to be here - when the query tries to match a missing key
 		// such as metadata. label.missing_key.
