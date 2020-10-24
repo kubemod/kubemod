@@ -27,28 +27,28 @@ import (
 	"github.com/kubemod/kubemod/api/v1beta1"
 )
 
-var _ = Describe("constructPathFromKeyParts", func() {
+var _ = Describe("pathFromKeyParts", func() {
 
-	constructPathFromKeyPartsTableFunction := func(selectKey string, pathTemplate string, expectedPath string) {
+	pathFromKeyPartsTableFunction := func(selectKey string, pathTemplate string, expectedPath string) {
 		pathSprintfTemplate := pathTemplateToSprintfTemplate(pathTemplate)
-		keyParts := keyToKeyParts(selectKey)
-		path := constructPathFromKeyParts(keyParts, pathSprintfTemplate)
+		keyParts := keyPartsFromSelectKey(selectKey)
+		path := pathFromKeyParts(keyParts, pathSprintfTemplate)
 		Expect(path).To(Equal(expectedPath))
 	}
 
-	DescribeTable("constructPathFromKeyParts", constructPathFromKeyPartsTableFunction,
-		Entry("constructPathFromKeyParts should work as expected", ``, "", ""),
-		Entry("constructPathFromKeyParts should work as expected", `$`, "", ""),
-		Entry("constructPathFromKeyParts should work as expected", `$`, "/", "/"),
-		Entry("constructPathFromKeyParts should work as expected", `$["0"]`, "/", "/"),
-		Entry("constructPathFromKeyParts should work as expected", `$`, "/a/b/c", "/a/b/c"),
-		Entry("constructPathFromKeyParts should work as expected", `$`, "/#0", "/#(BADINDEX)"),
-		Entry("constructPathFromKeyParts should work as expected", `$["12"]`, "/#0", "/12"),
-		Entry("constructPathFromKeyParts should work as expected", `$["12"]["24"]`, "/#0", "/12"),
-		Entry("constructPathFromKeyParts should work as expected", `$["a"]["b"]["c"]`, "/hello/#2/whatever/#1/foo/#2/#0", "/hello/c/whatever/b/foo/c/a"),
-		Entry("constructPathFromKeyParts should work as expected", `$["a"]["b"]["c"]`, "/hello/#2/whatever/#1/foo/#20/#0", "/hello/c/whatever/b/foo/#(BADINDEX)/a"),
-		Entry("constructPathFromKeyParts should work as expected", `$["a"]["b"]["c"]`, "/hello/#hello/whatever", "/hello/#hello/whatever"),
-		Entry("constructPathFromKeyParts should work as expected", `$["a"]["XXX"]["c"]`, "/hello/#1hello/whatever", "/hello/XXXhello/whatever"),
+	DescribeTable("pathFromKeyParts", pathFromKeyPartsTableFunction,
+		Entry("pathFromKeyParts should work as expected", ``, "", ""),
+		Entry("pathFromKeyParts should work as expected", `$`, "", ""),
+		Entry("pathFromKeyParts should work as expected", `$`, "/", "/"),
+		Entry("pathFromKeyParts should work as expected", `$["0"]`, "/", "/"),
+		Entry("pathFromKeyParts should work as expected", `$`, "/a/b/c", "/a/b/c"),
+		Entry("pathFromKeyParts should work as expected", `$`, "/#0", "/#(BADINDEX)"),
+		Entry("pathFromKeyParts should work as expected", `$["12"]`, "/#0", "/12"),
+		Entry("pathFromKeyParts should work as expected", `$["12"]["24"]`, "/#0", "/12"),
+		Entry("pathFromKeyParts should work as expected", `$["a"]["b"]["c"]`, "/hello/#2/whatever/#1/foo/#2/#0", "/hello/c/whatever/b/foo/c/a"),
+		Entry("pathFromKeyParts should work as expected", `$["a"]["b"]["c"]`, "/hello/#2/whatever/#1/foo/#20/#0", "/hello/c/whatever/b/foo/#(BADINDEX)/a"),
+		Entry("pathFromKeyParts should work as expected", `$["a"]["b"]["c"]`, "/hello/#hello/whatever", "/hello/#hello/whatever"),
+		Entry("pathFromKeyParts should work as expected", `$["a"]["XXX"]["c"]`, "/hello/#1hello/whatever", "/hello/XXXhello/whatever"),
 	)
 })
 
