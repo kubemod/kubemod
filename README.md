@@ -43,7 +43,7 @@ To upgrade it, run:
 
 ```bash
 # Delete the kubemod certificate generation job in case kubemod has already been installed.
-kubectl.exe delete job -l job-name=kubemod-crt-job -n kubemod-system
+kubectl delete job -l job-name=kubemod-crt-job -n kubemod-system
 # Upgrade kubemod operator.
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.6.0/bundle.yaml
 ```
