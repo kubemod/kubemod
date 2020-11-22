@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - command:
-        - /manager
+        - /kubemod-operator
         image: controller:latest
         name: manager
         resources:

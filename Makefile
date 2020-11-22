@@ -23,7 +23,7 @@ bench: generate fmt vet manifests
 
 # Build manager binary
 manager: generate fmt vet
-	go build -o bin/manager main.go
+	go build -o bin/kubemod-operator main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
@@ -65,7 +65,7 @@ vet:
 
 # Generate code
 generate: controller-gen wire
-	$(CONTROLLER_GEN) object:headerFile="code-gen/boilerplate.go.txt" paths="./..."
+	$(CONTROLLER_GEN) object:headerFile="misc/boilerplate.go.txt" paths="./..."
 	$(WIRE) ./...
 
 # Build the docker image
