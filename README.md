@@ -16,6 +16,8 @@ Use KubeMod to:
 
 ## Documentation
 
+To find out how to install and use KubeMod, head on over to the docs:
+
 :point_right: [docs.kubemod.io](https://docs.kubemod.io)
 
 [ci-img]: https://github.com/kubemod/kubemod/workflows/Master%20Workflow/badge.svg
