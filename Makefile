@@ -65,7 +65,7 @@ vet:
 
 # Generate code
 generate: controller-gen wire
-	$(CONTROLLER_GEN) object:headerFile="code-gen/boilerplate.go.txt" paths="./..."
+	$(CONTROLLER_GEN) object:headerFile="misc/boilerplate.go.txt" paths="./..."
 	$(WIRE) ./...
 
 # Build the docker image
