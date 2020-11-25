@@ -1,0 +1,1 @@
+[{add /spec/metadata map[annotations:map[color:whatever]]}]

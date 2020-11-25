@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* 10: Implement a more forgiving add patch operation
+
 ## 0.7.0 - 2020-11-22
 
 * 12: Add ability to construct patches based on select expression
