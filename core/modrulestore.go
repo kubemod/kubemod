@@ -37,6 +37,7 @@ var (
 		AccumulatedCopySizeLimit: 0,
 		AllowMissingPathOnRemove: true,
 		SupportNegativeIndices:   true,
+		EnsurePathExistsOnAdd:    true,
 	}
 )
 

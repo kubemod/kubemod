@@ -2,7 +2,7 @@ module github.com/kubemod/kubemod
 
 go 1.13
 
-replace github.com/evanphx/json-patch/v5 v5.1.0 => github.com/vassilvk/json-patch/v5 v5.2.0-beta.1
+replace github.com/evanphx/json-patch/v5 v5.1.0 => github.com/vassilvk/json-patch/v5 v5.2.0-beta.3
 
 require (
 	github.com/PaesslerAG/gval v1.0.1

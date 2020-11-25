@@ -88,6 +88,7 @@ var _ = Describe("ModRuleStore", func() {
 		Entry("patch-6 on pod-5 should work as expected", []string{"patch/patch-6.yaml"}, "pod-5.json", "patch-6-pod-5.txt"),
 		Entry("patch-7 on pod-5 should work as expected", []string{"patch/patch-7.yaml"}, "pod-5.json", "patch-7-pod-5.txt"),
 		Entry("patch-7 on pod-5 should work as expected", []string{"patch/patch-8.yaml"}, "pod-5.json", "patch-8-pod-5.txt"),
+		Entry("patch-9 on pod-1 should work as expected", []string{"patch/patch-9.yaml"}, "pod-1.json", "patch-9-pod-1.txt"),
 	)
 })
 
