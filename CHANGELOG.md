@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.7.1 - 2020-11-27
+
 * 10: Implement a more forgiving add patch operation
 
 ## 0.7.0 - 2020-11-22
@@ -14,6 +16,7 @@ All notable changes to this project will be documented in this file.
 ## 0.6.0 - 2020-10-15
 
 * 5: Document ModRule spec
+* 3: Implement GitHub Actions CI
 
 ## 0.5.0 - 2020-10-07
 
