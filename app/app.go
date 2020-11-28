@@ -15,11 +15,7 @@ limitations under the License.
 package app
 
 import (
-	"fmt"
-	"strings"
 	"time"
-
-	"sync"
 
 	"github.com/go-logr/logr"
 	apiv1beta1 "github.com/kubemod/kubemod/api/v1beta1"
@@ -46,11 +42,6 @@ func NewKubeModApp(
 	coreDragnetWebhookHandler *core.DragnetWebhookHandler,
 	log logr.Logger,
 ) (*KubeModApp, error) {
-
-	var wg sync.WaitGroup
-	errChan := make(chan error)
-	errors := []string{}
-	errorPumpDone := make(chan bool)
 
 	setupLog := log.WithName("setup")
 
@@ -79,42 +70,10 @@ func NewKubeModApp(
 		},
 	)
 
-	// Prepare a signal channel which is closed on SIGINT or SIGTERM.
-	signalChan := ctrl.SetupSignalHandler()
-
-	// Start operator manager server.
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-		// Start the manager.
-		setupLog.Info("starting manager")
-		if err := manager.Start(signalChan); err != nil {
-			setupLog.Error(err, "problem running manager")
-			errChan <- err
-		}
-	}()
-
-	// Start error channel pump.
-	go func(done chan<- bool) {
-		for err := range errChan {
-			errors = append(errors, err.Error())
-		}
-
-		done <- true
-	}(errorPumpDone)
-
-	// Wait for the servers to complete.
-	wg.Wait()
-
-	// Tell the error pump we're done.
-	close(errChan)
-	// Wait for the error pump to complete.
-	<-errorPumpDone
-
-	// If there are errors reported by the servers, aggregate them into a single error.
-	if len(errors) > 0 {
-		err := fmt.Errorf("%v", strings.Join(errors, ";"))
+	// Start the manager.
+	setupLog.Info("starting manager")
+	if err := manager.Start(ctrl.SetupSignalHandler()); err != nil {
+		setupLog.Error(err, "problem running manager")
 		return nil, err
 	}
 
