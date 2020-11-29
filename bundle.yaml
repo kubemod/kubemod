@@ -261,7 +261,7 @@ spec:
       containers:
       - command:
         - /kubemod-operator
-        image: kubemod/kubemod:v0.7.1
+        image: kubemod/kubemod:latest
         name: manager
         ports:
         - containerPort: 9443

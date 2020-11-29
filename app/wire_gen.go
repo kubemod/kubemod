@@ -6,6 +6,7 @@
 package app
 
 import (
+	"github.com/go-logr/logr"
 	"github.com/kubemod/kubemod/controllers"
 	"github.com/kubemod/kubemod/core"
 	"github.com/kubemod/kubemod/expressions"
@@ -14,8 +15,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeKubeModApp(scheme *runtime.Scheme, metricsAddr string, enableLeaderElection EnableLeaderElection, enableDevModeLog EnableDevModeLog) (*KubeModApp, error) {
-	logger := NewLogger(enableDevModeLog)
+func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr string, enableLeaderElection EnableLeaderElection, logger logr.Logger) (*KubeModOperatorApp, error) {
 	manager, err := NewControllerManager(scheme, metricsAddr, enableLeaderElection, logger)
 	if err != nil {
 		return nil, err
@@ -28,11 +28,11 @@ func InitializeKubeModApp(scheme *runtime.Scheme, metricsAddr string, enableLead
 		return nil, err
 	}
 	dragnetWebhookHandler := core.NewDragnetWebhookHandler(manager, modRuleStore, logger)
-	kubeModApp, err := NewKubeModApp(scheme, manager, modRuleReconciler, dragnetWebhookHandler, logger)
+	kubeModOperatorApp, err := NewKubeModOperatorApp(scheme, manager, modRuleReconciler, dragnetWebhookHandler, logger)
 	if err != nil {
 		return nil, err
 	}
-	return kubeModApp, nil
+	return kubeModOperatorApp, nil
 }
 
 // wire.go:
