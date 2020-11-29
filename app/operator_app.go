@@ -25,7 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
-// KubeModOperatorApp is the DI container of kubemod application state.
+// KubeModOperatorApp is the DI container of kubemod operator application state.
 type KubeModOperatorApp struct {
 }
 
@@ -38,7 +38,7 @@ func NewKubeModOperatorApp(
 	log logr.Logger,
 ) (*KubeModOperatorApp, error) {
 
-	setupLog := log.WithName("setup")
+	setupLog := log.WithName("operator-setup")
 
 	// Set up the ModRuleReconciler with the manager.
 	err := modRuleReconciler.SetupWithManager(manager)

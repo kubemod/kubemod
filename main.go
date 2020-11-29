@@ -43,7 +43,12 @@ func init() {
 
 // Config holds the application configuration settings.
 type Config struct {
-	MetricsAddr          string
+	RunOperator bool
+	RunWebApp   bool
+
+	WebAppAddr          string
+	OperatorMetricsAddr string
+
 	EnableLeaderElection bool
 	EnableDevModeLog     bool
 }
@@ -52,12 +57,15 @@ func main() {
 
 	config := &Config{}
 
-	flag.StringVar(&config.MetricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	flag.BoolVar(&config.RunOperator, "operator", false, "Run KubeMod operator.")
+	flag.BoolVar(&config.RunWebApp, "web-app", false, "Run KubeMod web application.")
+
+	flag.StringVar(&config.WebAppAddr, "web-app-addr", ":8081", "The address the web app binds to.")
+	flag.StringVar(&config.OperatorMetricsAddr, "operator-metrics-addr", ":8082", "The address the operator metric endpoint binds to.")
 	flag.BoolVar(&config.EnableLeaderElection, "enable-leader-election", false,
-		"Enable leader election for controller manager. "+
+		"Enable leader election for KubeMod operator. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.BoolVar(&config.EnableDevModeLog, "enable-dev-mode-log", false,
-		"Enable development level logging.")
+	flag.BoolVar(&config.EnableDevModeLog, "enable-dev-mode-log", false, "Enable development level logging.")
 
 	flag.Parse()
 
@@ -77,22 +85,47 @@ func run(config *Config) error {
 	errors := []string{}
 	errorPumpDone := make(chan bool)
 
+	log := app.NewLogger(app.EnableDevModeLog(config.EnableDevModeLog))
+
+	setupLog := log.WithName("main-setup")
+
 	// Start operator application.
 	wg.Add(1)
-
-	logger := app.NewLogger(app.EnableDevModeLog(config.EnableDevModeLog))
 
 	go func() {
 		defer wg.Done()
 
-		_, err := app.InitializeKubeModOperatorApp(
-			scheme,
-			config.MetricsAddr,
-			app.EnableLeaderElection(config.EnableLeaderElection),
-			logger)
+		if config.RunOperator {
+			_, err := app.InitializeKubeModOperatorApp(
+				scheme,
+				config.OperatorMetricsAddr,
+				app.EnableLeaderElection(config.EnableLeaderElection),
+				log)
 
-		if err != nil {
-			errChan <- err
+			if err != nil {
+				errChan <- err
+			}
+		} else {
+			setupLog.Info("skipping operator: -operator options is not set")
+		}
+	}()
+
+	// Start web application.
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		if config.RunWebApp {
+			_, err := app.InitializeKubeModWebApp(
+				config.WebAppAddr,
+				log)
+
+			if err != nil {
+				errChan <- err
+			}
+		} else {
+			setupLog.Info("skipping web app: -web-app options is not set")
 		}
 	}()
 

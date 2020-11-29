@@ -32,7 +32,7 @@ func InitializeKubeModOperatorApp(
 	scheme *runtime.Scheme,
 	metricsAddr string,
 	enableLeaderElection EnableLeaderElection,
-	logger logr.Logger) (*KubeModOperatorApp, error) {
+	log logr.Logger) (*KubeModOperatorApp, error) {
 	wire.Build(
 		expressions.NewJSONPathLanguage,
 		core.NewModRuleStoreItemFactory,
@@ -41,6 +41,15 @@ func InitializeKubeModOperatorApp(
 		controllers.NewModRuleReconciler,
 		NewControllerManager,
 		NewKubeModOperatorApp,
+	)
+	return nil, nil
+}
+
+func InitializeKubeModWebApp(
+	webAppAddr string,
+	log logr.Logger) (*KubeModWebApp, error) {
+	wire.Build(
+		NewKubeModWebApp,
 	)
 	return nil, nil
 }
