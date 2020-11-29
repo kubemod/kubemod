@@ -260,7 +260,8 @@ spec:
     spec:
       containers:
       - command:
-        - /kubemod-operator
+        - /kubemod
+        - -operator
         image: kubemod/kubemod:latest
         name: manager
         ports:

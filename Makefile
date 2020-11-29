@@ -23,7 +23,7 @@ bench: generate fmt vet manifests
 
 # Build manager binary
 manager: generate fmt vet
-	go build -o bin/kubemod-operator main.go
+	go build -o bin/kubemod main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests

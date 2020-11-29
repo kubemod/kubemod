@@ -106,7 +106,7 @@ func run(config *Config) error {
 				errChan <- err
 			}
 		} else {
-			setupLog.Info("skipping operator: -operator options is not set")
+			setupLog.Info("skipping operator: -operator option is not set")
 		}
 	}()
 
@@ -125,7 +125,7 @@ func run(config *Config) error {
 				errChan <- err
 			}
 		} else {
-			setupLog.Info("skipping web app: -web-app options is not set")
+			setupLog.Info("skipping web app: -web-app option is not set")
 		}
 	}()
 

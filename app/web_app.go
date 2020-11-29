@@ -29,7 +29,7 @@ func NewKubeModWebApp(
 ) (*KubeModWebApp, error) {
 
 	setupLog := log.WithName("web-app-setup")
-	setupLog.Info("web app servier is starting to listen", "addr", webAppAddr)
+	setupLog.Info("web app server is starting to listen", "addr", webAppAddr)
 
 	return &KubeModWebApp{},
 		nil
