@@ -16,9 +16,9 @@ Use KubeMod to:
 
 ## Example
 
-For example, here's a ModRule which intercepts the creation of Deployment resources whose `app` labels equal `nginx` and include at least one container of `nginx` version `1.14.*`.
+Here's a ModRule which intercepts the creation of Deployment resources whose `app` labels equal `nginx` and include at least one container of `nginx` version `1.14.*`.
 
-The ModRule patches the matching Deployments to enforce a specific `securityContext` and add annotation `my-annotation`.
+The ModRule patches the matching Deployments on-the-fly to enforce a specific `securityContext` and add annotation `my-annotation`.
 
 Since KubeMod intercepts and patches resources **before** they are deployed to Kubernetes, we are able to patch read-only fields such as `securityContext` without the need to drop and recreate existing resources.
 
