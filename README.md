@@ -16,7 +16,7 @@ Use KubeMod to:
 
 ## Getting started
 
-## Installation
+### Installation
 
 As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemod-system`.  
 The following command will create namespace `kubemod-system` and will deploy KubeMod into it.
@@ -25,7 +25,7 @@ The following command will create namespace `kubemod-system` and will deploy Kub
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle.yaml
 ```
 
-## Upgrade
+### Upgrade
 
 If you are upgrading from a previous version of KubeMod, run the following:
 
@@ -37,7 +37,7 @@ kubectl delete job -l job-name -n kubemod-system
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle.yaml
 ```
 
-## Uninstall
+### Uninstall
 
 To uninstall KubeMod and all its resources, run:
 
@@ -48,7 +48,7 @@ kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundl
 Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
 
 
-### Deploying our first ModRule
+### Our first ModRule
 
 Once KubeMod is installed, you can deploy ModRules to intercept the creation and update of specific resources and perform modifications on them.
 
