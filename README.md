@@ -326,9 +326,9 @@ The `type` of a `ModRule` can be one of the following:
 * `Patch` — this type of `ModRule` applies patches to objects that match the `match` section of the rule. Section `patch` is required for `Patch` ModRules.
 * `Reject` — this type of `ModRule` rejects objects which match the `match` section.
 
-Section [`match`](match-section.md) is an array of individual criteria items used to determine if the `ModRule` applies to a Kubernetes object.
+Section [`match`](#match-section) is an array of individual criteria items used to determine if the `ModRule` applies to a Kubernetes object.
 
-Section [`patch`](patch-section.md) is an array of patch operations.
+Section [`patch`](#patch-section) is an array of patch operations.
 
 ### Match section
 
@@ -483,12 +483,12 @@ The `select` field of a patch item is a [JSONPath](https://goessner.net/articles
 When a `select` expression is evaluated against a Kubernetes object definition, it yields zero or more values.
 
 {% hint style="info" %}
-For more information about `select` expressions, see [Match item select expressions](match-section.md#select-string-required).
+For more information about `select` expressions, see [Match item select expressions](#select-string-required).
 {% endhint %}
 
 When `select` is used in a patch operation, the patch is executed once for each item yielded by `select`.
 
-If the `select` item uses JSONPatch wildcards \(such as `..` or `[*]`\) and/or [select filters](match-section.md#select-filters), KubeMod captures the zero-based index of each wildcard/filter result and makes it available for use in the `path` expression.
+If the `select` item uses JSONPatch wildcards \(such as `..` or `[*]`\) and/or [select filters](#select-filters), KubeMod captures the zero-based index of each wildcard/filter result and makes it available for use in the `path` expression.
 
 Let's consider the following example:
 
@@ -654,7 +654,7 @@ value: |-
 ...
 ```
 
-See full example of the above ModRule [here](../common-use-cases/sidecar-injection.md).
+See full example of the above ModRule [here](#sidecar-injection).
 
 ## Miscellaneous
 
