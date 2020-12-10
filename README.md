@@ -16,9 +16,7 @@ Use KubeMod to:
 
 ## Getting started
 
-### Installation
-
-#### Install
+## Installation
 
 As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemod-system`.  
 The following command will create namespace `kubemod-system` and will deploy KubeMod into it.
@@ -27,7 +25,7 @@ The following command will create namespace `kubemod-system` and will deploy Kub
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle.yaml
 ```
 
-#### Upgrade
+## Upgrade
 
 If you are upgrading from a previous version of KubeMod, run the following:
 
@@ -39,7 +37,7 @@ kubectl delete job -l job-name -n kubemod-system
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle.yaml
 ```
 
-#### Uninstall
+## Uninstall
 
 To uninstall KubeMod and all its resources, run:
 
@@ -111,7 +109,7 @@ kubectl apply -f my-modrule.yaml
 
 After the `ModRule` is created, the creation of any nginx Kubernetes `Deployment` resource in the same namespace will be intercepted by KubeMod, and if the `Deployment` resource matches the ModRule's `match` section, the resource will be patched with the collection of `patch` operations.
 
-### List deployed ModRules
+### Listing deployed ModRules
 
 To list all ModRules deployed to a namespace, run the following:
 
@@ -305,8 +303,9 @@ spec:
       negate: true
 ```
 
+---
 
-## The anatomy of a ModRule
+## Understanding ModRules
 
 A `ModRule` has a `type`, a `match` section, and a `patch` section.
 
