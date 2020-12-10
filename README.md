@@ -43,7 +43,8 @@ To uninstall KubeMod and all its resources, run:
 kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle.yaml
 ```
 
-> :warning: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
+| WARNING: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces. |
+| --- |
 
 
 ## Deploying our first ModRule
