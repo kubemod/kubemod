@@ -489,7 +489,7 @@ The `select` field of a patch item is a [JSONPath](https://goessner.net/articles
 
 When a `select` expression is evaluated against a Kubernetes object definition, it yields zero or more values.
 
-For more information about `select` expressions, see [Match item select expressions](#select-string-required).
+For more information about `select` expressions, see [Match item select expressions](#select-string--required).
 
 When `select` is used in a patch operation, the patch is executed once for each item yielded by `select`.
 
