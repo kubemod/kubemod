@@ -12,6 +12,22 @@ Use KubeMod to:
 * Build a system of policy rules to reject misbehaving resources.
 * Develop your own sidecar container injections - no coding required.
 
+## Table of contents
+
+* [Installation](#installation)
+* [Deploying our first ModRule](#deploying-our-first-modrule)
+* [Common use cases](#common-use-cases)
+    * [Modification of behavior](#modification-of-behavior)
+    * [Modification of metadata](#modification-of-metadata)
+    * [Sidecar injection](#sidecar-injection)
+    * [Resource rejection](#resource-rejection)
+* [Understanding ModRules](#understanding-modrules)
+    * [Match section](#match-section)
+    * [Patch section](#patch-section)
+* [Miscellaneous](#miscellaneous)
+    * [Debugging ModRules](#debugging-modrules)
+    * [Gotchas](#gotchas)
+
 ---
 
 ## Installation
@@ -105,8 +121,6 @@ kubectl apply -f my-modrule.yaml
 ```
 
 After the `ModRule` is created, the creation of any nginx Kubernetes `Deployment` resource in the same namespace will be intercepted by KubeMod, and if the `Deployment` resource matches the ModRule's `match` section, the resource will be patched with the collection of `patch` operations.
-
-### Listing deployed ModRules
 
 To list all ModRules deployed to a namespace, run the following:
 
