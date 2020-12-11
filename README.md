@@ -4,7 +4,7 @@
 
 KubeMod is a universal [Kubernetes mutating operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/).
 
-It introduces `ModRule` &mdash; a custom Kubernetes resource which allows you to intercept the deployment of any Kubernetes object and apply targeted modifications to it before it is deployed to the cluster.
+It introduces `ModRule` &mdash; a custom Kubernetes resource which allows you to intercept the deployment of any Kubernetes object and apply targeted modifications to it or reject it before it is deployed to the cluster.
 
 Use KubeMod to:
 
@@ -118,18 +118,14 @@ kubectl get modrules
 
 The development of KubeMod was motivated by the proliferation of Kubernetes Operators and Helm charts which are sometimes opaque to customizations and lead to runtime issues.
 
-Helm charts and Kubernetes operators greatly simplify the complexity of deploying a ton of primitive resources and reduce it down to a number of configuration values and domain-specific custom resources.
-
-But sometimes this simplicity introduces a challenge — from a user's perspective, Helm charts and Kubernetes operators are black boxes which can only be controlled through the configuration values the chart/operator developer chose to expose.
-
-Ideally we would not need to control anything more than those configuration values, but in reality this opaqueness leads to issues such as these:
+For example, consider these issues:
 
 * [https://github.com/elastic/cloud-on-k8s/issues/2328](https://github.com/elastic/cloud-on-k8s/issues/2328)
 * [https://github.com/jaegertracing/jaeger-operator/issues/1096](https://github.com/jaegertracing/jaeger-operator/issues/1096)
 
 Oftentimes these issues are showstoppers that render the chart/operator impossible to use for certain use cases.
 
-With the help of KubeMod we can make those charts and operators work for us. Just deploy a cleverly developed `ModRule` which targets the problematic primitive resource and patch it on the fly at the time it is created.
+With the help of KubeMod we can make those charts and operators work for us. Just deploy a `ModRule` which targets the problematic primitive resource and patch it on the fly at the time it is created.
 
 See the following sections for a number of typical use cases for KubeMod.
 
@@ -259,14 +255,12 @@ spec:
           protocol: UDP
 ```
 
-{% hint style="info" %}
 Note the use of `{{ .Target.metadata.name }}` in the patch `value` to dynamically access the name of the deployment being patched and pass it to the Jaeger agent as a tracer tag.
 
 When a patch is evaluated, KubeMod executes the patch value as a [Golang template](https://golang.org/pkg/text/template/) and passes the following intrinsic items accessible through the template's context:
 
 * `.Target` - the original resource object being patched with all its properties.
 * `.Namespace` - the namespace of the resource object.
-{% endhint %}
 
 
 ### Resource rejection
@@ -481,9 +475,7 @@ The `select` field of a patch item is a [JSONPath](https://goessner.net/articles
 
 When a `select` expression is evaluated against a Kubernetes object definition, it yields zero or more values.
 
-{% hint style="info" %}
 For more information about `select` expressions, see [Match item select expressions](#select-string-required).
-{% endhint %}
 
 When `select` is used in a patch operation, the patch is executed once for each item yielded by `select`.
 
