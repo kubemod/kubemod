@@ -1,0 +1,82 @@
+{
+  "kind": "Service",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "nginx",
+    "namespace": "default",
+    "creationTimestamp": null,
+    "annotations": {
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"name\":\"nginx\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":80},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":443}],\"selector\":{\"app\":\"nginx\"}}}\n"
+    },
+    "managedFields": [
+      {
+        "manager": "kubectl",
+        "operation": "Update",
+        "apiVersion": "v1",
+        "time": "2020-09-02T15:49:10Z",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:annotations": {
+              ".": {},
+              "f:kubectl.kubernetes.io/last-applied-configuration": {}
+            }
+          },
+          "f:spec": {
+            "f:ports": {
+              ".": {},
+              "k:{\"port\":80,\"protocol\":\"TCP\"}": {
+                ".": {},
+                "f:name": {},
+                "f:port": {},
+                "f:protocol": {},
+                "f:targetPort": {}
+              },
+              "k:{\"port\":443,\"protocol\":\"TCP\"}": {
+                ".": {},
+                "f:name": {},
+                "f:port": {},
+                "f:protocol": {},
+                "f:targetPort": {}
+              }
+            },
+            "f:selector": {
+              ".": {},
+              "f:app": {}
+            },
+            "f:sessionAffinity": {},
+            "f:type": {}
+          }
+        }
+      }
+    ]
+  },
+  "spec": {
+    "ports": [
+      {
+        "name": "http",
+        "protocol": "TCP",
+        "port": 80,
+        "targetPort": 80
+      },
+      {
+        "name": "https",
+        "protocol": "TCP",
+        "port": 443,
+        "targetPort": 443
+      }
+    ],
+    "externalIPs": [
+      "123.12.34.1",
+      "123.12.35.2"
+    ],
+    "selector": {
+      "app": "nginx"
+    },
+    "type": "ClusterIP",
+    "sessionAffinity": "None"
+  },
+  "status": {
+    "loadBalancer": {}
+  }
+}

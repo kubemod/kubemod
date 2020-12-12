@@ -14,3 +14,5 @@ spec:
       protocol: TCP
       port: 443
       targetPort: 443
+  externalIPs:
+    - "8.8.8.8"

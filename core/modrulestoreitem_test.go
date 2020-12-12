@@ -110,6 +110,14 @@ var _ = Describe("ModRuleStoreItem", func() {
 		Entry("should match boolean query using length", "reject/boolean-pod-number-of-containers-greater-than-one.yaml", "pod-1.json", false),
 		Entry("should match boolean query using length", "reject/boolean-pod-number-of-containers-greater-than-one.yaml", "pod-2.json", true),
 		Entry("should match boolean query using length", "reject/boolean-pod-number-of-containers-greater-than-one.yaml", "service-1.json", false),
+
+		Entry("should match boolean query using length", "reject/boolean-service-number-of-external-ips-greater-than-zero.yaml", "service-1.json", false),
+		Entry("should match boolean query using length", "reject/boolean-service-number-of-external-ips-greater-than-zero.yaml", "service-2.json", true),
+
+		Entry("should match malicious services 1", "reject/boolean-service-malicious-external-ips.yaml", "service-1.json", false),
+		Entry("should match malicious services 2", "reject/boolean-service-malicious-external-ips.yaml", "service-2.json", false),
+		Entry("should match malicious services 3", "reject/boolean-service-malicious-external-ips.yaml", "service-3.json", true),
+
 		Entry("should match negative boolean query using length", "reject/boolean-pod-negative-number-of-containers-greater-than-one.yaml", "pod-1.json", true),
 		Entry("should match negative boolean query using length", "reject/boolean-pod-negative-number-of-containers-greater-than-one.yaml", "pod-2.json", false),
 		Entry("should match negative boolean query using length", "reject/boolean-pod-negative-number-of-containers-greater-than-one.yaml", "service-1.json", false),

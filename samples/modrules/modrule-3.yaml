@@ -1,0 +1,17 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: reject-malicious-services
+spec:
+  type: Reject
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Service'
+
+    - select: 'length($.spec.externalIPs) > 0'
+      matchValue: true
+
+    - select: '$.spec.externalIPs[*]'
+      matchRegex: '123\.12\.34\.*'
+      negate: true
