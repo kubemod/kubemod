@@ -17,6 +17,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,7 +48,8 @@ func NewDragnetWebhookHandler(manager manager.Manager, modRuleStore *ModRuleStor
 func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
 	log := h.log.WithValues("request uid", req.UID, "namespace", req.Namespace, "resource", fmt.Sprintf("%v/%v", req.Resource.Resource, req.Name), "operation", req.Operation)
 
-	patch, err := h.modRuleStore.CalculatePatch(req.Namespace, req.Object.Raw, log)
+	// First run patch operations.
+	patchedJSON, patch, err := h.modRuleStore.CalculatePatch(req.Namespace, req.Object.Raw, log)
 
 	if err != nil {
 		log.Error(err, "Failed to calculate patch")
@@ -55,6 +57,24 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 		return admission.Allowed("failed to calculate patch")
 	}
 
+	// Then test the result against the set of relevant Reject rules.
+	rejections, err := h.modRuleStore.DetermineRejections(req.Namespace, patchedJSON)
+
+	if err != nil {
+		log.Error(err, "Failed to determine rejections")
+		// We don't want to fail the admission just because someone messed up their Reject rule.
+		return admission.Allowed("failed to determine rejections")
+	}
+
+	if len(rejections) > 0 {
+		rules := strings.Join(rejections, ",")
+		log.Info("Rejected", "rules", rules)
+		// We don't want to fail the admission just because someone messed up their Reject rule.
+		return admission.Denied(fmt.Sprintf("operation rejected by the following ModRule(s): %s", rules))
+	}
+
+	// If we are here, then the object and its patch passed all rejection rules.
+	// Check if we actually had a patch and if yes, return that to Kubernetes for processing.
 	if patch != nil && len(patch) > 0 {
 		log.Info("Applying ModRule patch", "patch", patch)
 		return admission.Patched("patched ok", patch...)
