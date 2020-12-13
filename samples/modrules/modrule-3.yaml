@@ -9,9 +9,7 @@ spec:
     - select: '$.kind'
       matchValue: 'Service'
 
-    - select: 'length($.spec.externalIPs) > 0'
-      matchValue: true
+    - select: '$.kind'
+      matchValue: 'Service'
 
-    - select: '$.spec.externalIPs[*]'
-      matchRegex: '123\.12\.34\.*'
-      negate: true
+    - select: '$.spec.externalIPs[?@ !~ "123\\.12\\.34\\..*"]'

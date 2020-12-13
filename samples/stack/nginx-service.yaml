@@ -15,4 +15,4 @@ spec:
       port: 443
       targetPort: 443
   externalIPs:
-    - "8.8.8.8"
+    - "123.12.34.18"

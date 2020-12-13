@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* 21: Implement Reject ModRules
+
 ## 0.7.1 - 2020-11-27
 
 * 10: Implement a more forgiving add patch operation

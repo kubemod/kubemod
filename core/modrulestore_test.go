@@ -15,6 +15,7 @@ limitations under the License.
 package core
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -65,7 +66,7 @@ var _ = Describe("ModRuleStore", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		patch, err := rs.CalculatePatch("my-namespace", resourceJSON, nil)
+		_, patch, err := rs.CalculatePatch("my-namespace", resourceJSON, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Sort the patch because the order returned by CalculatePatch is unstable.
@@ -79,6 +80,40 @@ var _ = Describe("ModRuleStore", func() {
 		Expect(fmt.Sprintf("%v", patch)).To(Equal(strings.TrimSpace(string(expectation))))
 	}
 
+	modRuleStoreDetermineRejectionsTableFunction := func(modRuleYAMLFiles []string, resourceFileJSONFile string, expectationFile string) {
+		// Load resource JSON.
+		resourceJSON, err := ioutil.ReadFile(path.Join("testdata/resources/", resourceFileJSONFile))
+		Expect(err).NotTo(HaveOccurred())
+
+		// Unmarshal that JSON.
+		jsonv := interface{}(nil)
+		err = json.Unmarshal(resourceJSON, &jsonv)
+		Expect(err).NotTo(HaveOccurred())
+
+		// Load ModRule YAMLs.
+		for _, modRuleYAMLFile := range modRuleYAMLFiles {
+			modRuleYAML, err := ioutil.ReadFile(path.Join("testdata/modrules/", modRuleYAMLFile))
+			Expect(err).NotTo(HaveOccurred())
+
+			modRule := v1beta1.ModRule{}
+			err = yaml.Unmarshal(modRuleYAML, &modRule)
+			Expect(err).NotTo(HaveOccurred())
+
+			modRule.Namespace = "my-namespace"
+
+			err = rs.Put(&modRule)
+			Expect(err).NotTo(HaveOccurred())
+		}
+
+		rejections, err := rs.DetermineRejections("my-namespace", jsonv)
+		Expect(err).NotTo(HaveOccurred())
+
+		expectation, err := ioutil.ReadFile(path.Join("testdata/expectations/", expectationFile))
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(fmt.Sprintf("%s", strings.Join(rejections, ", "))).To(Equal(strings.TrimSpace(string(expectation))))
+	}
+
 	DescribeTable("CalculatePatch", modRuleStoreCalculatePatchTableFunction,
 		Entry("patch-1 on pod-1 should work as expected", []string{"patch/patch-1.yaml"}, "pod-1.json", "patch-1-pod-1.txt"),
 		Entry("patch-2 on pod-1 should work as expected", []string{"patch/patch-2.yaml"}, "pod-1.json", "patch-2-pod-1.txt"),
@@ -89,6 +124,12 @@ var _ = Describe("ModRuleStore", func() {
 		Entry("patch-7 on pod-5 should work as expected", []string{"patch/patch-7.yaml"}, "pod-5.json", "patch-7-pod-5.txt"),
 		Entry("patch-7 on pod-5 should work as expected", []string{"patch/patch-8.yaml"}, "pod-5.json", "patch-8-pod-5.txt"),
 		Entry("patch-9 on pod-1 should work as expected", []string{"patch/patch-9.yaml"}, "pod-1.json", "patch-9-pod-1.txt"),
+	)
+
+	DescribeTable("DetermineRejections", modRuleStoreDetermineRejectionsTableFunction,
+		Entry("malicious-service on service-1 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-1.json", "malicious-reject-service-1.txt"),
+		Entry("malicious-service on service-2 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-2.json", "malicious-reject-service-2.txt"),
+		Entry("malicious-service on service-3 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-3.json", "malicious-reject-service-3.txt"),
 	)
 })
 

@@ -30,6 +30,7 @@ type ModRuleStore struct {
 	modRuleListMap map[string][]*ModRuleStoreItem
 	itemFactory    *ModRuleStoreItemFactory
 	rwLock         sync.RWMutex
+	log            logr.Logger
 }
 
 var (
@@ -42,11 +43,12 @@ var (
 )
 
 // NewModRuleStore instantiates a new ModRuleStore.
-func NewModRuleStore(itemFactory *ModRuleStoreItemFactory) *ModRuleStore {
+func NewModRuleStore(itemFactory *ModRuleStoreItemFactory, log logr.Logger) *ModRuleStore {
 	return &ModRuleStore{
 		modRuleListMap: make(map[string][]*ModRuleStoreItem),
 		itemFactory:    itemFactory,
 		rwLock:         sync.RWMutex{},
+		log:            log.WithName("core"),
 	}
 }
 
@@ -115,12 +117,12 @@ func (s *ModRuleStore) Delete(namespace string, name string) {
 }
 
 // getMatchingModRuleStoreItems returns a slice with all the mod rules which match the given unmarshalled JSON.
-func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, jsonv interface{}) []*ModRuleStoreItem {
+func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleType v1beta1.ModRuleType, jsonv interface{}) []*ModRuleStoreItem {
 	modRules := []*ModRuleStoreItem{}
 
 	if namespaceModRules, ok := s.modRuleListMap[namespace]; ok {
 		for _, mrsi := range namespaceModRules {
-			if mrsi.IsMatch(jsonv) {
+			if mrsi.modRule.Spec.Type == modRuleType && mrsi.IsMatch(jsonv) {
 				modRules = append(modRules, mrsi)
 			}
 		}
@@ -131,41 +133,68 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, jsonv inte
 
 // CalculatePatch calculates the set of patch operations to apply against a given resource
 // based on the ModRules matchins the resource.
-func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, operationLog logr.Logger) ([]ctrljsonpatch.JsonPatchOperation, error) {
+func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, operationLog logr.Logger) (interface{}, []ctrljsonpatch.JsonPatchOperation, error) {
 	var modifiedJSON = originalJSON
 
 	jsonv := interface{}(nil)
 	err := json.Unmarshal(originalJSON, &jsonv)
+
+	if err != nil {
+		return nil, nil, err
+	}
 
 	templateContext := PatchTemplateContext{
 		Namespace: namespace,
 		Target:    &jsonv,
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	// Find all matching rules.
-	matchingModRules := s.getMatchingModRuleStoreItems(namespace, jsonv)
+	// Find all matching Patch rules.
+	matchingModRules := s.getMatchingModRuleStoreItems(namespace, "Patch", jsonv)
 
 	// Apply the patches of each matching rule.
 	for _, mrsi := range matchingModRules {
 		epatch, err := mrsi.calculatePatch(&templateContext, jsonv, operationLog)
 
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		modifiedJSON, err = epatch.ApplyWithOptions(modifiedJSON, jsonPatchApplyOptions)
 
 		if err != nil {
-			return nil, err
+			return nil, nil, err
+		}
+
+		err = json.Unmarshal(modifiedJSON, &jsonv)
+
+		if err != nil {
+			return nil, nil, err
 		}
 	}
 
 	// Calculate the final mutation.
-	return ctrljsonpatch.CreatePatch(originalJSON, modifiedJSON)
+	ops, err := ctrljsonpatch.CreatePatch(originalJSON, modifiedJSON)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return jsonv, ops, nil
+}
+
+// DetermineRejections checks if the given object should be rejected based on the current Reject ModRules stored in the namespace.
+func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}) ([]string, error) {
+	var rejections = []string{}
+
+	// Find all matching Reject rules.
+	matchingModRules := s.getMatchingModRuleStoreItems(namespace, "Reject", jsonv)
+
+	// Enumerate all matching reject rules and log them.
+	for _, mrsi := range matchingModRules {
+		rejections = append(rejections, mrsi.modRule.GetNamespacedName())
+	}
+
+	return rejections, nil
 }
 
 // findModRuleIndexByName returns the index of the first ModRule which matches the given name

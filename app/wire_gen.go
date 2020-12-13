@@ -22,7 +22,7 @@ func InitializeKubeModApp(scheme *runtime.Scheme, metricsAddr string, enableLead
 	}
 	language := expressions.NewJSONPathLanguage()
 	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, logger)
-	modRuleStore := core.NewModRuleStore(modRuleStoreItemFactory)
+	modRuleStore := core.NewModRuleStore(modRuleStoreItemFactory, logger)
 	modRuleReconciler, err := controllers.NewModRuleReconciler(manager, modRuleStore, logger)
 	if err != nil {
 		return nil, err
