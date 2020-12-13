@@ -17,7 +17,7 @@ func InitializeModRuleStoreTestBed(tLogger util.TLogger) *ModRuleStoreTestBed {
 	language := expressions.NewJSONPathLanguage()
 	logger := NewTestLogger(tLogger)
 	modRuleStoreItemFactory := NewModRuleStoreItemFactory(language, logger)
-	modRuleStore := NewModRuleStore(modRuleStoreItemFactory)
+	modRuleStore := NewModRuleStore(modRuleStoreItemFactory, logger)
 	modRuleStoreTestBed := NewModRuleStoreTestBed(modRuleStore)
 	return modRuleStoreTestBed
 }
