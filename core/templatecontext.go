@@ -26,3 +26,13 @@ type PatchTemplateContext struct {
 	// SelectKeyParts contains the indexes collected from the patch select operation.
 	SelectKeyParts []interface{}
 }
+
+// RejectTemplateContext is an internal structure which is passed as context to all reject template executions.
+type RejectTemplateContext struct {
+
+	// Namespace is the namespace of the resource being patched.
+	Namespace string
+
+	// Target hosts the data of the resource being patched.
+	Target interface{}
+}

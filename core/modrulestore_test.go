@@ -105,7 +105,7 @@ var _ = Describe("ModRuleStore", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		rejections, err := rs.DetermineRejections("my-namespace", jsonv)
+		rejections, err := rs.DetermineRejections("my-namespace", jsonv, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		expectation, err := ioutil.ReadFile(path.Join("testdata/expectations/", expectationFile))

@@ -58,7 +58,7 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 	}
 
 	// Then test the result against the set of relevant Reject rules.
-	rejections, err := h.modRuleStore.DetermineRejections(req.Namespace, patchedJSON)
+	rejections, err := h.modRuleStore.DetermineRejections(req.Namespace, patchedJSON, log)
 
 	if err != nil {
 		log.Error(err, "Failed to determine rejections")

@@ -17,6 +17,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	evanjsonpatch "github.com/evanphx/json-patch/v5"
@@ -149,7 +150,7 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 	}
 
 	// Find all matching Patch rules.
-	matchingModRules := s.getMatchingModRuleStoreItems(namespace, "Patch", jsonv)
+	matchingModRules := s.getMatchingModRuleStoreItems(namespace, v1beta1.ModRuleTypePatch, jsonv)
 
 	// Apply the patches of each matching rule.
 	for _, mrsi := range matchingModRules {
@@ -183,18 +184,45 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 }
 
 // DetermineRejections checks if the given object should be rejected based on the current Reject ModRules stored in the namespace.
-func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}) ([]string, error) {
-	var rejections = []string{}
+func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}, operationLog logr.Logger) ([]string, error) {
+	var rejectionMessages = []string{}
+	var log logr.Logger
 
-	// Find all matching Reject rules.
-	matchingModRules := s.getMatchingModRuleStoreItems(namespace, "Reject", jsonv)
-
-	// Enumerate all matching reject rules and log them.
-	for _, mrsi := range matchingModRules {
-		rejections = append(rejections, mrsi.modRule.GetNamespacedName())
+	// If we are getting operation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
+	if operationLog != nil {
+		log = operationLog.WithName("core")
+	} else {
+		log = s.log
 	}
 
-	return rejections, nil
+	// Find all matching Reject rules.
+	matchingModRules := s.getMatchingModRuleStoreItems(namespace, v1beta1.ModRuleTypeReject, jsonv)
+
+	templateContext := RejectTemplateContext{
+		Namespace: namespace,
+		Target:    &jsonv,
+	}
+
+	// Enumerate all matching reject rules and evaluate their messages.
+	for _, mrsi := range matchingModRules {
+
+		if mrsi.rejectMessageTemplate != nil {
+			vb := strings.Builder{}
+			err := mrsi.rejectMessageTemplate.Execute(&vb, templateContext)
+
+			if err != nil {
+				// Log the template error, but do not stop the rejection.
+				log.Error(err, "invalid rejectMessage template", "rule", mrsi.modRule.GetNamespacedName(), "rejectMessage text", *mrsi.modRule.Spec.RejectMessage)
+				rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s", mrsi.modRule.GetNamespacedName()))
+			} else {
+				rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s: \"%s\"", mrsi.modRule.GetNamespacedName(), vb.String()))
+			}
+		} else {
+			rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s", mrsi.modRule.GetNamespacedName()))
+		}
+	}
+
+	return rejectionMessages, nil
 }
 
 // findModRuleIndexByName returns the index of the first ModRule which matches the given name
