@@ -287,7 +287,7 @@ All of the examples we've seen so far have been of type `Patch`.
 
 If a resource matches the `match` section of a `Reject` ModRule, its creation/update will be rejected. This enables the development of a system of policy ModRules which enforce certain security restrictions in the namespace they are deployed to.
 
-For example, here's a `Reject` ModRule which alleviates the infamous [CVE-2020-8554: Man in the middle using ExternalIPs](https://github.com/kubernetes/kubernetes/issues/97076):
+For example, here's a `Reject` ModRule which resolves the infamous [CVE-2020-8554: Man in the middle using ExternalIPs](https://github.com/kubernetes/kubernetes/issues/97076):
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
