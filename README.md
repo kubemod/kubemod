@@ -422,7 +422,7 @@ The special character `@` represents the current object the filter is iterating 
 
 Field `matchFor` controls how `select` results are evaluated against `matchValue`, `matchValues` and `matchRegex`.
 
-The value `matchFor` can be either `Any` or `All`. When not specified, `matchFor` defaults to `Any`.
+The value of `matchFor` can be either `Any` or `All`. When not specified, `matchFor` defaults to `Any`.
 
 See below for more information on how `matchFor` impacts the results of a match.
 
