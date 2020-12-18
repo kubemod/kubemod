@@ -5,11 +5,15 @@ metadata:
 spec:
   type: Reject
 
+  rejectMessage: 'One or more of the following external IPs are not allowed {{ .Target.spec.externalIPs }}'
+
   match:
     - select: '$.kind'
       matchValue: 'Service'
 
-    - select: '$.kind'
-      matchValue: 'Service'
+    - select: 'length($.spec.externalIPs) > 0'
 
-    - select: '$.spec.externalIPs[?@ !~ "123\\.12\\.34\\..*"]'
+    - select: '$.spec.externalIPs[*]'
+      matchFor: All
+      matchRegex: '123\.12\.34\.*'
+      negate: true
