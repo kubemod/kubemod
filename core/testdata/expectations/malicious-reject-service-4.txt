@@ -1,0 +1,1 @@
+my-namespace/modrule-1

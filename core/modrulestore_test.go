@@ -80,7 +80,7 @@ var _ = Describe("ModRuleStore", func() {
 		Expect(fmt.Sprintf("%v", patch)).To(Equal(strings.TrimSpace(string(expectation))))
 	}
 
-	modRuleStoreDetermineRejectionsTableFunction := func(modRuleYAMLFiles []string, resourceFileJSONFile string, expectationFile string) {
+	modRuleStoreDetermineRejectionsTableFunction := func(modRuleYAMLFiles []string, resourceFileJSONFile string, expectationFile string, rsPutError string) {
 		// Load resource JSON.
 		resourceJSON, err := ioutil.ReadFile(path.Join("testdata/resources/", resourceFileJSONFile))
 		Expect(err).NotTo(HaveOccurred())
@@ -102,11 +102,16 @@ var _ = Describe("ModRuleStore", func() {
 			modRule.Namespace = "my-namespace"
 
 			err = rs.Put(&modRule)
-			Expect(err).NotTo(HaveOccurred())
+
+			if rsPutError == "" {
+				Expect(err).NotTo(HaveOccurred())
+			} else {
+				Expect(fmt.Sprintf("%v", err)).To(Equal(rsPutError))
+				return
+			}
 		}
 
-		rejections, err := rs.DetermineRejections("my-namespace", jsonv, nil)
-		Expect(err).NotTo(HaveOccurred())
+		rejections := rs.DetermineRejections("my-namespace", jsonv, nil)
 
 		expectation, err := ioutil.ReadFile(path.Join("testdata/expectations/", expectationFile))
 		Expect(err).NotTo(HaveOccurred())
@@ -127,9 +132,11 @@ var _ = Describe("ModRuleStore", func() {
 	)
 
 	DescribeTable("DetermineRejections", modRuleStoreDetermineRejectionsTableFunction,
-		Entry("malicious-service on service-1 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-1.json", "malicious-reject-service-1.txt"),
-		Entry("malicious-service on service-2 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-2.json", "malicious-reject-service-2.txt"),
-		Entry("malicious-service on service-3 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-3.json", "malicious-reject-service-3.txt"),
+		Entry("malicious-service on service-1 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-1.json", "malicious-reject-service-1.txt", ""),
+		Entry("malicious-service on service-2 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-2.json", "malicious-reject-service-2.txt", ""),
+		Entry("malicious-service on service-3 should work as expected", []string{"reject/boolean-service-malicious-external-ips.yaml"}, "service-3.json", "malicious-reject-service-3.txt", ""),
+		Entry("bad rejection message should error appropriately 1", []string{"reject/bad-reject-message-1.yaml"}, "service-3.json", "", "failed to add ModRule to ModRuleStore: template: rejectMessage:1: unclosed action"),
+		Entry("bad rejection message should error appropriately 2", []string{"reject/bad-reject-message-2.yaml"}, "service-3.json", "malicious-reject-service-4.txt", ""),
 	)
 })
 

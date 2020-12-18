@@ -184,7 +184,7 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 }
 
 // DetermineRejections checks if the given object should be rejected based on the current Reject ModRules stored in the namespace.
-func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}, operationLog logr.Logger) ([]string, error) {
+func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}, operationLog logr.Logger) []string {
 	var rejectionMessages = []string{}
 	var log logr.Logger
 
@@ -222,7 +222,7 @@ func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}, 
 		}
 	}
 
-	return rejectionMessages, nil
+	return rejectionMessages
 }
 
 // findModRuleIndexByName returns the index of the first ModRule which matches the given name
