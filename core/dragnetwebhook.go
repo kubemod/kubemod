@@ -58,19 +58,13 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 	}
 
 	// Then test the result against the set of relevant Reject rules.
-	rejections, err := h.modRuleStore.DetermineRejections(req.Namespace, patchedJSON)
-
-	if err != nil {
-		log.Error(err, "Failed to determine rejections")
-		// We don't want to fail the admission just because someone messed up their Reject rule.
-		return admission.Allowed("failed to determine rejections")
-	}
+	rejections := h.modRuleStore.DetermineRejections(req.Namespace, patchedJSON, log)
 
 	if len(rejections) > 0 {
-		rules := strings.Join(rejections, ",")
-		log.Info("Rejected", "rules", rules)
+		rejectionMessages := strings.Join(rejections, ",")
+		log.Info("Rejected", "rejections", rejectionMessages)
 		// We don't want to fail the admission just because someone messed up their Reject rule.
-		return admission.Denied(fmt.Sprintf("operation rejected by the following ModRule(s): %s", rules))
+		return admission.Denied(fmt.Sprintf("operation rejected by the following ModRule(s): %s", rejectionMessages))
 	}
 
 	// If we are here, then the object and its patch passed all rejection rules.

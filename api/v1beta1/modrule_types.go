@@ -44,6 +44,11 @@ type ModRuleSpec struct {
 	// This field must be provided for ModRules of type "patch"
 	// +optional
 	Patch []PatchOperation `json:"patch,omitempty"`
+
+	// RejectMessage is an optional message displayed when a resource is rejected by a Reject ModRule.
+	// The field is a Golang template evaluated in the context of the object being rejected.
+	// +optional
+	RejectMessage *string `json:"rejectMessage,omitempty"`
 }
 
 // MatchItem represents a single match query.
