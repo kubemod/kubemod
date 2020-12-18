@@ -41,6 +41,16 @@ spec:
               items:
                 description: MatchItem represents a single match query.
                 properties:
+                  matchFor:
+                    description: 'MatchFor instructs how to match the results against
+                      the match... requirements. Valid values are: - "Any" - the match
+                      is considered positive if any of the results of select have
+                      a match. - "All" - the match is considered positive only if
+                      all of the results of select have a match.'
+                    enum:
+                    - Any
+                    - All
+                    type: string
                   matchRegex:
                     description: MatchRegex specifies the regular expression to compare
                       the result of Select by. The match is considered positive if

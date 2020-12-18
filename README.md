@@ -418,21 +418,42 @@ The filter expression could be any JavaScript boolean expression.
 
 The special character `@` represents the current object the filter is iterating over. In the above filter expression, that is the current element of the `ports` array.
 
+##### `matchFor` \(string: optional\)
+
+Field `matchFor` controls how `select` results are evaluated against `matchValue`, `matchValues` and `matchRegex`.
+
+The value `matchFor` can be either `Any` or `All`. When not specified, `matchFor` defaults to `Any`.
+
+See below for more information on how `matchFor` impacts the results of a match.
+
+
 ##### `matchValue` \(string: optional\)
 
-When present, the value of field `matchValue` is matched against the results of `select`. If any of the items returned by `select` match `matchValue`, the match criteria is considered a positive match.
+When present, the value of field `matchValue` is matched against the results of `select`.
+
+If `matchFor` is set to `Any` and any of the items returned by `select` match `matchValue`, the match criteria is considered a positive match.
+
+If `matchFor` is set to `All` and all of the items returned by `select` match `matchValue`, the match criteria is considered a positive match.
 
 The match performed by `matchValue` is case sensitive. If you need case insensitive matches, use `matchRegex`.
 
 ##### `matchValues` \(array of strings: optional\)
 
-Field `matchValues` is an array of strings which are tested against the results of `select`. If any of the items returned by `select` match any of the `matchValues`, the match criteria is considered a positive match.
+Field `matchValues` is an array of strings which are tested against the results of `select`.
+
+If `matchFor` is set to `Any` and any of the items returned by `select` match any of the `matchValues`, the match criteria is considered a positive match.
+
+If `matchFor` is set to `All` and all of the items returned by `select` match any of the `matchValues`, the match criteria is considered a positive match.
 
 This match is case sensitive. If you need case insensitive matches, use `matchRegex`.
 
 ##### `matchRegex` \(string: optional\)
 
-Field `matchRegex` is a regular expression matched against the results of `select`. If any of the items returned by `select` match `matchRegex`, the match criteria is considered a positive match.
+Field `matchRegex` is a regular expression matched against the results of `select`.
+
+If `matchFor` is set to `Any` and any of the items returned by `select` match `matchRegex`, the match criteria is considered a positive match.
+
+If `matchFor` is set to `All` and all of the items returned by `select` match `matchRegex`, the match criteria is considered a positive match.
 
 ##### `negate` \(boolean: optional\)
 

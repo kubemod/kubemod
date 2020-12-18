@@ -392,8 +392,8 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 	if err != nil {
 		// There is at least one valid reason to be here - when the query tries to match a missing key
 		// such as metadata. label.missing_key.
-		// In this case we only want to log a DBG info message and negate the query.
-		si.log.V(1).Info("JSONPath query expression failure", "select", matchItem.Select, "error", err)
+		// In this case we only want to log an error message and negate the query.
+		si.log.Error(err, "JSONPath query expression failure", "select", matchItem.Select)
 
 		return matchItem.Negate
 	}
@@ -432,7 +432,16 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 	// Note that if the match contains no regex, matchRegexp will be nil
 	matchRegexp := si.compiledRegexes[matchItem]
 
-	// Check if any of the resulting values match any of the criteria values.
+	var ret bool
+
+	// Prepare circuit breaker default return value for the type of match comparison we are running.
+	if matchItem.MatchFor == v1beta1.MatchForTypeAny || matchItem.MatchFor == "" {
+		ret = matchItem.Negate
+	} else {
+		ret = !matchItem.Negate
+	}
+
+	// Check the resulting values against the criteria values.
 	for _, expressionValue := range expressionValues {
 		var ev *string
 
@@ -444,45 +453,52 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 			ev = &vstr
 		}
 
-		// We have a positive match? No need to look further.
-		if isStringMatch(matchItem, matchRegexp, ev) == !matchItem.Negate {
-			return !matchItem.Negate
+		if matchItem.MatchFor == v1beta1.MatchForTypeAny || matchItem.MatchFor == "" {
+			if isStringMatch(matchItem, matchRegexp, ev) {
+				ret = !matchItem.Negate
+				break
+			}
+		} else {
+			if !isStringMatch(matchItem, matchRegexp, ev) {
+				ret = matchItem.Negate
+				break
+			}
 		}
 	}
 
-	return matchItem.Negate
+	return ret
 }
 
 func isStringMatch(matchItem *v1beta1.MatchItem, matchRegexp *regexp.Regexp, value *string) bool {
 	if matchItem.MatchValue != nil {
 		if *value == *matchItem.MatchValue {
-			return !matchItem.Negate
+			return true
 		}
 		// MatchItem has a spec value, but it doesn't match - return negative match.
-		return matchItem.Negate
+		return false
 	}
 
 	if matchItem.MatchValues != nil && len(matchItem.MatchValues) > 0 {
 		for i := range matchItem.MatchValues {
 			if *value == matchItem.MatchValues[i] {
-				return !matchItem.Negate
+				return true
 			}
 		}
 
 		// MatchItem has spec matchValues, but none of them match - return negative match.
-		return matchItem.Negate
+		return false
 	}
 
 	if matchItem.MatchRegex != nil {
 		if matchRegexp.MatchString(*value) {
-			return !matchItem.Negate
+			return true
 		}
 
 		// MatchItem has a matchRegex, but it does not match - return negative match.
-		return matchItem.Negate
+		return false
 	}
 
 	// MatchItem has no spec matchValue, matchValues or matchRegex, but the query yielded a value.
 	// This is a positive match.
-	return !matchItem.Negate
+	return true
 }
