@@ -36,7 +36,7 @@ As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemo
 The following command will create namespace `kubemod-system` and will deploy KubeMod into it.
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.0/bundle.yaml
 ```
 
 ### Upgrade
@@ -48,7 +48,7 @@ If you are upgrading from a previous version of KubeMod, run the following:
 kubectl delete job -l job-name -n kubemod-system
 
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.0/bundle.yaml
 ```
 
 ### Uninstall
@@ -56,7 +56,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle
 To uninstall KubeMod and all its resources, run:
 
 ```text
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.7.1/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
@@ -400,13 +400,13 @@ A criteria item is considered a positive match when:
 * its `select` expression yields one or more non-boolean values **and** one of the following is true:
   * Fields `matchValue`, `matchValues` and `matchRegex` are not specified.
   * `matchValue` is specified and:
-    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` exactly matches the value of `matchValue`.
+    * `matchFor` is set to `Any` (or unspecified) and one or more of the values resulting from `select` exactly matches the value of `matchValue`.
     * `matchFor` is set to `All` and all of the values resulting from `select` exactly match the value of `matchValue`.
   * `matchValues` is specified and:
-    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` exactly matches one of the values in `matchValues`.
+    * `matchFor` is set to `Any` (or unspecified) and one or more of the values resulting from `select` exactly matches one of the values in `matchValues`.
     * `matchFor` is set to `All` and all of the values resulting from `select` exactly match one of the values in `matchValues`.
   * `matchRegex` is specified and:
-    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` matches that regular expression.
+    * `matchFor` is set to `Any` (or unspecified) and one or more of the values resulting from `select` matches that regular expression.
     * `matchFor` is set to `All` and all of the values resulting from `select` match that regular expression.
 
 The result of a criteria item can be inverted by setting its `negate` field to `true`.
