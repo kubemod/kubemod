@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.8.1 - 2020-12-18
+
+* 27: Validation fails for ModRules without rejectMessage
+
 ## 0.8.0 - 2020-12-18
 
 * 25: Introduce matchFor
