@@ -151,10 +151,12 @@ func (r *ModRule) validateModRule() error {
 	}
 
 	// Validate the rejectMessage as a template.
-	_, err = template.New("rejectMessage").Parse(*r.Spec.RejectMessage)
+	if r.Spec.RejectMessage != nil {
+		_, err = template.New("rejectMessage").Parse(*r.Spec.RejectMessage)
 
-	if err != nil {
-		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("rejectMessage"), *r.Spec.RejectMessage, fmt.Sprintf("%v", err)))
+		if err != nil {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("rejectMessage"), *r.Spec.RejectMessage, fmt.Sprintf("%v", err)))
+		}
 	}
 
 	if len(allErrs) > 0 {
