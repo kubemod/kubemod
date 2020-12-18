@@ -300,15 +300,17 @@ spec:
   rejectMessage: 'One or more of the following external IPs are not allowed {{ .Target.spec.externalIPs }}'
 
   match:
+    # Reject Service resources...
     - select: '$.kind'
       matchValue: 'Service'
 
+    # ...with non-empty externalIPs...
     - select: 'length($.spec.externalIPs) > 0'
 
-    # Allow external IPs only in subnet 123.12.34.0/24.
+    # ...where some of the IPs were not part of the allowed subnet 123.45.67.0/24.
     - select: '$.spec.externalIPs[*]'
       matchFor: All
-      matchRegex: '123\.12\.34\.*'
+      matchRegex: '123\.45\.67\.*'
       negate: true
 ```
 
@@ -326,12 +328,13 @@ spec:
   rejectMessage: 'All workloads must run as non-root user'
   
   match:
-    # Match (thus reject) Deployments and StatefulSets...
+    # Reject Deployments and StatefulSets...
     - select: '$.kind'
       matchValues:
         - 'Deployment'
         - 'StatefulSet'
-    # ... that have no explicit runAsNonRoot security context.
+
+    # ...that have no explicit runAsNonRoot security context.
     - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
       negate: true
 ```
