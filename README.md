@@ -321,7 +321,7 @@ Here's another ModRule which rejects the deployment of any `Deployment` or `Stat
 apiVersion: api.kubemod.io/v1beta1
 kind: ModRule
 metadata:
-  name: my-modrule
+  name: reject-root-access-workloads
 spec:
   type: Reject
 
