@@ -128,6 +128,11 @@ spec:
                 - path
                 type: object
               type: array
+            rejectMessage:
+              description: RejectMessage is an optional message displayed when a resource
+                is rejected by a Reject ModRule. The field is a Golang template evaluated
+                in the context of the object being rejected.
+              type: string
             type:
               description: 'Type describes the type of a ModRule. Valid values are:
                 - "Patch" - the rule performs modifications on all the matching resources

@@ -96,6 +96,10 @@ func (r *ModRule) validateModRule() error {
 		allErrs = append(allErrs, field.Required(field.NewPath("spec").Child("patch"), "field 'patch' cannot be empty for ModRules of type Patch"))
 	}
 
+	if r.Spec.Type != ModRuleTypeReject && r.Spec.RejectMessage != nil {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("rejectMessage"), *r.Spec.RejectMessage, "field 'rejectMessage' should be present only for ModRules of type Reject"))
+	}
+
 	// Validate the ModRule select queries and regexes.
 	for i, matchItem := range r.Spec.Match {
 		// match.select is required.
@@ -140,6 +144,13 @@ func (r *ModRule) validateModRule() error {
 				}
 			}
 		}
+	}
+
+	// Validate the rejectMessage as a template.
+	_, err = template.New("rejectMessage").Parse(*r.Spec.RejectMessage)
+
+	if err != nil {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("rejectMessage"), *r.Spec.RejectMessage, fmt.Sprintf("%v", err)))
 	}
 
 	if len(allErrs) > 0 {

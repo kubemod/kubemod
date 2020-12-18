@@ -34,11 +34,12 @@ import (
 // ModRuleStoreItem wraps around a ModRule and holds a cache of the ModRule's
 // match queries, regexp expressions and value templates in compiled form.
 type ModRuleStoreItem struct {
-	modRule              *v1beta1.ModRule
-	compiledMatchSelects map[*v1beta1.MatchItem]gval.Evaluable
-	compiledRegexes      map[*v1beta1.MatchItem]*regexp.Regexp
-	compiledJSONPatch    []*compiledJSONPatchOperation
-	log                  logr.Logger
+	modRule               *v1beta1.ModRule
+	compiledMatchSelects  map[*v1beta1.MatchItem]gval.Evaluable
+	compiledRegexes       map[*v1beta1.MatchItem]*regexp.Regexp
+	compiledJSONPatch     []*compiledJSONPatchOperation
+	rejectMessageTemplate *template.Template
+	log                   logr.Logger
 }
 
 // ModRuleStoreItemFactory is used to construct ModRuleStoreItems.
@@ -95,12 +96,22 @@ func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) 
 		return nil, err
 	}
 
+	var rejectMessageTemplate *template.Template
+
+	if modRule.Spec.RejectMessage != nil {
+		rejectMessageTemplate, err = template.New("rejectMessage").Parse(*modRule.Spec.RejectMessage)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &ModRuleStoreItem{
-			modRule:              modRule,
-			log:                  f.log,
-			compiledMatchSelects: compiledMatchSelects,
-			compiledRegexes:      compiledRegexes,
-			compiledJSONPatch:    compiledJSONPatch,
+			modRule:               modRule,
+			log:                   f.log,
+			compiledMatchSelects:  compiledMatchSelects,
+			compiledRegexes:       compiledRegexes,
+			compiledJSONPatch:     compiledJSONPatch,
+			rejectMessageTemplate: rejectMessageTemplate,
 		},
 		nil
 }

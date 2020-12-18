@@ -1,0 +1,14 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Reject
+
+  rejectMessage: 'One or more of the following external IPs are not allowed {{ .Target'
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Service'
+
+    - select: '$.spec.externalIPs[?@ !~ "123\\.12\\.34\\..*"]'

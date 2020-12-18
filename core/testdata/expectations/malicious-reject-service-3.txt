@@ -1,1 +1,1 @@
-my-namespace/modrule-1
+my-namespace/modrule-1: "One or more of the following external IPs are not allowed [123.12.34.1 123.12.35.2]"
