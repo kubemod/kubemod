@@ -12,7 +12,6 @@ spec:
       matchValue: 'Service'
 
     - select: 'length($.spec.externalIPs) > 0'
-      matchValue: true
 
     - select: '$.spec.externalIPs[*]'
       matchFor: All

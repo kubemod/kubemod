@@ -287,7 +287,33 @@ All of the examples we've seen so far have been of type `Patch`.
 
 If a resource matches the `match` section of a `Reject` ModRule, its creation/update will be rejected. This enables the development of a system of policy ModRules which enforce certain security restrictions in the namespace they are deployed to.
 
-For example, here's a `Reject` ModRule which rejects the deployment of any `Deployment` or `StatefulSet` resource that does not explicitly require non-root containers:
+For example, here's a `Reject` ModRule which alleviates the infamous [CVE-2020-8554: Man in the middle using ExternalIPs](https://github.com/kubernetes/kubernetes/issues/97076):
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Reject
+
+  rejectMessage: 'One or more of the following external IPs are not allowed {{ .Target.spec.externalIPs }}'
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Service'
+
+    - select: 'length($.spec.externalIPs) > 0'
+
+    # Allow external IPs only in subnet 123.12.34.0/24.
+    - select: '$.spec.externalIPs[*]'
+      matchFor: All
+      matchRegex: '123\.12\.34\.*'
+      negate: true
+```
+
+
+Here's another ModRule which rejects the deployment of any `Deployment` or `StatefulSet` resource that does not explicitly require non-root containers:
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
@@ -365,12 +391,20 @@ For example, the following `match` section has two criteria items. This `ModRule
         - 'container-2'
 ```
 
-A criteria item is considered a positive match when its `select` expression yields one or more values **and** one of the following is true:
+A criteria item is considered a positive match when:
 
-* No `matchValue`, `matchValues` or `matchRegex` are specified for the criteria item.
-* `matchValue` is specified and one or more of the values resulting from `select` exactly matches that value.
-* `matchValues` is specified and one or more of the values resulting from `select` exactly matches one or more of the values in `matchValues`.
-* `matchRegex` is specified and one or more of the values resulting from `select` matches that regular expression.
+* its `select` expression yields a single boolean `true` value.
+* its `select` expression yields one or more non-boolean values **and** one of the following is true:
+  * Fields `matchValue`, `matchValues` and `matchRegex` are not specified.
+  * `matchValue` is specified and:
+    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` exactly matches the value of `matchValue`.
+    * `matchFor` is set to `All` and all of the values resulting from `select` exactly match the value of `matchValue`.
+  * `matchValues` is specified and:
+    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` exactly matches one of the values in `matchValues`.
+    * `matchFor` is set to `All` and all of the values resulting from `select` exactly match one of the values in `matchValues`.
+  * `matchRegex` is specified and:
+    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` matches that regular expression.
+    * `matchFor` is set to `All` and all of the values resulting from `select` match that regular expression.
 
 The result of a criteria item can be inverted by setting its `negate` field to `true`.
 
@@ -390,7 +424,9 @@ $.spec.template.spec.containers[*].name
 
 When this expression is evaluated against a `Deployment` resource definition whose specification includes three containers, the result of this `select` expression will be a list of the names of those three containers.
 
-For the purpose of performing matches, KubeMod converts the result of every `select` expression to a list of strings, regardless of what the original type of the target field is.
+If `select` yields a single boolean value, that value is considered to be the result of the match regardless of the values of `matchValue`, `matchValues` and `matchRegex`.
+
+For any other case, KubeMod converts the result of the `select` expression to a list of strings, regardless of what the original type of the target field is.
 
 Here's another example:
 
