@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* 25: Introduce matchFor
 * 23: Add message field to Reject rules
 * 21: Implement Reject ModRules
 

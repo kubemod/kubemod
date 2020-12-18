@@ -53,7 +53,11 @@ var _ webhook.Defaulter = &ModRule{}
 func (r *ModRule) Default() {
 	modrulelog.V(1).Info("default", "name", r.Name)
 
-	// TODO(user): fill in your defaulting logic.
+	for _, mi := range r.Spec.Match {
+		if mi.MatchFor == "" {
+			mi.MatchFor = MatchForTypeAny
+		}
+	}
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.

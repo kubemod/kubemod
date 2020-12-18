@@ -287,25 +287,54 @@ All of the examples we've seen so far have been of type `Patch`.
 
 If a resource matches the `match` section of a `Reject` ModRule, its creation/update will be rejected. This enables the development of a system of policy ModRules which enforce certain security restrictions in the namespace they are deployed to.
 
-For example, here's a `Reject` ModRule which rejects the deployment of any `Deployment` or `StatefulSet` resource that does not explicitly require non-root containers:
+For example, here's a `Reject` ModRule which prevents the infamous [CVE-2020-8554: Man in the middle using ExternalIPs](https://github.com/kubernetes/kubernetes/issues/97076):
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
 kind: ModRule
 metadata:
-  name: my-modrule
+  name: reject-malicious-external-ips
+spec:
+  type: Reject
+
+  rejectMessage: 'One or more of the following external IPs are not allowed {{ .Target.spec.externalIPs }}'
+
+  match:
+    # Reject Service resources...
+    - select: '$.kind'
+      matchValue: 'Service'
+
+    # ...with non-empty externalIPs...
+    - select: 'length($.spec.externalIPs) > 0'
+
+    # ...where some of the IPs were not part of the allowed subnet 123.45.67.0/24.
+    - select: '$.spec.externalIPs[*]'
+      matchFor: All
+      matchRegex: '123\.45\.67\.*'
+      negate: true
+```
+
+
+Here's another ModRule which rejects the deployment of any `Deployment` or `StatefulSet` resource that does not explicitly require non-root containers:
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: reject-root-access-workloads
 spec:
   type: Reject
 
   rejectMessage: 'All workloads must run as non-root user'
   
   match:
-    # Match (thus reject) Deployments and StatefulSets...
+    # Reject Deployments and StatefulSets...
     - select: '$.kind'
       matchValues:
         - 'Deployment'
         - 'StatefulSet'
-    # ... that have no explicit runAsNonRoot security context.
+
+    # ...that have no explicit runAsNonRoot security context.
     - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
       negate: true
 ```
@@ -365,12 +394,20 @@ For example, the following `match` section has two criteria items. This `ModRule
         - 'container-2'
 ```
 
-A criteria item is considered a positive match when its `select` expression yields one or more values **and** one of the following is true:
+A criteria item is considered a positive match when:
 
-* No `matchValue`, `matchValues` or `matchRegex` are specified for the criteria item.
-* `matchValue` is specified and one or more of the values resulting from `select` exactly matches that value.
-* `matchValues` is specified and one or more of the values resulting from `select` exactly matches one or more of the values in `matchValues`.
-* `matchRegex` is specified and one or more of the values resulting from `select` matches that regular expression.
+* its `select` expression yields a single boolean `true` value.
+* its `select` expression yields one or more non-boolean values **and** one of the following is true:
+  * Fields `matchValue`, `matchValues` and `matchRegex` are not specified.
+  * `matchValue` is specified and:
+    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` exactly matches the value of `matchValue`.
+    * `matchFor` is set to `All` and all of the values resulting from `select` exactly match the value of `matchValue`.
+  * `matchValues` is specified and:
+    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` exactly matches one of the values in `matchValues`.
+    * `matchFor` is set to `All` and all of the values resulting from `select` exactly match one of the values in `matchValues`.
+  * `matchRegex` is specified and:
+    * `matchFor` is set to `Any` (or left unspecified) and one or more of the values resulting from `select` matches that regular expression.
+    * `matchFor` is set to `All` and all of the values resulting from `select` match that regular expression.
 
 The result of a criteria item can be inverted by setting its `negate` field to `true`.
 
@@ -390,7 +427,9 @@ $.spec.template.spec.containers[*].name
 
 When this expression is evaluated against a `Deployment` resource definition whose specification includes three containers, the result of this `select` expression will be a list of the names of those three containers.
 
-For the purpose of performing matches, KubeMod converts the result of every `select` expression to a list of strings, regardless of what the original type of the target field is.
+If `select` yields a single boolean value, that value is considered to be the result of the match regardless of the values of `matchValue`, `matchValues` and `matchRegex`.
+
+For any other case, KubeMod converts the result of the `select` expression to a list of strings, regardless of what the original type of the target field is.
 
 Here's another example:
 
@@ -418,21 +457,42 @@ The filter expression could be any JavaScript boolean expression.
 
 The special character `@` represents the current object the filter is iterating over. In the above filter expression, that is the current element of the `ports` array.
 
+##### `matchFor` \(string: optional\)
+
+Field `matchFor` controls how `select` results are evaluated against `matchValue`, `matchValues` and `matchRegex`.
+
+The value of `matchFor` can be either `Any` or `All`. When not specified, `matchFor` defaults to `Any`.
+
+See below for more information on how `matchFor` impacts the results of a match.
+
+
 ##### `matchValue` \(string: optional\)
 
-When present, the value of field `matchValue` is matched against the results of `select`. If any of the items returned by `select` match `matchValue`, the match criteria is considered a positive match.
+When present, the value of field `matchValue` is matched against the results of `select`.
+
+If `matchFor` is set to `Any` and any of the items returned by `select` match `matchValue`, the match criteria is considered a positive match.
+
+If `matchFor` is set to `All` and all of the items returned by `select` match `matchValue`, the match criteria is considered a positive match.
 
 The match performed by `matchValue` is case sensitive. If you need case insensitive matches, use `matchRegex`.
 
 ##### `matchValues` \(array of strings: optional\)
 
-Field `matchValues` is an array of strings which are tested against the results of `select`. If any of the items returned by `select` match any of the `matchValues`, the match criteria is considered a positive match.
+Field `matchValues` is an array of strings which are tested against the results of `select`.
+
+If `matchFor` is set to `Any` and any of the items returned by `select` match any of the `matchValues`, the match criteria is considered a positive match.
+
+If `matchFor` is set to `All` and all of the items returned by `select` match any of the `matchValues`, the match criteria is considered a positive match.
 
 This match is case sensitive. If you need case insensitive matches, use `matchRegex`.
 
 ##### `matchRegex` \(string: optional\)
 
-Field `matchRegex` is a regular expression matched against the results of `select`. If any of the items returned by `select` match `matchRegex`, the match criteria is considered a positive match.
+Field `matchRegex` is a regular expression matched against the results of `select`.
+
+If `matchFor` is set to `Any` and any of the items returned by `select` match `matchRegex`, the match criteria is considered a positive match.
+
+If `matchFor` is set to `All` and all of the items returned by `select` match `matchRegex`, the match criteria is considered a positive match.
 
 ##### `negate` \(boolean: optional\)
 

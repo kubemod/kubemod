@@ -57,6 +57,13 @@ type MatchItem struct {
 	// If no match value or regex is specified, if the query yields a non-empty result, the match is considered positive.
 	Select string `json:"select"`
 
+	// MatchFor instructs how to match the results against the match... requirements.
+	// Valid values are:
+	// - "Any" - the match is considered positive if any of the results of select have a match.
+	// - "All" - the match is considered positive only if all of the results of select have a match.
+	// +optional
+	MatchFor MatchForType `json:"matchFor,omitempty"`
+
 	// MatchValue specifies the exact value to match the result of Select by.
 	// The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to matchValue.
 	// +nullable
@@ -135,6 +142,18 @@ const (
 
 	// ModRuleTypeReject indicates that the ModRule should reject Create events for resources which match the rule.
 	ModRuleTypeReject ModRuleType = "Reject"
+)
+
+// MatchForType describes the type of a match.
+// Only one of the following ModRule types may be specified.
+// +kubebuilder:validation:Enum=Any;All
+type MatchForType string
+
+const (
+	// MatchForTypeAny indicates that a match is positive when any of the selected results matches any of the match requirements.
+	MatchForTypeAny MatchForType = "Any"
+	// MatchForTypeAll indicates that a match is positive when all of the selected results matches any of the match requirements.
+	MatchForTypeAll MatchForType = "All"
 )
 
 // ModRuleStatus defines the observed state of ModRule
