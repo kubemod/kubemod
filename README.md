@@ -293,7 +293,7 @@ For example, here's a `Reject` ModRule which alleviates the infamous [CVE-2020-8
 apiVersion: api.kubemod.io/v1beta1
 kind: ModRule
 metadata:
-  name: modrule-1
+  name: reject-malicious-external-ips
 spec:
   type: Reject
 
