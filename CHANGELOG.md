@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.8.0 - 2020-12-18
 
 * 25: Introduce matchFor
 * 23: Add message field to Reject rules

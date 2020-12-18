@@ -41,6 +41,12 @@ spec:
               items:
                 description: MatchItem represents a single match query.
                 properties:
+                  matchFor:
+                    description: 'MatchFor instructs how to match the results against the match... requirements. Valid values are: - "Any" - the match is considered positive if any of the results of select have a match. - "All" - the match is considered positive only if all of the results of select have a match.'
+                    enum:
+                    - Any
+                    - All
+                    type: string
                   matchRegex:
                     description: MatchRegex specifies the regular expression to compare the result of Select by. The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to value.
                     nullable: true
@@ -92,6 +98,9 @@ spec:
                 - path
                 type: object
               type: array
+            rejectMessage:
+              description: RejectMessage is an optional message displayed when a resource is rejected by a Reject ModRule. The field is a Golang template evaluated in the context of the object being rejected.
+              type: string
             type:
               description: 'Type describes the type of a ModRule. Valid values are: - "Patch" - the rule performs modifications on all the matching resources as they are created. - "Reject" - the rule rejects the creation of all matching resources.'
               enum:
