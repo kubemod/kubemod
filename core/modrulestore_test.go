@@ -136,6 +136,11 @@ var _ = Describe("ModRuleStore", func() {
 		Entry("malicious-service on service-2 should work as expected", []string{"reject/boolean-service-malicious-external-ips-1.yaml"}, "service-2.json", "malicious-reject-service-2.txt", ""),
 		Entry("malicious-service on service-3 should work as expected", []string{"reject/boolean-service-malicious-external-ips-1.yaml"}, "service-3.json", "malicious-reject-service-3.txt", ""),
 		Entry("malicious-service on service-3 should work as expected", []string{"reject/boolean-service-malicious-external-ips-2.yaml"}, "service-3.json", "malicious-reject-service-4.txt", ""),
+
+		Entry("malicious-service on service-1 should work as expected", []string{"reject/boolean-service-malicious-external-ips-3.yaml"}, "service-1.json", "malicious-reject-service-1.txt", ""),
+		Entry("malicious-service on service-2 should work as expected", []string{"reject/boolean-service-malicious-external-ips-3.yaml"}, "service-2.json", "malicious-reject-service-2.txt", ""),
+		Entry("malicious-service on service-3 should work as expected", []string{"reject/boolean-service-malicious-external-ips-3.yaml"}, "service-3.json", "malicious-reject-service-3.txt", ""),
+
 		Entry("bad rejection message should error appropriately 1", []string{"reject/bad-reject-message-1.yaml"}, "service-3.json", "", "failed to add ModRule to ModRuleStore: template: rejectMessage:1: unclosed action"),
 		Entry("bad rejection message should error appropriately 2", []string{"reject/bad-reject-message-2.yaml"}, "service-3.json", "malicious-reject-service-4.txt", ""),
 	)
