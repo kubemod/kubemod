@@ -8,6 +8,7 @@ require (
 	github.com/PaesslerAG/gval v1.0.1
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/evanphx/json-patch/v5 v5.1.0
+	github.com/gin-gonic/gin v1.6.3
 	github.com/go-logr/logr v0.1.0
 	github.com/google/wire v0.4.0
 	github.com/onsi/ginkgo v1.14.1

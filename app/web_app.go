@@ -15,6 +15,14 @@ limitations under the License.
 package app
 
 import (
+	"context"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gin-gonic/gin"
 	"github.com/go-logr/logr"
 )
 
@@ -31,6 +39,49 @@ func NewKubeModWebApp(
 	setupLog := log.WithName("web-app-setup")
 	setupLog.Info("web app server is starting to listen", "addr", webAppAddr)
 
-	return &KubeModWebApp{},
-		nil
+	r := gin.Default()
+
+	// TODO: Setup routes.
+
+	// Run the server - this will block until the process is terminated through a SIGTERM or SIGINT.
+	run(r, webAppAddr, log)
+
+	return &KubeModWebApp{}, nil
+}
+
+// run starts a web server with the given router as a handler and blocks until the process is terminated.
+func run(router *gin.Engine, webAppAddr string, log logr.Logger) {
+
+	srv := &http.Server{
+		Addr:    webAppAddr,
+		Handler: router,
+	}
+
+	// Initializing the server in a goroutine so that it won't block the graceful shutdown handling below.
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Error(err, "KubeMod web app failed to listen and serve", "addr", webAppAddr)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
+	quit := make(chan os.Signal)
+
+	// kill (no param) default send syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit
+
+	log.Info("shutting down KubeMod web app")
+
+	// The context is used to inform the server it has 10 seconds to finish the request it is currently handling.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Error(err, "KubeMod web app forced to shutdown")
+	}
+
+	log.Info("KubeMod web app exited")
 }
