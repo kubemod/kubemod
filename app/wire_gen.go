@@ -35,8 +35,8 @@ func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr string, en
 	return kubeModOperatorApp, nil
 }
 
-func InitializeKubeModWebApp(webAppAddr string, log logr.Logger) (*KubeModWebApp, error) {
-	kubeModWebApp, err := NewKubeModWebApp(webAppAddr, log)
+func InitializeKubeModWebApp(webAppAddr string, enableDevModeLog EnableDevModeLog, log logr.Logger) (*KubeModWebApp, error) {
+	kubeModWebApp, err := NewKubeModWebApp(webAppAddr, enableDevModeLog, log)
 	if err != nil {
 		return nil, err
 	}

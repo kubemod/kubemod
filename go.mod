@@ -7,6 +7,7 @@ replace github.com/evanphx/json-patch/v5 v5.1.0 => github.com/vassilvk/json-patc
 require (
 	github.com/PaesslerAG/gval v1.0.1
 	github.com/PaesslerAG/jsonpath v0.1.1
+	github.com/alron/ginlogr v0.0.4
 	github.com/evanphx/json-patch/v5 v5.1.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-logr/logr v0.1.0

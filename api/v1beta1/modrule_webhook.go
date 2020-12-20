@@ -60,7 +60,7 @@ func (r *ModRule) Default() {
 	}
 }
 
-// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
+// Change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 // +kubebuilder:webhook:verbs=create;update,path=/validate-api-kubemod-io-v1beta1-modrule,mutating=false,failurePolicy=fail,groups=api.kubemod.io,resources=modrules,versions=v1beta1,name=vmodrule.kubemod.io
 
 var _ webhook.Validator = &ModRule{}

@@ -119,6 +119,7 @@ func run(config *Config) error {
 		if config.RunWebApp {
 			_, err := app.InitializeKubeModWebApp(
 				config.WebAppAddr,
+				app.EnableDevModeLog(config.EnableDevModeLog),
 				log)
 
 			if err != nil {

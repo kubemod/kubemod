@@ -47,6 +47,7 @@ func InitializeKubeModOperatorApp(
 
 func InitializeKubeModWebApp(
 	webAppAddr string,
+	enableDevModeLog EnableDevModeLog,
 	log logr.Logger) (*KubeModWebApp, error) {
 	wire.Build(
 		NewKubeModWebApp,

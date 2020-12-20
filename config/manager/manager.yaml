@@ -30,6 +30,7 @@ spec:
       - command:
           - /kubemod
           - -operator
+          - -web-app
         image: controller:latest
         name: manager
         resources:

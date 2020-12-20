@@ -22,6 +22,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alron/ginlogr"
 	"github.com/gin-gonic/gin"
 	"github.com/go-logr/logr"
 )
@@ -33,15 +34,25 @@ type KubeModWebApp struct {
 // NewKubeModWebApp instantiates a kubemod web application.
 func NewKubeModWebApp(
 	webAppAddr string,
+	enableDevModeLog EnableDevModeLog,
 	log logr.Logger,
 ) (*KubeModWebApp, error) {
 
 	setupLog := log.WithName("web-app-setup")
 	setupLog.Info("web app server is starting to listen", "addr", webAppAddr)
 
-	r := gin.Default()
+	if enableDevModeLog {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
-	// TODO: Setup routes.
+	r := gin.New()
+
+	r.Use(ginlogr.RecoveryWithLogr(log, time.RFC3339, false, true))
+
+	// Set up the API routes.
+	setupRoutes(r)
 
 	// Run the server - this will block until the process is terminated through a SIGTERM or SIGINT.
 	run(r, webAppAddr, log)
