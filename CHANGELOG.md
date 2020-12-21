@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.8.2 - 2020-12-21
+
+* 29: Log missing JSONPath keys as DBG level messages
+
 ## 0.8.1 - 2020-12-18
 
 * 27: Validation fails for ModRules without rejectMessage
