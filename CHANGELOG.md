@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* 31: Enable patching non-existent arrays with -1
+
 ## 0.8.2 - 2020-12-21
 
 * 29: Log missing JSONPath keys as DBG level messages

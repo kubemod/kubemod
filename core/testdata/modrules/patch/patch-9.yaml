@@ -13,3 +13,14 @@ spec:
     - op: add
       path: /spec/metadata/annotations/color
       value: whatever
+
+    - op: add
+      path: /spec/volumes/-1
+      value: |
+        name: volume-xyz
+        emptyDir: {}
+
+    - op: add
+      path: /spec/non-existent-array/-1
+      value: |
+        name: hello
