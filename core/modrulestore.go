@@ -136,8 +136,16 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleTyp
 // based on the ModRules matchins the resource.
 func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, operationLog logr.Logger) (interface{}, []ctrljsonpatch.JsonPatchOperation, error) {
 	var modifiedJSON = originalJSON
-
 	jsonv := interface{}(nil)
+	var log logr.Logger
+
+	// If we are getting operation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
+	if operationLog != nil {
+		log = operationLog.WithName("core")
+	} else {
+		log = s.log
+	}
+
 	err := json.Unmarshal(originalJSON, &jsonv)
 
 	if err != nil {
@@ -156,14 +164,18 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 	for _, mrsi := range matchingModRules {
 		epatch, err := mrsi.calculatePatch(&templateContext, jsonv, operationLog)
 
+		// If an error occurred while calculating the patch for a ModRule, simply log it and continue to the next one.
 		if err != nil {
-			return nil, nil, err
+			log.Error(err, "failed calculating patch for ModRule", "rule", mrsi.modRule.GetNamespacedName())
+			continue
 		}
 
 		modifiedJSON, err = epatch.ApplyWithOptions(modifiedJSON, jsonPatchApplyOptions)
 
+		// If an error occurred while applying the patch for a ModRule, simply log it and continue to the next one.
 		if err != nil {
-			return nil, nil, err
+			log.Error(err, "failed applying patch for ModRule", "rule", mrsi.modRule.GetNamespacedName())
+			continue
 		}
 
 		err = json.Unmarshal(modifiedJSON, &jsonv)
