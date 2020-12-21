@@ -392,8 +392,8 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 	if err != nil {
 		// There is at least one valid reason to be here - when the query tries to match a missing key
 		// such as metadata. label.missing_key.
-		// In this case we only want to log an error message and negate the query.
-		si.log.Error(err, "JSONPath query expression failure", "select", matchItem.Select)
+		// In this case we only want to log a DBG message and negate the query.
+		si.log.V(1).Info("JSONPath query expression failure", "select", matchItem.Select, "error", err)
 
 		return matchItem.Negate
 	}
