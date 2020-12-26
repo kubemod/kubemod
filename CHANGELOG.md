@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.8.3 - 2020-12-22
 
 * 33: Do not fail the whole patch when one ModRule fails
 * 31: Enable patching non-existent arrays with -1

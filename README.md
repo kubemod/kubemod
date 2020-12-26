@@ -36,7 +36,7 @@ As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemo
 The following command will create namespace `kubemod-system` and will deploy KubeMod into it.
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.2/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.3/bundle.yaml
 ```
 
 ### Upgrade
@@ -48,7 +48,7 @@ If you are upgrading from a previous version of KubeMod, run the following:
 kubectl delete job -l job-name -n kubemod-system
 
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.2/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.3/bundle.yaml
 ```
 
 ### Uninstall
@@ -56,7 +56,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.2/bundle
 To uninstall KubeMod and all its resources, run:
 
 ```text
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.2/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.8.3/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
@@ -96,7 +96,6 @@ spec:
     # Note: "negate: true" flips the meaning of the match.
     - select: '$.spec.template.spec.securityContext.runAsNonRoot == true'
       negate: true
-
 
   patch:
     # Add custom annotation.
@@ -376,8 +375,6 @@ When a new object is deployed to Kubernetes, or an existing one is updated, Kube
 
 A `ModRule` is considered to have a match with the Kubernetes object definition when all criteria items in its `match` section yield a positive match.
 
-#### Criteria item
-
 A criteria item contains a required `select` expression and optional `matchValue`, `matchValues`, `matchRegex` and `negate` fields.
 
 For example, the following `match` section has two criteria items. This `ModRule` will match all resources whose `kind` is equal to `Deployment` **and** have a container name that's either `container-1` or `container-2` .
@@ -413,7 +410,7 @@ The result of a criteria item can be inverted by setting its `negate` field to `
 
 A criteria item whose `select` expression yields no results is considered non-matching unless it is `negated`.
 
-##### `select` \(string : required\)
+#### `select` \(string : required\)
 
 The `select` field of a criteria item is a [JSONPath](https://goessner.net/articles/JsonPath/) expression.
 
@@ -439,7 +436,7 @@ $.spec.template.spec.containers[*].ports[*].containerPort
 
 This expression will yield a list of all `containerPort` values for all ports and all containers. The values in the list will be the string representation of those port numbers.
 
-###### `select` filters
+##### `select` filters
 
 KubeMod `select` expressions includes an extension to JSONPath — filters.
 
@@ -457,7 +454,7 @@ The filter expression could be any JavaScript boolean expression.
 
 The special character `@` represents the current object the filter is iterating over. In the above filter expression, that is the current element of the `ports` array.
 
-##### `matchFor` \(string: optional\)
+#### `matchFor` \(string: optional\)
 
 Field `matchFor` controls how `select` results are evaluated against `matchValue`, `matchValues` and `matchRegex`.
 
@@ -466,7 +463,7 @@ The value of `matchFor` can be either `Any` or `All`. When not specified, `match
 See below for more information on how `matchFor` impacts the results of a match.
 
 
-##### `matchValue` \(string: optional\)
+#### `matchValue` \(string: optional\)
 
 When present, the value of field `matchValue` is matched against the results of `select`.
 
@@ -476,7 +473,7 @@ If `matchFor` is set to `All` and all of the items returned by `select` match `m
 
 The match performed by `matchValue` is case sensitive. If you need case insensitive matches, use `matchRegex`.
 
-##### `matchValues` \(array of strings: optional\)
+#### `matchValues` \(array of strings: optional\)
 
 Field `matchValues` is an array of strings which are tested against the results of `select`.
 
@@ -486,7 +483,7 @@ If `matchFor` is set to `All` and all of the items returned by `select` match an
 
 This match is case sensitive. If you need case insensitive matches, use `matchRegex`.
 
-##### `matchRegex` \(string: optional\)
+#### `matchRegex` \(string: optional\)
 
 Field `matchRegex` is a regular expression matched against the results of `select`.
 
@@ -494,7 +491,7 @@ If `matchFor` is set to `Any` and any of the items returned by `select` match `m
 
 If `matchFor` is set to `All` and all of the items returned by `select` match `matchRegex`, the match criteria is considered a positive match.
 
-##### `negate` \(boolean: optional\)
+#### `negate` \(boolean: optional\)
 
 Field `negate` can be used to flip the outcome of the criteria item match. Its default value is `false`.
 
@@ -506,8 +503,6 @@ KubeMod's variant of JSON Patch includes the following extensions to RFC6902:
 
 * Negative array indices mean starting at the end of the array.
 * Operations which attempt to remove a non-existent path in the JSON object are ignored.
-
-#### Patch operation
 
 A patch operation contains fields `op`, `select`, `path` and `value`.
 
@@ -537,7 +532,7 @@ The second one switches the `containerPort` of all `nginx` containers present in
 
 Following is a break-down of each field of a patch operation.
 
-##### `op` \(string: required\)
+#### `op` \(string: required\)
 
 Field `op` indicates the type of patch operation to be performed against the target object. It can be one of the following:
 
@@ -545,7 +540,7 @@ Field `op` indicates the type of patch operation to be performed against the tar
 * `add` — this type of operation adds the element represented by `path` with the value of field `value`. If the element already exists, `add` behaves like `replace`.
 * `remove` — this type of operation removes the element represented by `path`. If `path` points to a non-existent element, the operation is ignored.
 
-##### `select` \(string: optional\) and `path` \(string: required\)
+#### `select` \(string: optional\) and `path` \(string: required\)
 
 The `select` field of a patch item is a [JSONPath](https://goessner.net/articles/JsonPath/) expression.
 
@@ -642,7 +637,7 @@ Combining `select` expressions with `path`s with index placeholders gives us the
 
 If `select` is not specified, `path` is rendered as-is and is not subject to index placeholder interpolation.
 
-##### value \(string\)
+#### `value` \(string\)
 
 `value` is required for `add` and `replace` operations.
 
@@ -695,7 +690,7 @@ value: |-
     protocol: UDP
 ```
 
-###### Golang Template
+##### Golang Template
 
 When `value` contains `{{ ... }}`, it is evaluated as a [Golang template](https://golang.org/pkg/text/template/).
 
@@ -723,7 +718,7 @@ value: |-
 
 See full example of the above ModRule [here](#sidecar-injection).
 
-### rejectMessage
+### `rejectMessage` \(string: optional\)
 
 Field `rejectMessage` is an optional message displayed when a resource is rejected by a `Reject` ModRule.
 The field is a Golang template evaluated in the context of the object being rejected
