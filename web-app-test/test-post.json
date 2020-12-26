@@ -1,0 +1,42 @@
+{
+  "resourceManifest": {},
+  "modRules": [
+   {
+      "apiVersion": "api.kubemod.io/v1beta1",
+      "kind": "ModRule",
+      "metadata": {
+         "name": "modrule-1"
+      },
+      "spec": {
+         "type": "Patch",
+         "match": [
+            {
+               "select": "$.kind",
+               "matchValue": "Deployment"
+            },
+            {
+               "select": "$.metadata.labels.app",
+               "matchValue": "nginx"
+            },
+            {
+               "select": "$.spec.template.spec.containers[*].image",
+               "matchRegex": "nginx:1\\.14\\..*"
+            }
+         ],
+         "patch": [
+            {
+               "op": "add",
+               "path": "/metadata/labels/color",
+               "value": "whatever"
+            },
+            {
+               "op": "add",
+               "select": "$.spec.template.spec.containers[? @.image =~ \"nginx\" ].ports[? @.containerPort == 80]",
+               "path": "/spec/template/spec/containers/#0/ports/#1/containerPort",
+               "value": "8080"
+            }
+         ]
+      }
+    }
+  ]
+}

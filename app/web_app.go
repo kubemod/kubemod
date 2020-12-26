@@ -29,6 +29,7 @@ import (
 
 // KubeModWebApp is the DI container of kubemod web application state.
 type KubeModWebApp struct {
+	log logr.Logger
 }
 
 // NewKubeModWebApp instantiates a kubemod web application.
@@ -51,13 +52,17 @@ func NewKubeModWebApp(
 
 	r.Use(ginlogr.RecoveryWithLogr(log, time.RFC3339, false, true))
 
+	app := &KubeModWebApp{
+		log: log.WithName("web-app"),
+	}
+
 	// Set up the API routes.
-	setupRoutes(r)
+	app.setupRoutes(r)
 
 	// Run the server - this will block until the process is terminated through a SIGTERM or SIGINT.
 	run(r, webAppAddr, log)
 
-	return &KubeModWebApp{}, nil
+	return app, nil
 }
 
 // run starts a web server with the given router as a handler and blocks until the process is terminated.
