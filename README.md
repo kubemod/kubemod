@@ -637,7 +637,7 @@ Combining `select` expressions with `path`s with index placeholders gives us the
 
 If `select` is not specified, `path` is rendered as-is and is not subject to index placeholder interpolation.
 
-#### value \(string\)
+#### `value` \(string\)
 
 `value` is required for `add` and `replace` operations.
 
@@ -718,7 +718,7 @@ value: |-
 
 See full example of the above ModRule [here](#sidecar-injection).
 
-### rejectMessage
+### `rejectMessage` \(string: optional\)
 
 Field `rejectMessage` is an optional message displayed when a resource is rejected by a `Reject` ModRule.
 The field is a Golang template evaluated in the context of the object being rejected
