@@ -50,6 +50,8 @@ func InitializeKubeModWebApp(
 	enableDevModeLog EnableDevModeLog,
 	log logr.Logger) (*KubeModWebApp, error) {
 	wire.Build(
+		expressions.NewJSONPathLanguage,
+		core.NewModRuleStoreItemFactory,
 		NewKubeModWebApp,
 	)
 	return nil, nil

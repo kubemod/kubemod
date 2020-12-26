@@ -36,7 +36,9 @@ func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr string, en
 }
 
 func InitializeKubeModWebApp(webAppAddr string, enableDevModeLog EnableDevModeLog, log logr.Logger) (*KubeModWebApp, error) {
-	kubeModWebApp, err := NewKubeModWebApp(webAppAddr, enableDevModeLog, log)
+	language := expressions.NewJSONPathLanguage()
+	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, log)
+	kubeModWebApp, err := NewKubeModWebApp(webAppAddr, enableDevModeLog, log, modRuleStoreItemFactory)
 	if err != nil {
 		return nil, err
 	}

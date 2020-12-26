@@ -53,7 +53,8 @@ var _ webhook.Defaulter = &ModRule{}
 func (r *ModRule) Default() {
 	modrulelog.V(1).Info("default", "name", r.Name)
 
-	for _, mi := range r.Spec.Match {
+	for i := range r.Spec.Match {
+		mi := &r.Spec.Match[i]
 		if mi.MatchFor == "" {
 			mi.MatchFor = MatchForTypeAny
 		}
@@ -92,6 +93,10 @@ func (r *ModRule) validateModRule() error {
 		err     error
 	)
 
+	if r.Spec.Type != ModRuleTypePatch && r.Spec.Type != ModRuleTypeReject {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("type"), r.Spec.Type, "unrecognized ModRule type"))
+	}
+
 	if r.Spec.Type != ModRuleTypePatch && len(r.Spec.Patch) > 0 {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("patch"), r.Spec.Patch, "field 'patch' should be present only for ModRules of type Patch"))
 	}
@@ -104,7 +109,7 @@ func (r *ModRule) validateModRule() error {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("rejectMessage"), *r.Spec.RejectMessage, "field 'rejectMessage' should be present only for ModRules of type Reject"))
 	}
 
-	// Validate the ModRule select queries and regexes.
+	// Validate the ModRule match items.
 	for i, matchItem := range r.Spec.Match {
 		// match.select is required.
 		if matchItem.Select == "" {
@@ -124,6 +129,10 @@ func (r *ModRule) validateModRule() error {
 			if err != nil {
 				allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("matchRegex"), *matchItem.MatchRegex, fmt.Sprintf("%v", err)))
 			}
+		}
+
+		if matchItem.MatchFor != MatchForTypeAny && matchItem.MatchFor != MatchForTypeAll {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("match").Index(i).Child("matchFor"), matchItem.MatchFor, "unrecognized matchFor value"))
 		}
 	}
 

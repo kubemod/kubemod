@@ -25,11 +25,13 @@ import (
 	"github.com/alron/ginlogr"
 	"github.com/gin-gonic/gin"
 	"github.com/go-logr/logr"
+	"github.com/kubemod/kubemod/core"
 )
 
 // KubeModWebApp is the DI container of kubemod web application state.
 type KubeModWebApp struct {
-	log logr.Logger
+	log                     logr.Logger
+	modRuleStoreItemFactory *core.ModRuleStoreItemFactory
 }
 
 // NewKubeModWebApp instantiates a kubemod web application.
@@ -37,6 +39,7 @@ func NewKubeModWebApp(
 	webAppAddr string,
 	enableDevModeLog EnableDevModeLog,
 	log logr.Logger,
+	modRuleStoreItemFactory *core.ModRuleStoreItemFactory,
 ) (*KubeModWebApp, error) {
 
 	setupLog := log.WithName("web-app-setup")
@@ -53,7 +56,8 @@ func NewKubeModWebApp(
 	r.Use(ginlogr.RecoveryWithLogr(log, time.RFC3339, false, true))
 
 	app := &KubeModWebApp{
-		log: log.WithName("web-app"),
+		log:                     log.WithName("web-app"),
+		modRuleStoreItemFactory: modRuleStoreItemFactory,
 	}
 
 	// Set up the API routes.
