@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kubemod/kubemod/api/v1beta1"
 	"github.com/kubemod/kubemod/core"
+	"github.com/kubemod/kubemod/util"
+	"sigs.k8s.io/yaml"
 )
 
 // DryRunRequest represents a /v1/dry-run request payload.
@@ -77,7 +79,7 @@ func (app *KubeModWebApp) dryRunHandler(c *gin.Context) {
 	}
 
 	// First run the patch operations.
-	patchedJSON, patch, err := store.CalculatePatch(dryRunNamespace, originalJSON, app.log)
+	patched, patch, err := store.CalculatePatch(dryRunNamespace, originalJSON, app.log)
 
 	if err != nil {
 		app.reportBadRequest(c, err)
@@ -85,12 +87,39 @@ func (app *KubeModWebApp) dryRunHandler(c *gin.Context) {
 	}
 
 	// Try rejections against the after-patch manifest.
-	rejections := store.DetermineRejections(dryRunNamespace, patchedJSON, app.log)
+	rejections := store.DetermineRejections(dryRunNamespace, patched, app.log)
 
-	// TODO: calculate the git diff.
+	// If there is a valid patch, calculate the diff in unified diff format.
+	var diff string
+
+	if len(patch) > 0 {
+		originalYAML, err := yaml.JSONToYAML(originalJSON)
+
+		if err != nil {
+			app.reportBadRequest(c, err)
+			return
+		}
+
+		patchedYAML, err := yaml.Marshal(patched)
+
+		if err != nil {
+			app.reportBadRequest(c, err)
+			return
+		}
+
+		diffBytes, err := util.Diff(originalYAML, patchedYAML)
+
+		if err != nil {
+			app.reportBadRequest(c, err)
+			return
+		}
+
+		diff = string(diffBytes)
+	}
 
 	response := DryRunResponse{
 		Patch:      patch,
+		Diff:       diff,
 		Rejections: rejections,
 	}
 
