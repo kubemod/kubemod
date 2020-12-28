@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"time"
 
 	"syscall"
@@ -12,6 +13,11 @@ import (
 
 	"github.com/segmentio/ksuid"
 	"golang.org/x/sys/unix"
+)
+
+var (
+	headerRex  *regexp.Regexp = regexp.MustCompile(`(---|\+\+\+) /proc/self/fd/.+\n`)
+	emptyBytes []byte         = []byte{}
 )
 
 // Diff uses linux `diff` to generate a unified diff patch.package util
@@ -71,7 +77,10 @@ func Diff(data1, data2 []byte) ([]byte, error) {
 		}
 	}
 
-	return stdout.Bytes(), nil
+	// Remove the file headers at the top of the diff.
+	result := headerRex.ReplaceAll(stdout.Bytes(), emptyBytes)
+
+	return result, nil
 }
 
 // Creates an anonymous memory-allocated file populated with the given data and returns its file descriptor.
@@ -91,18 +100,20 @@ func createMemfile(contents []byte) (int, error) {
 		return 0, fmt.Errorf("Ftruncate failed: %v", err)
 	}
 
-	data, err := unix.Mmap(fd, 0, len(contents), unix.PROT_READ|unix.PROT_WRITE, unix.MAP_SHARED)
+	if len(contents) > 0 {
+		data, err := unix.Mmap(fd, 0, len(contents), unix.PROT_READ|unix.PROT_WRITE, unix.MAP_SHARED)
 
-	if err != nil {
-		return 0, fmt.Errorf("Mmap failed: %v", err)
-	}
+		if err != nil {
+			return 0, fmt.Errorf("Mmap failed: %v", err)
+		}
 
-	copy(data, contents)
+		copy(data, contents)
 
-	err = unix.Munmap(data)
+		err = unix.Munmap(data)
 
-	if err != nil {
-		return 0, fmt.Errorf("Munmap failed: %v", err)
+		if err != nil {
+			return 0, fmt.Errorf("Munmap failed: %v", err)
+		}
 	}
 
 	return fd, nil
