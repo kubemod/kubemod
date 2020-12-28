@@ -14,16 +14,16 @@ all: manager
 
 # Run tests
 test: generate fmt vet manifests
-	go test ./core -coverprofile cover.out
+	go test ./core ./util -coverprofile cover.out
 
 # Run benchmarks
 bench: generate fmt vet manifests
-	go test ./core -run=XXX -bench=.
+	go test ./core ./util -run=XXX -bench=.
 
 
 # Build manager binary
 manager: generate fmt vet
-	go build -o bin/kubemod-operator main.go
+	go build -o bin/kubemod main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests

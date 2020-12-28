@@ -17,6 +17,7 @@ limitations under the License.
 package app
 
 import (
+	"github.com/go-logr/logr"
 	"github.com/google/wire"
 	"github.com/kubemod/kubemod/controllers"
 	"github.com/kubemod/kubemod/core"
@@ -27,7 +28,11 @@ import (
 type EnableLeaderElection bool
 type EnableDevModeLog bool
 
-func InitializeKubeModApp(scheme *runtime.Scheme, metricsAddr string, enableLeaderElection EnableLeaderElection, enableDevModeLog EnableDevModeLog) (*KubeModApp, error) {
+func InitializeKubeModOperatorApp(
+	scheme *runtime.Scheme,
+	metricsAddr string,
+	enableLeaderElection EnableLeaderElection,
+	log logr.Logger) (*KubeModOperatorApp, error) {
 	wire.Build(
 		expressions.NewJSONPathLanguage,
 		core.NewModRuleStoreItemFactory,
@@ -35,8 +40,19 @@ func InitializeKubeModApp(scheme *runtime.Scheme, metricsAddr string, enableLead
 		core.NewDragnetWebhookHandler,
 		controllers.NewModRuleReconciler,
 		NewControllerManager,
-		NewLogger,
-		NewKubeModApp,
+		NewKubeModOperatorApp,
+	)
+	return nil, nil
+}
+
+func InitializeKubeModWebApp(
+	webAppAddr string,
+	enableDevModeLog EnableDevModeLog,
+	log logr.Logger) (*KubeModWebApp, error) {
+	wire.Build(
+		expressions.NewJSONPathLanguage,
+		core.NewModRuleStoreItemFactory,
+		NewKubeModWebApp,
 	)
 	return nil, nil
 }

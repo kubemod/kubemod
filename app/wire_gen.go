@@ -6,6 +6,7 @@
 package app
 
 import (
+	"github.com/go-logr/logr"
 	"github.com/kubemod/kubemod/controllers"
 	"github.com/kubemod/kubemod/core"
 	"github.com/kubemod/kubemod/expressions"
@@ -14,25 +15,34 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeKubeModApp(scheme *runtime.Scheme, metricsAddr string, enableLeaderElection EnableLeaderElection, enableDevModeLog EnableDevModeLog) (*KubeModApp, error) {
-	logger := NewLogger(enableDevModeLog)
-	manager, err := NewControllerManager(scheme, metricsAddr, enableLeaderElection, logger)
+func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr string, enableLeaderElection EnableLeaderElection, log logr.Logger) (*KubeModOperatorApp, error) {
+	manager, err := NewControllerManager(scheme, metricsAddr, enableLeaderElection, log)
 	if err != nil {
 		return nil, err
 	}
 	language := expressions.NewJSONPathLanguage()
-	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, logger)
-	modRuleStore := core.NewModRuleStore(modRuleStoreItemFactory, logger)
-	modRuleReconciler, err := controllers.NewModRuleReconciler(manager, modRuleStore, logger)
+	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, log)
+	modRuleStore := core.NewModRuleStore(modRuleStoreItemFactory, log)
+	modRuleReconciler, err := controllers.NewModRuleReconciler(manager, modRuleStore, log)
 	if err != nil {
 		return nil, err
 	}
-	dragnetWebhookHandler := core.NewDragnetWebhookHandler(manager, modRuleStore, logger)
-	kubeModApp, err := NewKubeModApp(scheme, manager, modRuleReconciler, dragnetWebhookHandler, logger)
+	dragnetWebhookHandler := core.NewDragnetWebhookHandler(manager, modRuleStore, log)
+	kubeModOperatorApp, err := NewKubeModOperatorApp(scheme, manager, modRuleReconciler, dragnetWebhookHandler, log)
 	if err != nil {
 		return nil, err
 	}
-	return kubeModApp, nil
+	return kubeModOperatorApp, nil
+}
+
+func InitializeKubeModWebApp(webAppAddr string, enableDevModeLog EnableDevModeLog, log logr.Logger) (*KubeModWebApp, error) {
+	language := expressions.NewJSONPathLanguage()
+	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, log)
+	kubeModWebApp, err := NewKubeModWebApp(webAppAddr, enableDevModeLog, log, modRuleStoreItemFactory)
+	if err != nil {
+		return nil, err
+	}
+	return kubeModWebApp, nil
 }
 
 // wire.go:

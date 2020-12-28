@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* 18: Implement /v1/dryrun API
+
 ## 0.8.3 - 2020-12-22
 
 * 33: Do not fail the whole patch when one ModRule fails

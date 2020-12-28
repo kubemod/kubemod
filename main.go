@@ -16,14 +16,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
+	"strings"
+	"sync"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
 	apiv1beta1 "github.com/kubemod/kubemod/api/v1beta1"
-
 	"github.com/kubemod/kubemod/app"
 	// +kubebuilder:scaffold:imports
 )
@@ -39,28 +41,117 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
-func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
-	var enableDevModeLog bool
+// Config holds the application configuration settings.
+type Config struct {
+	RunOperator bool
+	RunWebApp   bool
 
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
-		"Enable leader election for controller manager. "+
+	WebAppAddr          string
+	OperatorMetricsAddr string
+
+	EnableLeaderElection bool
+	EnableDevModeLog     bool
+}
+
+func main() {
+
+	config := &Config{}
+
+	flag.BoolVar(&config.RunOperator, "operator", false, "Run KubeMod operator.")
+	flag.BoolVar(&config.RunWebApp, "webapp", false, "Run KubeMod web application.")
+
+	flag.StringVar(&config.WebAppAddr, "webapp-addr", ":8081", "The address the web app binds to.")
+	flag.StringVar(&config.OperatorMetricsAddr, "operator-metrics-addr", ":8082", "The address the operator metric endpoint binds to.")
+	flag.BoolVar(&config.EnableLeaderElection, "enable-leader-election", false,
+		"Enable leader election for KubeMod operator. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.BoolVar(&enableDevModeLog, "enable-dev-mode-log", false,
-		"Enable development level logging.")
+	flag.BoolVar(&config.EnableDevModeLog, "enable-dev-mode-log", false, "Enable development level logging.")
 
 	flag.Parse()
 
-	_, err := app.InitializeKubeModApp(
-		scheme, metricsAddr,
-		app.EnableLeaderElection(enableLeaderElection),
-		app.EnableDevModeLog(enableDevModeLog))
+	err := run(config)
 
 	if err != nil {
 		os.Exit(1)
 	}
 
 	// +kubebuilder:scaffold:builder
+}
+
+func run(config *Config) error {
+	var wg sync.WaitGroup
+
+	errChan := make(chan error)
+	errors := []string{}
+	errorPumpDone := make(chan bool)
+
+	log := app.NewLogger(app.EnableDevModeLog(config.EnableDevModeLog))
+
+	setupLog := log.WithName("main-setup")
+
+	// Start operator application.
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		if config.RunOperator {
+			_, err := app.InitializeKubeModOperatorApp(
+				scheme,
+				config.OperatorMetricsAddr,
+				app.EnableLeaderElection(config.EnableLeaderElection),
+				log)
+
+			if err != nil {
+				errChan <- err
+			}
+		} else {
+			setupLog.Info("skipping operator: -operator option is not set")
+		}
+	}()
+
+	// Start web application.
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		if config.RunWebApp {
+			_, err := app.InitializeKubeModWebApp(
+				config.WebAppAddr,
+				app.EnableDevModeLog(config.EnableDevModeLog),
+				log)
+
+			if err != nil {
+				errChan <- err
+			}
+		} else {
+			setupLog.Info("skipping web app: -webapp option is not set")
+		}
+	}()
+
+	// Start error channel pump.
+	go func(done chan<- bool) {
+		for err := range errChan {
+			errors = append(errors, err.Error())
+		}
+
+		done <- true
+	}(errorPumpDone)
+
+	// Wait for the applications to complete.
+	wg.Wait()
+
+	// Tell the error pump we're done.
+	close(errChan)
+	// Wait for the error pump to complete.
+	<-errorPumpDone
+
+	// If there are errors reported by the servers, aggregate them into a single error.
+	if len(errors) > 0 {
+		err := fmt.Errorf("%v", strings.Join(errors, ";"))
+		return err
+	}
+
+	return nil
 }
