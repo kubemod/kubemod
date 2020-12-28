@@ -30,9 +30,16 @@ spec:
       - command:
           - /kubemod
           - -operator
-          - -web-app
+          - -webapp
         image: controller:latest
         name: manager
+        ports:
+          - containerPort: 8081
+            name: api
+            protocol: TCP
+          - containerPort: 8082
+            name: metrics
+            protocol: TCP
         resources:
           limits:
             cpu: 100m
@@ -41,3 +48,19 @@ spec:
             cpu: 100m
             memory: 20Mi
       terminationGracePeriodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service
+  namespace: system
+spec:
+  ports:
+    - port: 8081
+      name: api
+      targetPort: api
+    - port: 8082
+      name: metrics
+      targetPort: metrics
+  selector:
+    control-plane: controller-manager

@@ -58,9 +58,9 @@ func main() {
 	config := &Config{}
 
 	flag.BoolVar(&config.RunOperator, "operator", false, "Run KubeMod operator.")
-	flag.BoolVar(&config.RunWebApp, "web-app", false, "Run KubeMod web application.")
+	flag.BoolVar(&config.RunWebApp, "webapp", false, "Run KubeMod web application.")
 
-	flag.StringVar(&config.WebAppAddr, "web-app-addr", ":8081", "The address the web app binds to.")
+	flag.StringVar(&config.WebAppAddr, "webapp-addr", ":8081", "The address the web app binds to.")
 	flag.StringVar(&config.OperatorMetricsAddr, "operator-metrics-addr", ":8082", "The address the operator metric endpoint binds to.")
 	flag.BoolVar(&config.EnableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for KubeMod operator. "+
@@ -126,7 +126,7 @@ func run(config *Config) error {
 				errChan <- err
 			}
 		} else {
-			setupLog.Info("skipping web app: -web-app option is not set")
+			setupLog.Info("skipping web app: -webapp option is not set")
 		}
 	}()
 

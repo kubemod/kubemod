@@ -12,13 +12,13 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// DryRunRequest represents a /v1/dry-run request payload.
+// DryRunRequest represents a /v1/dryrun request payload.
 type DryRunRequest struct {
 	ResourceManifest interface{}        `json:"resourceManifest" binding:"required"`
 	ModRules         []*v1beta1.ModRule `json:"modRules" binding:"required"`
 }
 
-// DryRunResponse represents the resonse of a successful /v1/dry-run
+// DryRunResponse represents the resonse of a successful /v1/dryrun
 type DryRunResponse struct {
 	Patch      interface{} `json:"patch"`
 	Diff       string      `json:"diff"`
@@ -26,14 +26,14 @@ type DryRunResponse struct {
 }
 
 const (
-	dryRunNamespace string = "dry-run-namespace"
+	dryRunNamespace string = "dryrun-namespace"
 )
 
 // Set up the web app HTTP routes.
 func (app *KubeModWebApp) setupRoutes(router *gin.Engine) {
 	v1 := router.Group("/v1")
 
-	v1.PUT("/dry-run", app.dryRunHandler)
+	v1.PUT("/dryrun", app.dryRunHandler)
 }
 
 // Dry-runs a set of ModRules against a resource.

@@ -42,7 +42,7 @@ func NewKubeModWebApp(
 	modRuleStoreItemFactory *core.ModRuleStoreItemFactory,
 ) (*KubeModWebApp, error) {
 
-	setupLog := log.WithName("web-app-setup")
+	setupLog := log.WithName("webapp-setup")
 	setupLog.Info("web app server is starting to listen", "addr", webAppAddr)
 
 	if enableDevModeLog {
@@ -56,7 +56,7 @@ func NewKubeModWebApp(
 	r.Use(ginlogr.RecoveryWithLogr(log, time.RFC3339, false, true))
 
 	app := &KubeModWebApp{
-		log:                     log.WithName("web-app"),
+		log:                     log.WithName("webapp"),
 		modRuleStoreItemFactory: modRuleStoreItemFactory,
 	}
 

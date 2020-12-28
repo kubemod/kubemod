@@ -238,6 +238,22 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
+  name: kubemod-webapp-service
+  namespace: kubemod-system
+spec:
+  ports:
+  - name: api
+    port: 8081
+    targetPort: api
+  - name: metrics
+    port: 8082
+    targetPort: metrics
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: kubemod-webhook-service
   namespace: kubemod-system
 spec:
@@ -271,9 +287,16 @@ spec:
       - command:
         - /kubemod
         - -operator
+        - -webapp
         image: kubemod/kubemod:latest
         name: manager
         ports:
+        - containerPort: 8081
+          name: api
+          protocol: TCP
+        - containerPort: 8082
+          name: metrics
+          protocol: TCP
         - containerPort: 9443
           name: webhook-server
           protocol: TCP
