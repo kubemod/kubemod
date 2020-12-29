@@ -120,6 +120,7 @@ var _ = Describe("ModRuleStore", func() {
 	}
 
 	DescribeTable("CalculatePatch", modRuleStoreCalculatePatchTableFunction,
+		Entry("patch-10 on deployment-1 should work as expected", []string{"patch/patch-10.yaml"}, "deployment-1.json", "patch-10-deployment-1.txt"),
 		Entry("patch-1 on pod-1 should work as expected", []string{"patch/patch-1.yaml"}, "pod-1.json", "patch-1-pod-1.txt"),
 		Entry("patch-2 on pod-1 should work as expected", []string{"patch/patch-2.yaml"}, "pod-1.json", "patch-2-pod-1.txt"),
 		Entry("patch-3 on pod-1 should work as expected", []string{"patch/patch-3.yaml"}, "pod-1.json", "patch-3-pod-1.txt"),

@@ -132,6 +132,48 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleTyp
 	return modRules
 }
 
+// Extract the value of a JSON-unmarshalled object pointed at by a colon-separated path.
+func getValueFromJSONObject(jsonv interface{}, path string) interface{} {
+	pathComponents := strings.Split(path, ":")
+	var node map[string]interface{}
+	var val interface{}
+	var ok bool
+
+	if node, ok = jsonv.(map[string]interface{}); !ok {
+		return nil
+	}
+
+	for i, component := range pathComponents {
+		if val, ok = node[component]; !ok {
+			return nil
+		}
+
+		if i < len(pathComponents)-1 {
+			if node, ok = val.(map[string]interface{}); !ok {
+				return nil
+			}
+		} else {
+			return val
+		}
+	}
+
+	return nil
+}
+
+// Given an unmarshalled JSON, extractLastAppliedConfiguration looks for annotation kubectl.kubernetes.io/last-applied-configuration
+// and if it exists, it returns its value, otherwise it returns nil.
+func extractLastAppliedConfiguration(jsonv interface{}) []byte {
+	config := getValueFromJSONObject(jsonv, "metadata:annotations:kubectl.kubernetes.io/last-applied-configuration")
+
+	if config != nil {
+		if bc, ok := config.(string); ok {
+			return []byte(bc)
+		}
+	}
+
+	return nil
+}
+
 // CalculatePatch calculates the set of patch operations to apply against a given resource
 // based on the ModRules matchins the resource.
 func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, operationLog logr.Logger) (interface{}, []ctrljsonpatch.JsonPatchOperation, error) {
@@ -151,6 +193,9 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 	if err != nil {
 		return nil, nil, err
 	}
+
+	// Extract the contents of annotation kubectl.kubernetes.io/last-applied-configuration if available.
+	lastAppliedConfigurationJSON := extractLastAppliedConfiguration(jsonv)
 
 	templateContext := PatchTemplateContext{
 		Namespace: namespace,
@@ -179,6 +224,27 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 		}
 
 		err = json.Unmarshal(modifiedJSON, &jsonv)
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		// Apply the same patch to the kubectl last-applied-configuration annotation.
+		if lastAppliedConfigurationJSON != nil {
+			lastAppliedConfigurationJSON, err = epatch.ApplyWithOptions(lastAppliedConfigurationJSON, jsonPatchApplyOptions)
+
+			// If an error occurred while applying the patch for a ModRule, simply log it and continue to the next one.
+			if err != nil {
+				log.Error(err, "failed applying patch for ModRule to last-applied-configuration annotation", "rule", mrsi.modRule.GetNamespacedName())
+			}
+		}
+	}
+
+	if lastAppliedConfigurationJSON != nil {
+		// Stick the patched last-applied-configuration into the modified document.
+		node := jsonv.(map[string]interface{})["metadata"].(map[string]interface{})["annotations"].(map[string]interface{})
+		node["kubectl.kubernetes.io/last-applied-configuration"] = string(lastAppliedConfigurationJSON)
+		modifiedJSON, err = json.Marshal(&jsonv)
 
 		if err != nil {
 			return nil, nil, err

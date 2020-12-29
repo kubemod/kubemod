@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* 36: Update last-applied-configuration annotation when patching a resource
 * 18: Implement /v1/dryrun API
 
 ## 0.8.3 - 2020-12-22
