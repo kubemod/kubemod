@@ -73,7 +73,7 @@ func Diff(data1, data2 []byte) ([]byte, error) {
 		}
 
 		if fail {
-			return nil, fmt.Errorf("unable to execute 'diff': %v : %v", err, stderr)
+			return nil, fmt.Errorf("unable to execute 'diff': %v : %v", err, stderr.String())
 		}
 	}
 
