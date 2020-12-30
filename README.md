@@ -157,7 +157,7 @@ A solution to this issue would be the following ModRule which simply removes the
 apiVersion: api.kubemod.io/v1beta1
 kind: ModRule
 metadata:
-  name: my-mod-rule
+  name: my-modrule
 spec:
   type: Patch
 
@@ -165,6 +165,7 @@ spec:
     # Match persistent volume claims ...
     - select: '$.kind'
       matchValue: PersistentVolumeClaim
+
     # ... created by the elasticsearch operator.
     - select: '$.metadata.labels["common.k8s.elastic.co/type"]'
       matchValue: elasticsearch
@@ -517,7 +518,7 @@ For example, the following `patch` section applies two patch operations executed
   patch:
     - op: add
       path: /metadata/labels/color
-      value: whatever
+      value: blue
 
     # Change all nginx containers' ports from 80 to 8080
     - op: add
@@ -550,7 +551,11 @@ For more information about `select` expressions, see [Match item select expressi
 
 When `select` is used in a patch operation, the patch is executed once for each item yielded by `select`.
 
-If the `select` item uses JSONPatch wildcards \(such as `..` or `[*]`\) and/or [select filters](#select-filters), KubeMod captures the zero-based index of each wildcard/filter result and makes it available for use in the `path` expression.
+If the `select` field of a patch item uses JSONPatch wildcards \(such as `..` or `[*]`\) and/or [select filters](#select-filters), KubeMod captures the zero-based index of each wildcard/filter result and makes it available for use in the target `path` field.
+
+The `path` field of a patch item points to the target element which should be patched.
+The path components are separated by slashes (`/`). A slash in the name of a `path` component is escaped with the special `~1`
+When targeting elements of an array, index `-1` is relative and means "the element after the last one in the array".
 
 Let's consider the following example:
 
@@ -758,6 +763,79 @@ If your ModRule is a Patch rule, KubeMod operator will log the full JSON Patch a
 If there are any errors at the time the patch is calculated, you will see them in the logs.
 
 If the operator log is silent at the time you deploy the target object, this means that your ModRule's `match` criteria did not yield a positive match for the target object.
+
+### Declarative `kubectl apply`
+
+KubeMod is aligned with Kubernetes' approach to [declarative object management](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/declarative-config/).
+
+When an object is patched by a ModRule, if the object has a `kubectl.kubernetes.io/last-applied-configuration` annotation, KubeMod patches the contents of that annotation as well.
+
+KubeMod supports both client-side and server-side declarative management through `kubectl apply`.
+
+### Note on idempotency of ModRules
+
+Make sure your patch ModRules are idempotent &mdash; executing them multiple times against the same object should lead to no changes beyond the first execution.
+
+This is important because Kubernetes will pass the same object through KubeMod every time its state changes. For example, when a `Deployment` resource is created, its `status` field changes multiple times after its creation.
+
+We want to make sure KubeMod will not apply cumulative patch operations against objects that have already been patched.
+
+Here's an example of an idempotent ModRule:
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: my-sidecar-injection-rule
+spec:
+  type: Patch
+
+  match:
+    # Match Deployments...
+    - select: '$.kind'
+      matchValue: 'Deployment'
+    
+    # ...which have label app = whatever...
+    - select: '$.metadata.labels.app'
+      matchValue: 'whatever'
+
+    # ...and have not yet received the injection.
+    - select: '$.spec.template.spec.containers[*].name'
+      matchValue: 'my-sidecar'
+      negate: true
+    
+  patch:
+    # Operations on non-array fields are idempotent by default.
+    - op: add
+      path: /metadata/labels/color
+      value: blue
+
+    # Careful - add and remove operations against relative array elements (-1) are not idempotent.
+    # We need to protect against cumulative patches through a negate select rule in the match section (see above).
+    - op: add
+      path: /spec/template/spec/containers/-1
+      value: |-
+        name: my-sidecar
+        image: alpine:3
+        command:
+          - sh
+          - -c
+          - while true; do sleep 5; done;
+```
+
+The first `add` operation in section `patch` is performed against a non-array field `/metadata/labels/color`.
+Such an operation is idempotent by default. If a `color` label does not exist, it will be created and its value will be set to `blue`.
+If it does exist, its value will be overwritten by value `blue`.
+
+Now let's take a look at the next `add` operation.
+
+It targets JSON Path `/spec/template/spec/containers/-1` to inject a sidecar container into the Deployment's manifest.
+
+Index `-1` is relative &mdash; it indicates "the next" index of an array.
+This rule is not idempotent.
+Running it multiple times against the same deployment will inject `my-sidecar` container multiple times.
+
+To prevent that, we add a `negate:true` select statement in the `match` section, which basically says "don't run this rule against objects that already have a container named `my-sidecar`".
 
 
 ### Gotchas
