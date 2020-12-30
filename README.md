@@ -554,7 +554,7 @@ When `select` is used in a patch operation, the patch is executed once for each 
 If the `select` field of a patch item uses JSONPatch wildcards \(such as `..` or `[*]`\) and/or [select filters](#select-filters), KubeMod captures the zero-based index of each wildcard/filter result and makes it available for use in the target `path` field.
 
 The `path` field of a patch item points to the target element which should be patched.
-The path components are separated by slashes (`/`). A slash in the name of a `path` component is escaped with the special `~1`
+The path components are separated by slashes (`/`). A slash in the name of a `path` component is escaped with the special `~1`.
 When targeting elements of an array, index `-1` is relative and means "the element after the last one in the array".
 
 Let's consider the following example:
@@ -730,48 +730,6 @@ The field is a Golang template evaluated in the context of the object being reje
 
 ## Miscellaneous
 
-### Debugging ModRules
-
-To list the ModRules deployed to a namespace, run the following command:
-
-```bash
-kubectl get modrules
-```
-
-When a ModRule does not behave as expected, your best bet is to analyze KubeMod's operator logs.
-
-Follow these steps:
-
-* Deploy your ModRule to the namespace where you will be deploying the Kubernetes resources the ModRule should intercept.
-* Find the KubeMod operator pod - run the following command and grab the name of the pod that begins with `kubemod-operator`:
-
-```bash
-kubectl get pods -n kubemod-system
-```
-
-* Tail the logs of the pod:
-
-```bash
-kubectl logs kubemod-operator-xxxxxxxx-xxxx -n kubemod-system -f
-```
-
-* In another terminal deploy the Kubernetes object your ModRule is designed to intercept.
-* Watch the operator pod logs.
-
-If your ModRule is a Patch rule, KubeMod operator will log the full JSON Patch applied to the target Kubernetes object at the time of interception.
-
-If there are any errors at the time the patch is calculated, you will see them in the logs.
-
-If the operator log is silent at the time you deploy the target object, this means that your ModRule's `match` criteria did not yield a positive match for the target object.
-
-### Declarative `kubectl apply`
-
-KubeMod is aligned with Kubernetes' approach to [declarative object management](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/declarative-config/).
-
-When an object is patched by a ModRule, if the object has a `kubectl.kubernetes.io/last-applied-configuration` annotation, KubeMod patches the contents of that annotation as well.
-
-KubeMod supports both client-side and server-side declarative management through `kubectl apply`.
-
 ### Note on idempotency of ModRules
 
 Make sure your patch ModRules are idempotent &mdash; executing them multiple times against the same object should lead to no changes beyond the first execution.
@@ -780,7 +738,7 @@ This is important because Kubernetes will pass the same object through KubeMod e
 
 We want to make sure KubeMod will not apply cumulative patch operations against objects that have already been patched.
 
-Here's an example of an idempotent ModRule:
+Here's an example of an idempotent sidecar injection ModRule:
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
@@ -829,14 +787,56 @@ If it does exist, its value will be overwritten by value `blue`.
 
 Now let's take a look at the next `add` operation.
 
-It targets JSON Path `/spec/template/spec/containers/-1` to inject a sidecar container into the Deployment's manifest.
+It targets path `/spec/template/spec/containers/-1` to inject a sidecar container into the Deployment's manifest.
 
-Index `-1` is relative &mdash; it indicates "the next" index of an array.
+Index `-1` is relative &mdash; it indicates the index after the last element of an array.
 This rule is not idempotent.
 Running it multiple times against the same deployment will inject `my-sidecar` container multiple times.
 
 To prevent that, we add a `negate:true` select statement in the `match` section, which basically says "don't run this rule against objects that already have a container named `my-sidecar`".
 
+
+### Debugging ModRules
+
+To list the ModRules deployed to a namespace, run the following command:
+
+```bash
+kubectl get modrules
+```
+
+When a ModRule does not behave as expected, your best bet is to analyze KubeMod's operator logs.
+
+Follow these steps:
+
+* Deploy your ModRule to the namespace where you will be deploying the Kubernetes resources the ModRule should intercept.
+* Find the KubeMod operator pod - run the following command and grab the name of the pod that begins with `kubemod-operator`:
+
+```bash
+kubectl get pods -n kubemod-system
+```
+
+* Tail the logs of the pod:
+
+```bash
+kubectl logs kubemod-operator-xxxxxxxx-xxxx -n kubemod-system -f
+```
+
+* In another terminal deploy the Kubernetes object your ModRule is designed to intercept.
+* Watch the operator pod logs.
+
+If your ModRule is a Patch rule, KubeMod operator will log the full JSON Patch applied to the target Kubernetes object at the time of interception.
+
+If there are any errors at the time the patch is calculated, you will see them in the logs.
+
+If the operator log is silent at the time you deploy the target object, this means that your ModRule's `match` criteria did not yield a positive match for the target object.
+
+### Declarative `kubectl apply`
+
+KubeMod is aligned with Kubernetes' approach to [declarative object management](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/declarative-config/).
+
+When an object is patched by a ModRule, if the object has a `kubectl.kubernetes.io/last-applied-configuration` annotation, KubeMod patches the contents of that annotation as well.
+
+KubeMod supports both client-side and server-side declarative management through `kubectl apply`.
 
 ### Gotchas
 
