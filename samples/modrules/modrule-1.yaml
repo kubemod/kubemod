@@ -16,13 +16,28 @@ spec:
     - select: '$.spec.template.spec.containers[*].image'
       matchRegex: 'nginx:1\.14\..*'
     
+    # Prevent re-entrance.
+    - select: '$.spec.template.spec.containers[*].name'
+      matchValue: 'injected'
+      negate: true
+    
   patch:
     - op: add
       path: /metadata/labels/color
       value: whatever
 
-    # Change all nginx containers' ports from 80 to 8080
-    - op: add
-      select: $.spec.template.spec.containers[? @.image =~ "nginx" ].ports[? @.containerPort == 80]
+    # Change nginx container's port from 80 to 8080
+    - op: replace
+      select: $.spec.template.spec.containers[? @.name == "nginx" && @.image =~ "nginx" ].ports[? @.containerPort == 80]
       path: /spec/template/spec/containers/#0/ports/#1/containerPort
       value: '8080'
+
+    - op: add
+      path: /spec/template/spec/containers/-1
+      value: |-
+        name: injected
+        image: alpine:3
+        command:
+          - sh
+          - -c
+          - while true; do sleep 5; done;
