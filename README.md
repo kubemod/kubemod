@@ -1,4 +1,4 @@
-[![Build Status][ci-img]][ci] [![Go Report Card][goreport-img]][goreport] [![Code Coverage][cov-img]][cov]
+[![Build Status][ci-img]][ci] [![Go Report Card][goreport-img]][goreport] [![Docker Image][docker-img]][docker]
 
 # KubeMod
 
@@ -854,3 +854,5 @@ Be careful when creating ModRules such that their match criteria and patch secti
 [goreport]: https://goreportcard.com/report/github.com/kubemod/kubemod
 [cov-img]: https://codecov.io/gh/kubemod/kubemod/branch/master/graph/badge.svg
 [cov]: https://codecov.io/github/kubemod/kubemod/
+[docker-img]: https://img.shields.io/docker/image-size/kubemod/kubemod
+[docker]: https://hub.docker.com/repository/docker/kubemod/kubemod
