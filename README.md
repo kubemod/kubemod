@@ -25,7 +25,9 @@ Use KubeMod to:
     * [Match section](#match-section)
     * [Patch section](#patch-section)
 * [Miscellaneous](#miscellaneous)
+    * [Note on idempotency](#note-on-idempotency)
     * [Debugging ModRules](#debugging-modrules)
+    * [Declarative kubectl apply](#declarative-kubectl-apply)
     * [Gotchas](#gotchas)
 
 ---
@@ -730,7 +732,7 @@ The field is a Golang template evaluated in the context of the object being reje
 
 ## Miscellaneous
 
-### Note on idempotency of ModRules
+### Note on idempotency
 
 Make sure your patch ModRules are idempotent &mdash; executing them multiple times against the same object should lead to no changes beyond the first execution.
 
