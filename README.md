@@ -346,7 +346,7 @@ spec:
 
 ## Anatomy of a ModRule
 
-A `ModRule` consist of a `type`, a `match` section, and a `patch` section.
+A `ModRule` consists of a `type`, a `match` section, and a `patch` section.
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
