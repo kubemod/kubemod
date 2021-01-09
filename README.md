@@ -21,10 +21,11 @@ Use KubeMod to:
     * [Modification of metadata](#modification-of-metadata)
     * [Sidecar injection](#sidecar-injection)
     * [Resource rejection](#resource-rejection)
-* [Understanding ModRules](#understanding-modrules)
+* [Anatomy of a ModRule](#anatomy-of-a-modrule)
     * [Match section](#match-section)
     * [Patch section](#patch-section)
 * [Miscellaneous](#miscellaneous)
+    * [Namespaced and cluster-wide resources](#namespaced-and-cluster-wide-resources)
     * [Note on idempotency](#note-on-idempotency)
     * [Debugging ModRules](#debugging-modrules)
     * [Declarative kubectl apply](#declarative-kubectl-apply)
@@ -343,7 +344,7 @@ spec:
 
 ---
 
-## Understanding ModRules
+## Anatomy of a ModRule
 
 A `ModRule` has a `type`, a `match` section, and a `patch` section.
 
@@ -731,6 +732,14 @@ Field `rejectMessage` is an optional message displayed when a resource is reject
 The field is a Golang template evaluated in the context of the object being rejected
 
 ## Miscellaneous
+
+### Namespaced and cluster-wide resources
+
+KubeMod can patch/reject both namespaced and cluster-wide resources.
+
+If a ModRule is deployed to any namespace other than `kubemod-system`, the ModRule applies only to objects deployed/updated in that same namespace.
+
+ModRules deployed to namespace `kubemod-system` apply to cluster-wide resources such as `Namespace` or `ClusterRole`.
 
 ### Note on idempotency
 

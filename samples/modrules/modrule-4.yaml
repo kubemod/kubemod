@@ -1,0 +1,19 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: patch-istio-namespace
+  namespace: kubemod-system
+spec:
+  type: Patch
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Namespace'
+
+    - select: '$.metadata.name'
+      matchValue: 'my-namespace'
+
+  patch:
+    - op: add
+      path: /metadata/labels/istio.io~1rev
+      value: canary

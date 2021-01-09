@@ -28,22 +28,27 @@ import (
 	"github.com/kubemod/kubemod/core"
 )
 
+// ClusterModRulesNamespace is a type of string used by DI to inject the namespace where cluster-wide ModRules are deployed.
+type ClusterModRulesNamespace string
+
 // ModRuleReconciler reconciles a ModRule object
 type ModRuleReconciler struct {
-	client       client.Client
-	log          logr.Logger
-	scheme       *runtime.Scheme
-	modRuleStore *core.ModRuleStore
+	client                   client.Client
+	log                      logr.Logger
+	scheme                   *runtime.Scheme
+	modRuleStore             *core.ModRuleStore
+	clusterModRulesNamespace string
 }
 
 // NewModRuleReconciler creates a new ModRuleReconciler.
-func NewModRuleReconciler(manager manager.Manager, modRuleStore *core.ModRuleStore, log logr.Logger) (*ModRuleReconciler, error) {
+func NewModRuleReconciler(manager manager.Manager, modRuleStore *core.ModRuleStore, clusterModRulesNamespace ClusterModRulesNamespace, log logr.Logger) (*ModRuleReconciler, error) {
 
 	reconciler := &ModRuleReconciler{
-		client:       manager.GetClient(),
-		log:          log.WithName("controllers").WithName("modrule"),
-		scheme:       manager.GetScheme(),
-		modRuleStore: modRuleStore,
+		client:                   manager.GetClient(),
+		log:                      log.WithName("controllers").WithName("modrule"),
+		scheme:                   manager.GetScheme(),
+		modRuleStore:             modRuleStore,
+		clusterModRulesNamespace: string(clusterModRulesNamespace),
 	}
 
 	return reconciler, nil
@@ -58,12 +63,20 @@ func (r *ModRuleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.log.WithValues("modrule", req.NamespacedName)
 
+	storeNamespace := req.Namespace
+
+	// If the ModRule is stored in the cluster-wide namespace, store the ModRule under an empty namespace
+	// in order to match non-namespaced resources.
+	if storeNamespace == r.clusterModRulesNamespace {
+		storeNamespace = ""
+	}
+
 	if err := r.client.Get(ctx, req.NamespacedName, &modRule); err != nil {
 
 		// If the modrule is not found, then it has been deleted.
 		if apierrors.IsNotFound(err) {
 			// Delete the ModRule from the ModRule memory store.
-			r.modRuleStore.Delete(req.Namespace, req.Name)
+			r.modRuleStore.Delete(storeNamespace, req.Name)
 		} else {
 			log.Error(err, "unable to fetch ModRule")
 		}
@@ -73,7 +86,9 @@ func (r *ModRuleReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, client.IgnoreNotFound((err))
 	}
 
-	// Store the new ModRule in our memory store.
+	// Store the new ModRule in our memory store, but before we do, clear the namespace
+	// in case the ModRule is deployed to the cluster-wide namespace.
+	modRule.Namespace = storeNamespace
 	r.modRuleStore.Put(&modRule)
 
 	log.V(1).Info("Successfully stored ModRule")
