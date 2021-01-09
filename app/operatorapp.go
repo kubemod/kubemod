@@ -77,10 +77,10 @@ func NewKubeModOperatorApp(
 }
 
 // NewControllerManager instantiates a new controller manager.
-func NewControllerManager(scheme *runtime.Scheme, metricsAddr string, enableLeaderElection EnableLeaderElection, log logr.Logger) (manager.Manager, error) {
+func NewControllerManager(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, enableLeaderElection EnableLeaderElection, log logr.Logger) (manager.Manager, error) {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
+		MetricsBindAddress: string(metricsAddr),
 		Port:               9443,
 		LeaderElection:     bool(enableLeaderElection),
 		LeaderElectionID:   "f950e141.kubemod.io",

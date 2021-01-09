@@ -27,6 +27,7 @@ import (
 
 	apiv1beta1 "github.com/kubemod/kubemod/api/v1beta1"
 	"github.com/kubemod/kubemod/app"
+	"github.com/kubemod/kubemod/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -46,8 +47,9 @@ type Config struct {
 	RunOperator bool
 	RunWebApp   bool
 
-	WebAppAddr          string
-	OperatorMetricsAddr string
+	WebAppAddr               string
+	OperatorMetricsAddr      string
+	ClusterModRulesNamespace string
 
 	EnableLeaderElection bool
 	EnableDevModeLog     bool
@@ -62,6 +64,7 @@ func main() {
 
 	flag.StringVar(&config.WebAppAddr, "webapp-addr", ":8081", "The address the web app binds to.")
 	flag.StringVar(&config.OperatorMetricsAddr, "operator-metrics-addr", ":8082", "The address the operator metric endpoint binds to.")
+	flag.StringVar(&config.ClusterModRulesNamespace, "cluster-modrules-namespace", "kubemod-system", "The namespace where cluster-wide ModRules are deployed.")
 	flag.BoolVar(&config.EnableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for KubeMod operator. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -98,7 +101,8 @@ func run(config *Config) error {
 		if config.RunOperator {
 			_, err := app.InitializeKubeModOperatorApp(
 				scheme,
-				config.OperatorMetricsAddr,
+				app.OperatorMetricsAddr(config.OperatorMetricsAddr),
+				controllers.ClusterModRulesNamespace(config.ClusterModRulesNamespace),
 				app.EnableLeaderElection(config.EnableLeaderElection),
 				log)
 

@@ -48,8 +48,16 @@ func NewDragnetWebhookHandler(manager manager.Manager, modRuleStore *ModRuleStor
 func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
 	log := h.log.WithValues("request uid", req.UID, "namespace", req.Namespace, "resource", fmt.Sprintf("%v/%v", req.Resource.Resource, req.Name), "operation", req.Operation)
 
+	storeNamespace := req.Namespace
+	// If the target object is a namespace, UPDATE operations will pass in the namespace itself as the owner of the namespace.
+	// This is misleading - namespaces are cluster-wide objects.
+	// Set the storeNamespace to an empty string to reflect that and pick up the cluster-wide modrules.
+	if req.Kind.Group == "" && req.Kind.Version == "v1" && req.Kind.Kind == "Namespace" {
+		storeNamespace = ""
+	}
+
 	// First run patch operations.
-	patchedJSON, patch, err := h.modRuleStore.CalculatePatch(req.Namespace, req.Object.Raw, log)
+	patchedJSON, patch, err := h.modRuleStore.CalculatePatch(storeNamespace, req.Object.Raw, log)
 
 	if err != nil {
 		log.Error(err, "Failed to calculate patch")
@@ -58,7 +66,7 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 	}
 
 	// Then test the result against the set of relevant Reject rules.
-	rejections := h.modRuleStore.DetermineRejections(req.Namespace, patchedJSON, log)
+	rejections := h.modRuleStore.DetermineRejections(storeNamespace, patchedJSON, log)
 
 	if len(rejections) > 0 {
 		rejectionMessages := strings.Join(rejections, ",")

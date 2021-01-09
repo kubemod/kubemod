@@ -27,10 +27,12 @@ import (
 
 type EnableLeaderElection bool
 type EnableDevModeLog bool
+type OperatorMetricsAddr string
 
 func InitializeKubeModOperatorApp(
 	scheme *runtime.Scheme,
-	metricsAddr string,
+	metricsAddr OperatorMetricsAddr,
+	clusterModRulesNamespace controllers.ClusterModRulesNamespace,
 	enableLeaderElection EnableLeaderElection,
 	log logr.Logger) (*KubeModOperatorApp, error) {
 	wire.Build(

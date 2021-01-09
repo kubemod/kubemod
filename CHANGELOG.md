@@ -2,8 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.9.0 - 2020-01-09
 
+* 41: Introduce support for cluster-wide resources
 * 36: Update last-applied-configuration annotation when patching a resource
 * 18: Implement /v1/dryrun API
 
