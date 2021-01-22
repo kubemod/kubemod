@@ -25,6 +25,7 @@ Use KubeMod to:
     * [Match section](#match-section)
     * [Patch section](#patch-section)
 * [Miscellaneous](#miscellaneous)
+    * [Target resources](#target-resources)
     * [Namespaced and cluster-wide resources](#namespaced-and-cluster-wide-resources)
     * [Note on idempotency](#note-on-idempotency)
     * [Debugging ModRules](#debugging-modrules)
@@ -42,7 +43,7 @@ The following command will create namespace `kubemod-system` and will deploy Kub
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.1/bundle.yaml
 ```
 
-By default KubeMod allows you to target a limited set of high-level resource types, such as deployments, services, namespaces, configmaps, etc.
+By default KubeMod allows you to target a limited set of high-level resource types, such as deployments and services.
 
 See [target resources](#target-resources) for the full list as well as instructions on how to expand or limit it.
 
@@ -89,7 +90,7 @@ spec:
   match:
     # Match deployments ...
     - select: '$.kind'
-      matchValue: 'Deployment'
+      matchValue: Deployment
 
     # ... with label app = nginx ...
     - select: '$.metadata.labels.app'
@@ -202,15 +203,15 @@ spec:
   match:
     # Match deployments ...
     - select: '$.kind'
-      matchValue: 'Deployment'
+      matchValue: Deployment
 
     # ... with label app = jaeger ...
     - select: '$.metadata.labels.app'
-      matchValue: 'jaeger'
+      matchValue: jaeger
 
     # ... and label app.kubernetes.io/component = collector ...
     - select: '$.metadata.labels["app.kubernetes.io/component"]'
-      matchValue: 'collector'
+      matchValue: collector
 
     # ... but with and no annotation sidecar.istio.io/inject.
     - select: '$.metadata.annotations["sidecar.istio.io/inject"]'
@@ -309,7 +310,7 @@ spec:
   match:
     # Reject Service resources...
     - select: '$.kind'
-      matchValue: 'Service'
+      matchValue: Service
 
     # ...with non-empty externalIPs...
     - select: 'length($.spec.externalIPs) > 0'
@@ -338,8 +339,8 @@ spec:
     # Reject Deployments and StatefulSets...
     - select: '$.kind'
       matchValues:
-        - 'Deployment'
-        - 'StatefulSet'
+        - Deployment
+        - StatefulSet
 
     # ...that have no explicit runAsNonRoot security context.
     - select: "$.spec.template.spec.securityContext.runAsNonRoot == true"
@@ -391,7 +392,7 @@ For example, the following `match` section has two criteria items. This `ModRule
 ...
   match:
     - select: '$.kind'
-      matchValue: 'Deployment'
+      matchValue: Deployment
 
     - select: '$.spec.template.spec.containers[*].name'
       matchValues:
@@ -520,7 +521,7 @@ For example, the following `patch` section applies two patch operations executed
 ...
   match:
     - select: '$.kind'
-      matchValue: 'Deployment'
+      matchValue: Deployment
 
   patch:
     - op: add
@@ -750,15 +751,9 @@ ModRules deployed to namespace `kubemod-system` apply to cluster-wide resources 
 By default, KubeMod targets the following list of resources:
 
 - namespaces
-- configmaps
-- persistentvolumeclaims
-- secrets
 - services
-- daemonsets
 - deployments
-- statefulsets
-- cronjobs
-- jobs
+- persistentvolumeclaims
 
 If you need to expand or limit this list create a patch file `patch.yaml` with the following content and populate the resources list with the full list of resources you want to target:
 
@@ -776,15 +771,9 @@ webhooks:
     - UPDATE
     resources:
     - namespaces
-    - configmaps
-    - persistentvolumeclaims
-    - secrets
     - services
-    - daemonsets
     - deployments
-    - statefulsets
-    - cronjobs
-    - jobs
+    - persistentvolumeclaims
 ```
 
 Save the file and run the following:
@@ -820,7 +809,7 @@ spec:
   match:
     # Match Deployments...
     - select: '$.kind'
-      matchValue: 'Deployment'
+      matchValue: Deployment
     
     # ...which have label app = whatever...
     - select: '$.metadata.labels.app'

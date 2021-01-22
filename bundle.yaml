@@ -386,15 +386,9 @@ webhooks:
     - UPDATE
     resources:
     - namespaces
-    - configmaps
     - persistentvolumeclaims
-    - secrets
     - services
-    - daemonsets
     - deployments
-    - statefulsets
-    - cronjobs
-    - jobs
     scope: '*'
   sideEffects: None
 ---
