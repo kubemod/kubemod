@@ -42,9 +42,9 @@ The following command will create namespace `kubemod-system` and will deploy Kub
 kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.1/bundle.yaml
 ```
 
-By default KubeMod targets a limited set of high-level resource types, such as deployments, services, namespaces, configmaps, etc.
+By default KubeMod allows you to target a limited set of high-level resource types, such as deployments, services, namespaces, configmaps, etc.
 
-See [target resources](#target-resources) for the full list as well as instructions about expanding or limiting it.
+See [target resources](#target-resources) for the full list as well as instructions on how to expand or limit it.
 
 ### Upgrade
 
