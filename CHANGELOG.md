@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.9.1 - 2020-01-22
+
+* 43: Limit the default set of target resources
+
 ## 0.9.0 - 2020-01-09
 
 * 41: Introduce support for cluster-wide resources

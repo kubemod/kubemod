@@ -288,7 +288,7 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.9.0
+        image: kubemod/kubemod:v0.9.1
         name: manager
         ports:
         - containerPort: 8081
@@ -385,7 +385,16 @@ webhooks:
     - CREATE
     - UPDATE
     resources:
-    - '*/*'
+    - namespaces
+    - configmaps
+    - persistentvolumeclaims
+    - secrets
+    - services
+    - daemonsets
+    - deployments
+    - statefulsets
+    - cronjobs
+    - jobs
     scope: '*'
   sideEffects: None
 ---

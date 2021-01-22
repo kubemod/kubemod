@@ -15,7 +15,16 @@ webhooks:
     apiVersions:
     - '*'
     resources:
-    - '*/*'
+    - namespaces
+    - configmaps
+    - persistentvolumeclaims
+    - secrets
+    - services
+    - daemonsets
+    - deployments
+    - statefulsets
+    - cronjobs
+    - jobs    
     operations:
     - CREATE
     - UPDATE

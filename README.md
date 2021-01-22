@@ -39,8 +39,12 @@ As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemo
 The following command will create namespace `kubemod-system` and will deploy KubeMod into it.
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.1/bundle.yaml
 ```
+
+By default KubeMod targets a limited set of high-level resource types, such as deployments, services, namespaces, configmaps, etc.
+
+See [target resources](#target-resources) for the full list as well as instructions about expanding or limiting it.
 
 ### Upgrade
 
@@ -51,7 +55,7 @@ If you are upgrading from a previous version of KubeMod, run the following:
 kubectl delete job -l job-name -n kubemod-system
 
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.1/bundle.yaml
 ```
 
 ### Uninstall
@@ -59,7 +63,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.0/bundle
 To uninstall KubeMod and all its resources, run:
 
 ```text
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.0/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.1/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
@@ -740,6 +744,60 @@ KubeMod can patch/reject both namespaced and cluster-wide resources.
 If a ModRule is deployed to any namespace other than `kubemod-system`, the ModRule applies only to objects deployed/updated in that same namespace.
 
 ModRules deployed to namespace `kubemod-system` apply to cluster-wide resources such as `Namespace` or `ClusterRole`.
+
+### Target resources
+
+By default, KubeMod targets the following list of resources:
+
+- namespaces
+- configmaps
+- persistentvolumeclaims
+- secrets
+- services
+- daemonsets
+- deployments
+- statefulsets
+- cronjobs
+- jobs
+
+If you need to expand or limit this list create a patch file `patch.yaml` with the following content and populate the resources list with the full list of resources you want to target:
+
+```yaml
+webhooks:
+- name: dragnet.kubemod.io
+  rules:
+  - apiGroups:
+    - '*'
+    apiVersions:
+    - '*'
+    scope: '*'
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - namespaces
+    - configmaps
+    - persistentvolumeclaims
+    - secrets
+    - services
+    - daemonsets
+    - deployments
+    - statefulsets
+    - cronjobs
+    - jobs
+```
+
+Save the file and run the following:
+
+```bash
+kubectl patch mutatingwebhookconfiguration kubemod-mutating-webhook-configuration --patch "$(cat patch.yaml)"
+```
+
+You can get the full list of Kubernetes API resources by running:
+
+```yaml
+kubectl api-resources --verbs list -o name
+```
 
 ### Note on idempotency
 
