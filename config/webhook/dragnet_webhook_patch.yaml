@@ -1,4 +1,4 @@
-apiVersion: admissionregistration.k8s.io/v1
+apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: mutating-webhook-configuration
@@ -8,14 +8,6 @@ webhooks:
   reinvocationPolicy: IfNeeded
   matchPolicy: Equivalent
   sideEffects: None
-  admissionReviewVersions: ["v1beta1"]
-  clientConfig:
-    caBundle: Cg==
-    service:
-      name: webhook-service
-      namespace: system
-      path: /dragnet-webhook
-  timeoutSeconds: 5
 
   rules:
   - apiGroups:
@@ -23,16 +15,7 @@ webhooks:
     apiVersions:
     - '*'
     resources:
-    - namespaces
-    - configmaps
-    - persistentvolumeclaims
-    - secrets
-    - services
-    - daemonsets
-    - deployments
-    - statefulsets
-    - cronjobs
-    - jobs
+    - '*/*'
     operations:
     - CREATE
     - UPDATE
