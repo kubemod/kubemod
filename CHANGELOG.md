@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ## 0.10.0 - 2021-01-30
 
-* 45: Ignore resource updates in namespace kube-system
+* 45: Implement stability improvements for multi-node clusters
 
 ## 0.9.1 - 2021-01-22
 
