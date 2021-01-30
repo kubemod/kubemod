@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
+    admission.kubemod.io/ignore: "true"
     control-plane: controller-manager
-    kubemod-system-namespace: "true"
   name: kubemod-system
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
@@ -248,6 +248,9 @@ spec:
   - name: metrics
     port: 8082
     targetPort: metrics
+  - name: health
+    port: 8083
+    targetPort: health
   selector:
     control-plane: controller-manager
 ---
@@ -288,7 +291,11 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.9.1
+        image: kubemod/kubemod:latest
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8083
         name: manager
         ports:
         - containerPort: 8081
@@ -297,9 +304,16 @@ spec:
         - containerPort: 8082
           name: metrics
           protocol: TCP
+        - containerPort: 8083
+          name: health
+          protocol: TCP
         - containerPort: 9443
           name: webhook-server
           protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8083
         resources:
           limits:
             cpu: 100m
@@ -337,12 +351,15 @@ spec:
         name: kubemod-crt
       restartPolicy: Never
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
+  creationTimestamp: null
   name: kubemod-mutating-webhook-configuration
 webhooks:
-- clientConfig:
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
     caBundle: Cg==
     service:
       name: kubemod-webhook-service
@@ -360,7 +377,11 @@ webhooks:
     - UPDATE
     resources:
     - modrules
-- clientConfig:
+  sideEffects: None
+  timeoutSeconds: 5
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
     caBundle: Cg==
     service:
       name: kubemod-webhook-service
@@ -371,7 +392,7 @@ webhooks:
   name: dragnet.kubemod.io
   namespaceSelector:
     matchExpressions:
-    - key: kubemod-system-namespace
+    - key: admission.kubemod.io/ignore
       operator: NotIn
       values:
       - "true"
@@ -386,19 +407,39 @@ webhooks:
     - UPDATE
     resources:
     - namespaces
+    - nodes
+    - configmaps
     - persistentvolumeclaims
+    - persistentvolumes
+    - secrets
     - services
+    - daemonsets
     - deployments
+    - replicasets
+    - statefulsets
+    - horizontalpodautoscalers
+    - ingresses
+    - pods
+    - cronjobs
+    - jobs
+    - serviceaccounts
+    - clusterrolebindings
+    - clusterroles
+    - rolebindings
+    - roles
     scope: '*'
   sideEffects: None
+  timeoutSeconds: 3
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   name: kubemod-validating-webhook-configuration
 webhooks:
-- clientConfig:
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
     caBundle: Cg==
     service:
       name: kubemod-webhook-service
@@ -416,3 +457,5 @@ webhooks:
     - UPDATE
     resources:
     - modrules
+  sideEffects: None
+  timeoutSeconds: 5

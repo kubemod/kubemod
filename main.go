@@ -49,6 +49,7 @@ type Config struct {
 
 	WebAppAddr               string
 	OperatorMetricsAddr      string
+	OperatorHealthProbeAddr  string
 	ClusterModRulesNamespace string
 
 	EnableLeaderElection bool
@@ -64,6 +65,7 @@ func main() {
 
 	flag.StringVar(&config.WebAppAddr, "webapp-addr", ":8081", "The address the web app binds to.")
 	flag.StringVar(&config.OperatorMetricsAddr, "operator-metrics-addr", ":8082", "The address the operator metric endpoint binds to.")
+	flag.StringVar(&config.OperatorHealthProbeAddr, "operator-health-probe-addr", ":8083", "The address the operator health endpoints binds to.")
 	flag.StringVar(&config.ClusterModRulesNamespace, "cluster-modrules-namespace", "kubemod-system", "The namespace where cluster-wide ModRules are deployed.")
 	flag.BoolVar(&config.EnableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for KubeMod operator. "+
@@ -102,6 +104,7 @@ func run(config *Config) error {
 			_, err := app.InitializeKubeModOperatorApp(
 				scheme,
 				app.OperatorMetricsAddr(config.OperatorMetricsAddr),
+				app.OperatorHealthProbeAddr(config.OperatorHealthProbeAddr),
 				controllers.ClusterModRulesNamespace(config.ClusterModRulesNamespace),
 				app.EnableLeaderElection(config.EnableLeaderElection),
 				log)

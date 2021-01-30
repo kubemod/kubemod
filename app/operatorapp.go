@@ -21,6 +21,7 @@ import (
 	"github.com/kubemod/kubemod/core"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
@@ -77,18 +78,33 @@ func NewKubeModOperatorApp(
 }
 
 // NewControllerManager instantiates a new controller manager.
-func NewControllerManager(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, enableLeaderElection EnableLeaderElection, log logr.Logger) (manager.Manager, error) {
+func NewControllerManager(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, healthProbeAddr OperatorHealthProbeAddr, enableLeaderElection EnableLeaderElection, log logr.Logger) (manager.Manager, error) {
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: string(metricsAddr),
-		Port:               9443,
-		LeaderElection:     bool(enableLeaderElection),
-		LeaderElectionID:   "f950e141.kubemod.io",
+		Scheme:                 scheme,
+		MetricsBindAddress:     string(metricsAddr),
+		HealthProbeBindAddress: string(healthProbeAddr),
+		Port:                   9443,
+		LeaderElection:         bool(enableLeaderElection),
+		LeaderElectionID:       "f950e141.kubemod.io",
 	})
-	setupLog := log.WithName("setup")
+	setupLog := log.WithName("operator-setup")
 
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
+		return nil, err
+	}
+
+	setupLog.Info("health server is starting to listen", "addr", healthProbeAddr)
+
+	// Add /healthz health-check endpoint
+	if err := mgr.AddHealthzCheck("default", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to create health check")
+		return nil, err
+	}
+
+	// Add /readyz health-check endpoint
+	if err := mgr.AddReadyzCheck("tracker", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to create ready check")
 		return nil, err
 	}
 

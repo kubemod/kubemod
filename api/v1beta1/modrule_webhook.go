@@ -45,8 +45,6 @@ func (r *ModRule) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-// +kubebuilder:webhook:path=/mutate-api-kubemod-io-v1beta1-modrule,mutating=true,failurePolicy=fail,groups=api.kubemod.io,resources=modrules,verbs=create;update,versions=v1beta1,name=mmodrule.kubemod.io
-
 var _ webhook.Defaulter = &ModRule{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
@@ -60,9 +58,6 @@ func (r *ModRule) Default() {
 		}
 	}
 }
-
-// Change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-// +kubebuilder:webhook:verbs=create;update,path=/validate-api-kubemod-io-v1beta1-modrule,mutating=false,failurePolicy=fail,groups=api.kubemod.io,resources=modrules,versions=v1beta1,name=vmodrule.kubemod.io
 
 var _ webhook.Validator = &ModRule{}
 

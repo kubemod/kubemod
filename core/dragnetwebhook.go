@@ -25,8 +25,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-// +kubebuilder:webhook:path=/dragnet-webhook,mutating=true,failurePolicy=ignore,groups="*",versions="*",resources="*/*",verbs=create;update,name=dragnet.kubemod.io
-
 // DragnetWebhookHandler is the main entrypoint to KubeMod's mutating admission webhook.
 type DragnetWebhookHandler struct {
 	client       client.Client

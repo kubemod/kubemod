@@ -1,19 +1,22 @@
 
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   name: mutating-webhook-configuration
 webhooks:
-- clientConfig:
+- name: mmodrule.kubemod.io
+  clientConfig:
     caBundle: Cg==
     service:
       name: webhook-service
       namespace: system
       path: /mutate-api-kubemod-io-v1beta1-modrule
   failurePolicy: Fail
-  name: mmodrule.kubemod.io
+  sideEffects: None
+  timeoutSeconds: 5
+  admissionReviewVersions: ["v1beta1"]
   rules:
   - apiGroups:
     - api.kubemod.io
@@ -24,40 +27,74 @@ webhooks:
     - UPDATE
     resources:
     - modrules
-- clientConfig:
+- name: dragnet.kubemod.io
+  clientConfig:
     caBundle: Cg==
     service:
       name: webhook-service
       namespace: system
       path: /dragnet-webhook
   failurePolicy: Ignore
-  name: dragnet.kubemod.io
+  reinvocationPolicy: IfNeeded
+  matchPolicy: Equivalent
+  sideEffects: None
+  timeoutSeconds: 3
+  admissionReviewVersions: ["v1beta1"]
+  namespaceSelector:
+    matchExpressions:
+      - key: admission.kubemod.io/ignore
+        operator: NotIn
+        values: ["true"]
   rules:
   - apiGroups:
     - '*'
     apiVersions:
     - '*'
+    resources:
+    - namespaces
+    - nodes
+    - configmaps
+    - persistentvolumeclaims
+    - persistentvolumes
+    - secrets
+    - services
+    - daemonsets
+    - deployments
+    - replicasets
+    - statefulsets
+    - horizontalpodautoscalers
+    - ingresses
+    - pods
+    - cronjobs
+    - jobs
+    - serviceaccounts
+    - clusterrolebindings
+    - clusterroles
+    - rolebindings
+    - roles
     operations:
     - CREATE
     - UPDATE
-    resources:
-    - '*/*'
+    scope: '*'
 
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   name: validating-webhook-configuration
 webhooks:
-- clientConfig:
+- name: vmodrule.kubemod.io
+  clientConfig:
     caBundle: Cg==
     service:
       name: webhook-service
       namespace: system
       path: /validate-api-kubemod-io-v1beta1-modrule
   failurePolicy: Fail
-  name: vmodrule.kubemod.io
+  sideEffects: None
+  timeoutSeconds: 5
+  admissionReviewVersions: ["v1beta1"]
   rules:
   - apiGroups:
     - api.kubemod.io
