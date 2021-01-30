@@ -3,7 +3,7 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-    kubemod-system-namespace: "true"
+    admission.kubemod.io/ignore: "true"
   name: system
 ---
 apiVersion: apps/v1
@@ -40,6 +40,17 @@ spec:
           - containerPort: 8082
             name: metrics
             protocol: TCP
+          - containerPort: 8083
+            name: health
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8083
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8083
         resources:
           limits:
             cpu: 100m
@@ -62,5 +73,8 @@ spec:
     - port: 8082
       name: metrics
       targetPort: metrics
+    - port: 8083
+      name: health
+      targetPort: health
   selector:
     control-plane: controller-manager

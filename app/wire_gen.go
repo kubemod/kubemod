@@ -15,8 +15,8 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, clusterModRulesNamespace controllers.ClusterModRulesNamespace, enableLeaderElection EnableLeaderElection, log logr.Logger) (*KubeModOperatorApp, error) {
-	manager, err := NewControllerManager(scheme, metricsAddr, enableLeaderElection, log)
+func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, healthProbeAddr OperatorHealthProbeAddr, clusterModRulesNamespace controllers.ClusterModRulesNamespace, enableLeaderElection EnableLeaderElection, log logr.Logger) (*KubeModOperatorApp, error) {
+	manager, err := NewControllerManager(scheme, metricsAddr, healthProbeAddr, enableLeaderElection, log)
 	if err != nil {
 		return nil, err
 	}
@@ -52,3 +52,5 @@ type EnableLeaderElection bool
 type EnableDevModeLog bool
 
 type OperatorMetricsAddr string
+
+type OperatorHealthProbeAddr string

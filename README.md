@@ -25,8 +25,8 @@ Use KubeMod to:
     * [Match section](#match-section)
     * [Patch section](#patch-section)
 * [Miscellaneous](#miscellaneous)
-    * [Target resources](#target-resources)
     * [Namespaced and cluster-wide resources](#namespaced-and-cluster-wide-resources)
+    * [Target resources](#target-resources)
     * [Note on idempotency](#note-on-idempotency)
     * [Debugging ModRules](#debugging-modrules)
     * [Declarative kubectl apply](#declarative-kubectl-apply)
@@ -37,10 +37,13 @@ Use KubeMod to:
 ## Installation
 
 As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemod-system`.  
-The following command will create namespace `kubemod-system` and will deploy KubeMod into it.
+Run the following commands to deploy KubeMod.
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.1/bundle.yaml
+# Make KubeMod ignore Kubernetes' system namespace.
+kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
+# Deploy KubeMod.
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.10.0/bundle.yaml
 ```
 
 By default KubeMod allows you to target a limited set of high-level resource types, such as deployments and services.
@@ -52,19 +55,20 @@ See [target resources](#target-resources) for the full list as well as instructi
 If you are upgrading from a previous version of KubeMod, run the following:
 
 ```bash
-# Delete the kubemod certificate generation job in case KubeMod has already been installed.
+# Delete the KubeMod certificate generation job in case KubeMod has already been installed.
 kubectl delete job -l job-name -n kubemod-system
-
+# Make KubeMod ignore Kubernetes' system namespace.
+kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.1/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.10.0/bundle.yaml
 ```
 
 ### Uninstall
 
 To uninstall KubeMod and all its resources, run:
 
-```text
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.9.1/bundle.yaml
+```bash
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.10.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
@@ -746,14 +750,39 @@ If a ModRule is deployed to any namespace other than `kubemod-system`, the ModRu
 
 ModRules deployed to namespace `kubemod-system` apply to cluster-wide resources such as `Namespace` or `ClusterRole`.
 
+**Note on ignored namespaces**
+
+If a namespace has label `admission.kubemod.io/ignore` equal to `"true"`, KubeMod will not monitor resources created in that namespace.
+
+By default, the following namespaces are tagged with the above label:
+- `kube-system`
+- `kubemod-system`
+
 ### Target resources
 
 By default, KubeMod targets the following list of resources:
 
 - namespaces
-- services
-- deployments
+- nodes
+- configmaps
 - persistentvolumeclaims
+- persistentvolumes
+- secrets
+- services
+- daemonsets
+- deployments
+- replicasets
+- statefulsets
+- horizontalpodautoscalers
+- ingresses
+- pods
+- cronjobs
+- jobs
+- serviceaccounts
+- clusterrolebindings
+- clusterroles
+- rolebindings
+- roles
 
 If you need to expand or limit this list create a patch file `patch.yaml` with the following content and populate the resources list with the full list of resources you want to target:
 
@@ -771,9 +800,26 @@ webhooks:
     - UPDATE
     resources:
     - namespaces
-    - services
-    - deployments
+    - nodes
+    - configmaps
     - persistentvolumeclaims
+    - persistentvolumes
+    - secrets
+    - services
+    - daemonsets
+    - deployments
+    - replicasets
+    - statefulsets
+    - horizontalpodautoscalers
+    - ingresses
+    - pods
+    - cronjobs
+    - jobs
+    - serviceaccounts
+    - clusterrolebindings
+    - clusterroles
+    - rolebindings
+    - roles
 ```
 
 Save the file and run the following:

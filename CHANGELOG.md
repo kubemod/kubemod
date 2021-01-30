@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.9.1 - 2020-01-22
+
+## 0.10.0 - 2021-01-30
+
+* 45: Ignore resource updates in namespace kube-system
+
+## 0.9.1 - 2021-01-22
 
 * 43: Limit the default set of target resources
 

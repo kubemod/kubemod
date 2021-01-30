@@ -28,10 +28,12 @@ import (
 type EnableLeaderElection bool
 type EnableDevModeLog bool
 type OperatorMetricsAddr string
+type OperatorHealthProbeAddr string
 
 func InitializeKubeModOperatorApp(
 	scheme *runtime.Scheme,
 	metricsAddr OperatorMetricsAddr,
+	healthProbeAddr OperatorHealthProbeAddr,
 	clusterModRulesNamespace controllers.ClusterModRulesNamespace,
 	enableLeaderElection EnableLeaderElection,
 	log logr.Logger) (*KubeModOperatorApp, error) {
