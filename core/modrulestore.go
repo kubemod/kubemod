@@ -121,11 +121,14 @@ func (s *ModRuleStore) Delete(namespace string, name string) {
 func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleType v1beta1.ModRuleType, jsonv interface{}) []*ModRuleStoreItem {
 	modRules := []*ModRuleStoreItem{}
 
-	if namespaceModRules, ok := s.modRuleListMap[namespace]; ok {
-		for _, mrsi := range namespaceModRules {
-			if mrsi.modRule.Spec.Type == modRuleType && mrsi.IsMatch(jsonv) {
-				modRules = append(modRules, mrsi)
-			}
+	potentialRules := s.modRuleListMap[""] // cluster-wide 
+	if namespace != "" {
+		potentialRules = append(potentialRules, s.modRuleListMap[namespace]...)
+	} 
+
+	for _, mrsi := range potentialRules {
+		if mrsi.modRule.Spec.Type == modRuleType && mrsi.IsMatch(jsonv) {
+			modRules = append(modRules, mrsi)
 		}
 	}
 
