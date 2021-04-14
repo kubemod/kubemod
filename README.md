@@ -287,7 +287,8 @@ When a patch is evaluated, KubeMod executes the patch value as a [Golang templat
 
 * `.Target` - the original resource object being patched with all its properties.
 * `.Namespace` - the namespace of the resource object.
-
+* `.SelectKeyParts` - when `select` was used for the patch, `.SelectKeyParts` can be used in `value` to access
+ the wildcard/filter values captured for this patch operation.
 
 ### Resource rejection
 
@@ -707,14 +708,16 @@ value: |-
     protocol: UDP
 ```
 
-##### Golang Template
+#### Golang Template
 
 When `value` contains `{{ ... }}`, it is evaluated as a [Golang template](https://golang.org/pkg/text/template/).
 
-The following intrinsic item are accessible through the template's context:
+The following intrinsic items are accessible through the template's context:
 
 * `.Target` — the original resource object being patched.
 * `.Namespace` — the namespace of the target object.
+* `.SelectKeyParts` - when `select` was used for the patch, `.SelectKeyParts` can be used in `value` to access
+ the wildcard/filter values captured for this patch operation.
 
 For example, the following excerpt of a Jaeger side-car injection `ModRule` includes a `value` which uses `{{ .Target.metadata.name }}` to access the name of the `Deployment` being patched.
 
