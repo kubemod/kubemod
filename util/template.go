@@ -14,14 +14,37 @@ limitations under the License.
 
 package util
 
-import "regexp"
+import (
+	"regexp"
+	"text/template"
+
+	sprig "github.com/Masterminds/sprig/v3"
+)
 
 var (
 	rexValueTemplatePlaceholder = regexp.MustCompile(`\.#(\d+)`)
+
+	// Dangerous functions which can be used to exploit KubeMod's environment.
+	blockFuncs = [...]string{
+		"env",
+		"expandenv",
+	}
 )
 
 // PreProcessModRuleGoTemplate converts special tokens such as .#0 to .I0
 // which are actual properties on the ModRule golang template context.
 func PreProcessModRuleGoTemplate(template string) string {
 	return rexValueTemplatePlaceholder.ReplaceAllString(template, "(index .SelectKeyParts $1)")
+}
+
+// NewTemplate returns an instance of a Go template wired up with the Sprig template functions.
+func NewSafeTemplate(templateName string) *template.Template {
+	funcMap := sprig.GenericFuncMap()
+
+	// Delete functions which may be used to exploit KubeMod's environment.
+	for _, blockFunc := range blockFuncs {
+		delete(funcMap, blockFunc)
+	}
+
+	return template.New(templateName).Funcs(template.FuncMap(funcMap))
 }

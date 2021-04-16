@@ -61,6 +61,7 @@ type compiledJSONPatchOperation struct {
 type patchPathItem struct {
 	path           string
 	selectKeyParts []interface{}
+	selectedItem   interface{}
 }
 
 var (
@@ -99,7 +100,7 @@ func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) 
 	var rejectMessageTemplate *template.Template
 
 	if modRule.Spec.RejectMessage != nil {
-		rejectMessageTemplate, err = template.New("rejectMessage").Parse(*modRule.Spec.RejectMessage)
+		rejectMessageTemplate, err = util.NewSafeTemplate("rejectMessage").Parse(*modRule.Spec.RejectMessage)
 		if err != nil {
 			return nil, err
 		}
@@ -180,7 +181,7 @@ func newCompiledJSONPatch(patch []v1beta1.PatchOperation, jsonPathLanguage *gval
 		pathSprintfTemplate := pathTemplateToSprintfTemplate(po.Path)
 
 		// Compile the go template value.
-		tpl, err := template.New(po.Path).Parse(util.PreProcessModRuleGoTemplate(value))
+		tpl, err := util.NewSafeTemplate(po.Path).Parse(util.PreProcessModRuleGoTemplate(value))
 
 		if err != nil {
 			return nil, err
@@ -228,7 +229,7 @@ func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext
 				return nil, err
 			}
 
-			for key := range result.(map[string]interface{}) {
+			for key, val := range result.(map[string]interface{}) {
 				selectKeyParts := keyPartsFromSelectKey(key)
 				path := pathFromKeyParts(selectKeyParts, cop.pathSprintfTemplate)
 
@@ -239,6 +240,7 @@ func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext
 				pathItems = append(pathItems, patchPathItem{
 					path:           path,
 					selectKeyParts: selectKeyParts,
+					selectedItem:   val,
 				})
 			}
 		} else {
@@ -246,6 +248,7 @@ func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext
 			pathItems = append(pathItems, patchPathItem{
 				path:           cop.path,
 				selectKeyParts: []interface{}{},
+				selectedItem:   nil,
 			})
 		}
 
@@ -253,8 +256,9 @@ func (si *ModRuleStoreItem) calculatePatch(templateContext *PatchTemplateContext
 
 			vb := strings.Builder{}
 
-			// Bake in the select-key parts into the template context.
+			// Bake in the select-key parts and selected item into the template context.
 			templateContext.SelectKeyParts = pathItem.selectKeyParts
+			templateContext.SelectedItem = pathItem.selectedItem
 
 			err := cop.valueTemplate.Execute(&vb, templateContext)
 

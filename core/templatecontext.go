@@ -25,6 +25,9 @@ type PatchTemplateContext struct {
 
 	// SelectKeyParts contains the indexes collected from the patch select operation.
 	SelectKeyParts []interface{}
+
+	// SelectedItem is a reference to the current item resulting from executing the select expression.
+	SelectedItem interface{}
 }
 
 // RejectTemplateContext is an internal structure which is passed as context to all reject template executions.

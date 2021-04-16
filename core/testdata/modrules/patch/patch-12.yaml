@@ -11,6 +11,6 @@ spec:
 
   patch:
     - op: replace
-      select: '$.spec.containers[? @.image =~ "repo1/.+"]'
+      select: '$.spec.containers[? @.image =~ "repo1/.+"].image'
       path: /spec/containers/#0/image
-      value: '{{ regexReplaceAll "(.+)/(.*)" (index .SelectedItem "image") "my-repo/${2}" }}'
+      value: '{{ regexReplaceAll "(.+)/(.*)" .SelectedItem "my-repo/${2}" }}'

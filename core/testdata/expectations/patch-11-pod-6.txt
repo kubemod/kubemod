@@ -1,0 +1,1 @@
+[{replace /spec/containers/0/image my-repo/nginx:1.14.2} {replace /spec/containers/2/image my-repo/nginx:1.15.2}]

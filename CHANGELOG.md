@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## 0.11.0 - 2021-04-16
+
+* 48: Extend Go Template engine with Sprig Functions
+
 ## 0.10.0 - 2021-01-30
 
 * 45: Implement stability improvements for multi-node clusters
