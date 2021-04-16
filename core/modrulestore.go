@@ -121,11 +121,12 @@ func (s *ModRuleStore) Delete(namespace string, name string) {
 func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleType v1beta1.ModRuleType, jsonv interface{}) []*ModRuleStoreItem {
 	modRules := []*ModRuleStoreItem{}
 
-	potentialRules := s.modRuleListMap[""] // cluster-wide 
+	potentialRules := s.modRuleListMap[""] // cluster-wide
 	if namespace != "" {
 		potentialRules = append(potentialRules, s.modRuleListMap[namespace]...)
-	} 
+	}
 
+	patchObjectNamespace(jsonv, namespace)
 	for _, mrsi := range potentialRules {
 		if mrsi.modRule.Spec.Type == modRuleType && mrsi.IsMatch(jsonv) {
 			modRules = append(modRules, mrsi)
@@ -177,6 +178,29 @@ func extractLastAppliedConfiguration(jsonv interface{}) []byte {
 	return nil
 }
 
+func patchObjectNamespace(v interface{}, ns string) error {
+	obj, ok := v.(map[string]interface{})
+	if !ok {
+		if nv, ok := v.(*interface{}); ok {
+			obj, ok = (*nv).(map[string]interface{})
+		}
+	}
+	metadata, ok := obj["metadata"].(map[string]interface{})
+	namespace, _ := metadata["namespace"].(string)
+	if namespace == "" && ok {
+		metadata["namespace"] = ns
+	}
+	return nil
+}
+
+func unmarshalWithNamespace(data []byte, v interface{}, ns string) error {
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+	return patchObjectNamespace(v, ns)
+}
+
 // CalculatePatch calculates the set of patch operations to apply against a given resource
 // based on the ModRules matchins the resource.
 func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, operationLog logr.Logger) (interface{}, []ctrljsonpatch.JsonPatchOperation, error) {
@@ -191,8 +215,7 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 		log = s.log
 	}
 
-	err := json.Unmarshal(originalJSON, &jsonv)
-
+	err := unmarshalWithNamespace(originalJSON, &jsonv, namespace)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -226,8 +249,7 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 			continue
 		}
 
-		err = json.Unmarshal(modifiedJSON, &jsonv)
-
+		err = unmarshalWithNamespace(modifiedJSON, &jsonv, namespace)
 		if err != nil {
 			return nil, nil, err
 		}

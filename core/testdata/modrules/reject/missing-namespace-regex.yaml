@@ -1,0 +1,12 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Reject
+
+  match:
+    - select: "$.kind"
+      matchValue: "Pod"  
+    - select: "$.metadata.namespace"
+      matchRegex: "[a-z]+-[a-z]+"

@@ -1,5 +1,6 @@
 module github.com/kubemod/kubemod
 
+// +heroku goVersion 1.13
 go 1.13
 
 replace github.com/evanphx/json-patch/v5 v5.1.0 => github.com/vassilvk/json-patch/v5 v5.2.0-beta.4

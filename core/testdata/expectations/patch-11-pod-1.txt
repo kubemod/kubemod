@@ -1,0 +1,1 @@
+[{add /spec/metadata map[annotations:map[color:whatever]]} {add /spec/non-existent-array [map[name:hello]]} {add /spec/volumes/1 map[emptyDir:map[] name:volume-xyz]}]

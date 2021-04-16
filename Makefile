@@ -16,10 +16,15 @@ all: manager
 test: generate fmt vet manifests
 	go test ./core ./util -coverprofile cover.out
 
+vtest: generate fmt vet manifests
+	go test -v ./core ./util -coverprofile cover.out
+
 # Run benchmarks
 bench: generate fmt vet manifests
 	go test ./core ./util -run=XXX -bench=.
 
+dockerize:
+	docker run -ti --rm --entrypoint sh -v $(PWD):/go/kubemod -w /go/kubemod golang
 
 # Build manager binary
 manager: generate fmt vet
