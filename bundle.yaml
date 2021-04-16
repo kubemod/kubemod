@@ -291,7 +291,7 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.10.0
+        image: kubemod/kubemod:v0.11.0
         livenessProbe:
           httpGet:
             path: /healthz
