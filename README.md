@@ -712,11 +712,14 @@ value: |-
 
 When `value` contains `{{ ... }}`, it is evaluated as a [Golang template](https://golang.org/pkg/text/template/).
 
+In addition, the Golang template engine used by KubeMod is extended with the [Sprig library of template functions](http://masterminds.github.io/sprig/).
+
 The following intrinsic items are accessible through the template's context:
 
 * `.Target` — the original resource object being patched.
 * `.Namespace` — the namespace of the target object.
-* `.SelectKeyParts` - when `select` was used for the patch, `.SelectKeyParts` can be used in `value` to access
+* `.SelectedItem` — when `select` was used for the patch, `.SelectedItem` yields the current result of the select evaluation. See second example below.
+* `.SelectKeyParts` — when `select` was used for the patch, `.SelectKeyParts` can be used in `value` to access
  the wildcard/filter values captured for this patch operation.
 
 For example, the following excerpt of a Jaeger side-car injection `ModRule` includes a `value` which uses `{{ .Target.metadata.name }}` to access the name of the `Deployment` being patched.
@@ -737,6 +740,36 @@ value: |-
 ```
 
 See full example of the above ModRule [here](#sidecar-injection).
+
+#### Advanced use of SelectedItem
+
+The presence of `.SelectedItem` in the `value` template unlocks some advanced scenarios.
+
+For example, the following `patch` rule will match all containers from image repository `their-repo` and will patch the resource to switch to `my-repo`:
+
+```yaml
+...
+patch:
+  - op: replace
+    # Select only containers whose image belongs to container registry "their-repo".
+    select: '$.spec.containers[? @.image =~ "their-repo/.+"].image'
+    path: /spec/containers/#0/image
+    # Replace the existing value by running Sprig's regexReplaceAll function against .SelectedItem.
+    value: '{{ regexReplaceAll "(.+)/(.*)" .SelectedItem "my-repo/${2}" }}'
+```
+
+Note that `.SelectedItem` points to the part of the resource selected by the `select` expression.
+
+In the above example, the `select` expression is `$.spec.containers[? @.image =~ "repo-1/.+"].image` so `.SelectedItem` is a string with the value of the image.
+
+On the other hand, if the `select` expression was `$.spec.containers[? @.image =~ "repo-1/.+"]`, then `.SelectedItem` would be a string-to-value map with the properties
+of the `container` object.
+
+In that case, to access any of the properties of the container, one would use the `index` Golang template function.
+
+For example:
+
+`{{ index .SelectedItem "image" }}`
 
 ### `rejectMessage` \(string: optional\)
 

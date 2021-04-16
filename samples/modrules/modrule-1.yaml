@@ -26,6 +26,12 @@ spec:
       path: /metadata/labels/color
       value: whatever
 
+    # Replace the standard nginx repo with the bitnami version.
+    - op: replace
+      select: $.spec.template.spec.containers[? @.image =~ "nginx" ].image
+      path: /spec/template/spec/containers/#0/image
+      value: '{{ regexReplaceAll "(.*)" .SelectedItem "bitnami/${1}" }}'
+
     # Change nginx container's port from 80 to 8080
     - op: replace
       select: $.spec.template.spec.containers[? @.name == "nginx" && @.image =~ "nginx" ].ports[? @.containerPort == 80]

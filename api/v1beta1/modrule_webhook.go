@@ -16,7 +16,6 @@ package v1beta1
 
 import (
 	"fmt"
-	"html/template"
 	"regexp"
 
 	"github.com/kubemod/kubemod/expressions"
@@ -137,7 +136,7 @@ func (r *ModRule) validateModRule() error {
 			value := *po.Value
 
 			// Test the template.
-			_, err := template.New(po.Path).Parse(util.PreProcessModRuleGoTemplate(value))
+			_, err := util.NewSafeTemplate(po.Path).Parse(util.PreProcessModRuleGoTemplate(value))
 
 			if err != nil {
 				allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("patch").Index(i).Child("value"), value, fmt.Sprintf("%v", err)))
@@ -156,7 +155,7 @@ func (r *ModRule) validateModRule() error {
 
 	// Validate the rejectMessage as a template.
 	if r.Spec.RejectMessage != nil {
-		_, err = template.New("rejectMessage").Parse(*r.Spec.RejectMessage)
+		_, err = util.NewSafeTemplate("rejectMessage").Parse(*r.Spec.RejectMessage)
 
 		if err != nil {
 			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("rejectMessage"), *r.Spec.RejectMessage, fmt.Sprintf("%v", err)))
