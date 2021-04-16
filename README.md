@@ -761,16 +761,14 @@ patch:
 
 Note that `.SelectedItem` points to the part of the resource selected by the `select` expression.
 
-In the above example, the `select` expression is `$.spec.containers[? @.image =~ "repo-1/.+"].image` so `.SelectedItem` is a string with the value of the image.
+In the above example, the `select` expression is `$.spec.containers[? @.image =~ "repo-1/.+"].image` so `.SelectedItem` is a string with the value of the image field.
 
-On the other hand, if the `select` expression was `$.spec.containers[? @.image =~ "repo-1/.+"]`, then `.SelectedItem` would be a string-to-value map with the properties
+On the other hand, if the `select` expression was `$.spec.containers[? @.image =~ "repo-1/.+"]`, then `.SelectedItem` would be a map with the named properties
 of the `container` object.
 
 In that case, to access any of the properties of the container, one would use the `index` Golang template function.
 
-For example:
-
-`{{ index .SelectedItem "image" }}`
+For example, `{{ index .SelectedItem "image" }}` or `{{ index .SelectedItem "imagePullPolicy" }}`.
 
 ### `rejectMessage` \(string: optional\)
 
