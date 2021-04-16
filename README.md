@@ -745,7 +745,8 @@ See full example of the above ModRule [here](#sidecar-injection).
 
 The presence of `.SelectedItem` in the `value` template unlocks some advanced scenarios.
 
-For example, the following `patch` rule will match all containers from image repository `their-repo` and will patch the resource to switch to `my-repo`:
+For example, the following `patch` rule will match all containers from image repository `their-repo` and will replace the repository part of the image with `my-repo`,
+keeping the rest of the image name intact:
 
 ```yaml
 ...
