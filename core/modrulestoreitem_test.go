@@ -15,7 +15,6 @@ limitations under the License.
 package core
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"path"
 
@@ -68,7 +67,7 @@ var _ = Describe("ModRuleStoreItem", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		resource := interface{}(nil)
-		err = json.Unmarshal(resourceJSON, &resource)
+		err = unmarshalWithNamespace(resourceJSON, &resource, "my-namespace")
 		Expect(err).NotTo(HaveOccurred())
 
 		// Load ModRule YAML.
@@ -179,5 +178,11 @@ var _ = Describe("ModRuleStoreItem", func() {
 		Entry("should match predicate query with regex", "reject/select-predicate-regex-container-image.yaml", "pod-1.json", false),
 		Entry("should match predicate query with regex", "reject/select-predicate-regex-container-image.yaml", "pod-2.json", true),
 		Entry("should match predicate query with regex", "reject/select-predicate-regex-container-image.yaml", "pod-3.json", false),
+
+		Entry("should match support metadata.namespace", "reject/missing-namespace-exact-default.yaml", "pod-1.json", true),
+		Entry("should match support regex metadata.namespace", "reject/missing-namespace-regex.yaml", "pod-1.json", true),
+		Entry("should fail to match metadata.name when not exist", "reject/missing-name-exact-name.yaml", "pod-1.json", false),
+		Entry("should match on metadata.generateName", "reject/missing-name-regex-generateName.yaml", "pod-1.json", true),
+		Entry("should matchValues on metadata.namespace", "reject/namespace-exact-default.yaml", "deployment-1.json", true),
 	)
 })

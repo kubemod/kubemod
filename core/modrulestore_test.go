@@ -132,6 +132,7 @@ var _ = Describe("ModRuleStore", func() {
 		Entry("patch-10 on deployment-1 should work as expected", []string{"patch/patch-10.yaml"}, "deployment-1.json", "patch-10-deployment-1.txt"),
 		Entry("patch-10 on deployment-2 should work as expected", []string{"patch/patch-10.yaml"}, "deployment-2.json", "patch-10-deployment-2.txt"),
 		Entry("patch-10 on deployment-3 should work as expected", []string{"patch/patch-10.yaml"}, "deployment-3.json", "patch-10-deployment-3.txt"),
+		Entry("patch-11 on pod-1 should work as expected", []string{"patch/patch-11.yaml"}, "pod-1.json", "patch-11-pod-1.txt"),
 	)
 
 	DescribeTable("DetermineRejections", modRuleStoreDetermineRejectionsTableFunction,
