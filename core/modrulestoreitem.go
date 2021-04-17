@@ -34,12 +34,13 @@ import (
 // ModRuleStoreItem wraps around a ModRule and holds a cache of the ModRule's
 // match queries, regexp expressions and value templates in compiled form.
 type ModRuleStoreItem struct {
-	modRule               *v1beta1.ModRule
-	compiledMatchSelects  map[*v1beta1.MatchItem]gval.Evaluable
-	compiledRegexes       map[*v1beta1.MatchItem]*regexp.Regexp
-	compiledJSONPatch     []*compiledJSONPatchOperation
-	rejectMessageTemplate *template.Template
-	log                   logr.Logger
+	modRule                      *v1beta1.ModRule
+	compiledTargetNamespaceRegex *regexp.Regexp
+	compiledMatchSelects         map[*v1beta1.MatchItem]gval.Evaluable
+	compiledRegexes              map[*v1beta1.MatchItem]*regexp.Regexp
+	compiledJSONPatch            []*compiledJSONPatchOperation
+	rejectMessageTemplate        *template.Template
+	log                          logr.Logger
 }
 
 // ModRuleStoreItemFactory is used to construct ModRuleStoreItems.
@@ -79,6 +80,16 @@ func NewModRuleStoreItemFactory(jsonPathLanguage *gval.Language, log logr.Logger
 
 // NewModRuleStoreItem constructs a new ModRule store item.
 func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) (*ModRuleStoreItem, error) {
+	var err error
+	var compiledTargetNamespaceRegex *regexp.Regexp
+	if modRule.Spec.TargetNamespaceRegex != nil && *modRule.Spec.TargetNamespaceRegex != "" {
+		compiledTargetNamespaceRegex, err = regexp.Compile(*modRule.Spec.TargetNamespaceRegex)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	compiledMatchSelects, err := newCompiledMatchSelects(modRule.Spec.Match, f.jsonPathLanguage)
 
 	if err != nil {
@@ -107,12 +118,13 @@ func (f *ModRuleStoreItemFactory) NewModRuleStoreItem(modRule *v1beta1.ModRule) 
 	}
 
 	return &ModRuleStoreItem{
-			modRule:               modRule,
-			log:                   f.log,
-			compiledMatchSelects:  compiledMatchSelects,
-			compiledRegexes:       compiledRegexes,
-			compiledJSONPatch:     compiledJSONPatch,
-			rejectMessageTemplate: rejectMessageTemplate,
+			modRule:                      modRule,
+			log:                          f.log,
+			compiledTargetNamespaceRegex: compiledTargetNamespaceRegex,
+			compiledMatchSelects:         compiledMatchSelects,
+			compiledRegexes:              compiledRegexes,
+			compiledJSONPatch:            compiledJSONPatch,
+			rejectMessageTemplate:        rejectMessageTemplate,
 		},
 		nil
 }

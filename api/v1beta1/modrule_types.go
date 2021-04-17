@@ -49,6 +49,10 @@ type ModRuleSpec struct {
 	// The field is a Golang template evaluated in the context of the object being rejected.
 	// +optional
 	RejectMessage *string `json:"rejectMessage,omitempty"`
+
+	// TargetNamespaceRegex is optional and only applies to ModRules in "kubemod-system" namespace.
+	// Its usage enables cluster-wide matching of namespaced resources.
+	TargetNamespaceRegex *string `json:"targetNamespaceRegex,omitempty"`
 }
 
 // MatchItem represents a single match query.
