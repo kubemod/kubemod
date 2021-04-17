@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+* 56: Implement native unified diffs
 * 57: Enable github actions for pull requests
 
 ## 0.11.0 - 2021-04-16
