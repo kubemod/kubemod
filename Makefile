@@ -16,6 +16,11 @@ all: manager
 test: generate fmt vet manifests
 	go test ./core ./util -coverprofile cover.out
 
+# Run tests -v
+testv: generate fmt vet manifests
+	go test -v ./core ./util -coverprofile cover.out
+
+
 # Run benchmarks
 bench: generate fmt vet manifests
 	go test ./core ./util -run=XXX -bench=.
@@ -76,6 +81,11 @@ docker-build: test
 # Push the docker image
 docker-push:
 	docker push ${IMG}
+
+# Develop in docker
+docker-develop:
+	docker run --rm -it -v $(PWD):/go/src/kubemod -w /go/src/kubemod \
+			--entrypoint bash golang:1.14.7
 
 # find or download controller-gen
 # download controller-gen if necessary
