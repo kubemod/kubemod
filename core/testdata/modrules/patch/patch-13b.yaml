@@ -1,0 +1,17 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+  namespace: kubemod-system
+spec:
+  type: Patch
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Deployment'
+
+  patch:
+    - op: replace
+      select: '$.spec.template.spec.containers[*].ports[? @.containerPort == 80]'
+      path: /spec/template/spec/containers/#0/ports/#1/containerPort
+      value: '8080'
