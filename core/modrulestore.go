@@ -123,8 +123,9 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleTyp
 
 	potentialRules := []*ModRuleStoreItem{}
 	for _, mrsi := range s.modRuleListMap[""] {
-		if namespace == "" && mrsi.compiledTargetNamespaceRegex == nil ||
-			mrsi.compiledTargetNamespaceRegex != nil && mrsi.compiledTargetNamespaceRegex.Match([]byte(namespace)) {
+		if (namespace == "" && mrsi.compiledTargetNamespaceRegex == nil) ||
+			(mrsi.compiledTargetNamespaceRegex != nil &&
+				mrsi.compiledTargetNamespaceRegex.Match([]byte(namespace))) {
 			potentialRules = append(potentialRules, mrsi)
 		}
 	}

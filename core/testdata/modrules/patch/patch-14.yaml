@@ -5,6 +5,8 @@ metadata:
   namespace: kubemod-system
 spec:
   type: Patch
+  # optional targetNamespaceRegex missing -- when missing, rules in 
+  # kubemod-system namespace can only target non-namespaced resources
 
   match:
     - select: '$.kind'

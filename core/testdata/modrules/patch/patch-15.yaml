@@ -5,8 +5,10 @@ metadata:
   namespace: kubemod-system
 spec:
   type: Patch
-  # targetNamespaceRegex to match 'my-namespace' -- the namespace used by the test suite
-  targetNamespaceRegex: '\w{2,}-[^ ]{3}e[[:lower:]]+?[[:xdigit:]]+'
+  # targetNamespaceRegex: (blank field using omitempty should be dropped/nil)
+  # and when nil/missing, rules in kubemod-system can only target
+  # non-namespaced resources
+  targetNamespaceRegex: ''
 
   match:
     - select: '$.kind'
