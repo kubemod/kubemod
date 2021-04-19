@@ -43,7 +43,7 @@ Run the following commands to deploy KubeMod.
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Deploy KubeMod.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.11.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.12.0/bundle.yaml
 ```
 
 By default KubeMod allows you to target a limited set of high-level resource types, such as deployments and services.
@@ -60,7 +60,7 @@ kubectl delete job -l job-name -n kubemod-system
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.11.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.12.0/bundle.yaml
 ```
 
 ### Uninstall
@@ -68,7 +68,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.11.0/bundl
 To uninstall KubeMod and all its resources, run:
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.11.0/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.12.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
@@ -285,9 +285,10 @@ Note the use of `{{ .Target.metadata.name }}` in the patch `value` to dynamicall
 
 When a patch is evaluated, KubeMod executes the patch value as a [Golang template](https://golang.org/pkg/text/template/) and passes the following intrinsic items accessible through the template's context:
 
-* `.Target` - the original resource object being patched with all its properties.
-* `.Namespace` - the namespace of the resource object.
-* `.SelectKeyParts` - when `select` was used for the patch, `.SelectKeyParts` can be used in `value` to access
+* `.Target` — the original resource object being patched with all its properties.
+* `.Namespace` — the namespace of the resource object.
+* `.SelectedItem` — when `select` was used for the patch, `.SelectedItem` yields the current result of the select evaluation. See second example below.
+* `.SelectKeyParts` — when `select` was used for the patch, `.SelectKeyParts` can be used in `value` to access
  the wildcard/filter values captured for this patch operation.
 
 ### Resource rejection
@@ -357,6 +358,8 @@ spec:
 ## Anatomy of a ModRule
 
 A `ModRule` consists of a `type`, a `match` section, and a `patch` section.
+
+It also includes the optional `targetNamespaceRegex` and `rejectMessage` fields.
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
@@ -770,10 +773,18 @@ In that case, to access any of the properties of the container, one would use th
 
 For example, `{{ index .SelectedItem "image" }}` or `{{ index .SelectedItem "imagePullPolicy" }}`.
 
+### `targetNamespaceRegex` \(string: optional\)
+
+Field `targetNamespaceRegex` is an optional regular expression which is used to match namespaced object.
+It only applies to ModRules deployed to namespace `kubemod-system`.
+
+Setting this field allows for the deployment of ModRules which apply to resources deployed across namespaces.
+
 ### `rejectMessage` \(string: optional\)
 
 Field `rejectMessage` is an optional message displayed when a resource is rejected by a `Reject` ModRule.
 The field is a Golang template evaluated in the context of the object being rejected
+
 
 ## Miscellaneous
 
@@ -783,7 +794,12 @@ KubeMod can patch/reject both namespaced and cluster-wide resources.
 
 If a ModRule is deployed to any namespace other than `kubemod-system`, the ModRule applies only to objects deployed/updated in that same namespace.
 
-ModRules deployed to namespace `kubemod-system` apply to cluster-wide resources such as `Namespace` or `ClusterRole`.
+ModRules deployed to namespace `kubemod-system` are treated differently.
+
+- If a ModRule is deployed to `kubemod-system` and its `targetNamespaceRegex` is empty or equal to `.*`, this rule applies to cluster-wide resources such as `Namespace` or `ClusterRole`.
+- If a ModRule is deployed to `kubemod-system` and its `targetNamespaceRegex` is non-empty, this rule applies to all namespaced resources in namespaces that match the regular expression in `targetNamespaceRegex`.
+
+Note that matching `targetNamespaceRegex` to the namespace of a resource does not guarantee an actual match for the rule. It only guarantees that the rule will be considered for a match — the final outcome will be decided by evaluating the rule's `Match`criteria against the resource's definition.
 
 **Note on ignored namespaces**
 
