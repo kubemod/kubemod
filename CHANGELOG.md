@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.12.0 - 2021-04-19
 
-* 56: Implement native unified diffs
+* 51: Introduce TargetNamespaceRegex as a way to target resources across namespaces (thank you @jamiecore)
+* 56: Implement native unified diffs (thank you @jamiecore)
 * 57: Enable github actions for pull requests
 
 ## 0.11.0 - 2021-04-16

@@ -102,7 +102,7 @@ spec:
               description: RejectMessage is an optional message displayed when a resource is rejected by a Reject ModRule. The field is a Golang template evaluated in the context of the object being rejected.
               type: string
             targetNamespaceRegex:
-              description: TargetNamespaceRegex is optional and only relevant for Modrules deployed in "kubemod-system" namespace. When present, it efficiently facilitates targetting namespaced resources. When not present, ModRules in "kubemod-system" solely target non-namespaced resources. ModRules in an arbitrary namespace solely target their own namespace.
+              description: TargetNamespaceRegex is optional and only applies to ModRules in "kubemod-system" namespace. Its usage enables cluster-wide matching of namespaced resources.
               type: string
             type:
               description: 'Type describes the type of a ModRule. Valid values are: - "Patch" - the rule performs modifications on all the matching resources as they are created. - "Reject" - the rule rejects the creation of all matching resources.'
@@ -294,7 +294,7 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.11.0
+        image: kubemod/kubemod:v0.12.0
         livenessProbe:
           httpGet:
             path: /healthz
