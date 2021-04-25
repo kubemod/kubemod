@@ -49,7 +49,7 @@ func (app *KubeModWebApp) dryRunHandler(c *gin.Context) {
 	app.log.V(1).Info("processing request", "route", c.Request.URL, "payload", payload)
 
 	// Instantiate a ModRuleStore for this request and populate it with the modrules.
-	store := core.NewModRuleStore(app.modRuleStoreItemFactory, app.log)
+	store := core.NewModRuleStore(app.modRuleStoreItemFactory, app.clusterModRulesNamespace, app.log)
 
 	for _, modRule := range payload.ModRules {
 		// Populate the modrule with its default values if missing.

@@ -30,14 +30,16 @@ import (
 
 // KubeModWebApp is the DI container of kubemod web application state.
 type KubeModWebApp struct {
-	log                     logr.Logger
-	modRuleStoreItemFactory *core.ModRuleStoreItemFactory
+	log                      logr.Logger
+	modRuleStoreItemFactory  *core.ModRuleStoreItemFactory
+	clusterModRulesNamespace core.ClusterModRulesNamespace
 }
 
 // NewKubeModWebApp instantiates a kubemod web application.
 func NewKubeModWebApp(
 	webAppAddr string,
 	enableDevModeLog EnableDevModeLog,
+	clusterModRulesNamespace core.ClusterModRulesNamespace,
 	log logr.Logger,
 	modRuleStoreItemFactory *core.ModRuleStoreItemFactory,
 ) (*KubeModWebApp, error) {
@@ -56,8 +58,9 @@ func NewKubeModWebApp(
 	r.Use(ginlogr.RecoveryWithLogr(log, time.RFC3339, false, true))
 
 	app := &KubeModWebApp{
-		log:                     log.WithName("webapp"),
-		modRuleStoreItemFactory: modRuleStoreItemFactory,
+		log:                      log.WithName("webapp"),
+		modRuleStoreItemFactory:  modRuleStoreItemFactory,
+		clusterModRulesNamespace: clusterModRulesNamespace,
 	}
 
 	// Set up the API routes.

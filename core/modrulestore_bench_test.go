@@ -28,7 +28,7 @@ func BenchmarkModRuleStorePutParallel(b *testing.B) {
 	namespacePool := util.NewNamePool(5)
 	namePool := util.NewNamePool(50)
 
-	testBed := InitializeModRuleStoreTestBed(b)
+	testBed := InitializeModRuleStoreTestBed("kubemod-system", b)
 
 	rs := testBed.modRuleStore
 

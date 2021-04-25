@@ -26,12 +26,16 @@ import (
 	ctrljsonpatch "gomodules.xyz/jsonpatch/v2"
 )
 
+// ClusterModRulesNamespace is a type of string used by DI to inject the namespace where cluster-wide ModRules are deployed.
+type ClusterModRulesNamespace string
+
 // ModRuleStore is a thread-safe collection of ModRules organized by namespaces.
 type ModRuleStore struct {
-	modRuleListMap map[string][]*ModRuleStoreItem
-	itemFactory    *ModRuleStoreItemFactory
-	rwLock         sync.RWMutex
-	log            logr.Logger
+	modRuleListMap           map[string][]*ModRuleStoreItem
+	itemFactory              *ModRuleStoreItemFactory
+	clusterModRulesNamespace string
+	rwLock                   sync.RWMutex
+	log                      logr.Logger
 }
 
 var (
@@ -44,12 +48,13 @@ var (
 )
 
 // NewModRuleStore instantiates a new ModRuleStore.
-func NewModRuleStore(itemFactory *ModRuleStoreItemFactory, log logr.Logger) *ModRuleStore {
+func NewModRuleStore(itemFactory *ModRuleStoreItemFactory, clusterModRulesNamespace ClusterModRulesNamespace, log logr.Logger) *ModRuleStore {
 	return &ModRuleStore{
-		modRuleListMap: make(map[string][]*ModRuleStoreItem),
-		itemFactory:    itemFactory,
-		rwLock:         sync.RWMutex{},
-		log:            log.WithName("core"),
+		modRuleListMap:           make(map[string][]*ModRuleStoreItem),
+		itemFactory:              itemFactory,
+		clusterModRulesNamespace: string(clusterModRulesNamespace),
+		rwLock:                   sync.RWMutex{},
+		log:                      log.WithName("core"),
 	}
 }
 
@@ -122,7 +127,12 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleTyp
 	modRules := []*ModRuleStoreItem{}
 
 	potentialRules := []*ModRuleStoreItem{}
-	for _, mrsi := range s.modRuleListMap[""] {
+
+	// First look at cluster-wide mod rules.
+	// If the resource is a non-namespaced object (its namespace is empty),
+	// or the resource's namespace matches the mod rule's TargetNamespaceRegex,
+	// then the mod rule is a potential match and subject to further examination by the heavier .IsMatch().
+	for _, mrsi := range s.modRuleListMap[s.clusterModRulesNamespace] {
 		if (namespace == "" && mrsi.compiledTargetNamespaceRegex == nil) ||
 			(mrsi.compiledTargetNamespaceRegex != nil &&
 				mrsi.compiledTargetNamespaceRegex.Match([]byte(namespace))) {
@@ -130,10 +140,13 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleTyp
 		}
 	}
 
+	// If the resource is namespaced, add the mod rules deployed to that same namespace
+	// to the list of potentially matching mod rules.
 	if namespace != "" {
 		potentialRules = append(potentialRules, s.modRuleListMap[namespace]...)
 	}
 
+	// Perform the actual matching.
 	for _, mrsi := range potentialRules {
 		if mrsi.modRule.Spec.Type == modRuleType && mrsi.IsMatch(jsonv) {
 			modRules = append(modRules, mrsi)
@@ -186,7 +199,7 @@ func extractLastAppliedConfiguration(jsonv interface{}) []byte {
 }
 
 // CalculatePatch calculates the set of patch operations to apply against a given resource
-// based on the ModRules matchins the resource.
+// based on the ModRules matching the resource.
 func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, operationLog logr.Logger) (interface{}, []ctrljsonpatch.JsonPatchOperation, error) {
 	var modifiedJSON = originalJSON
 	jsonv := interface{}(nil)
