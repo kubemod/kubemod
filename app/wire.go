@@ -34,7 +34,7 @@ func InitializeKubeModOperatorApp(
 	scheme *runtime.Scheme,
 	metricsAddr OperatorMetricsAddr,
 	healthProbeAddr OperatorHealthProbeAddr,
-	clusterModRulesNamespace controllers.ClusterModRulesNamespace,
+	clusterModRulesNamespace core.ClusterModRulesNamespace,
 	enableLeaderElection EnableLeaderElection,
 	log logr.Logger) (*KubeModOperatorApp, error) {
 	wire.Build(
@@ -52,6 +52,7 @@ func InitializeKubeModOperatorApp(
 func InitializeKubeModWebApp(
 	webAppAddr string,
 	enableDevModeLog EnableDevModeLog,
+	clusterModRulesNamespace core.ClusterModRulesNamespace,
 	log logr.Logger) (*KubeModWebApp, error) {
 	wire.Build(
 		expressions.NewJSONPathLanguage,

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+* 63: Remove kubemod-system namespace normalization
+
 ## 0.12.0 - 2021-04-19
 
 * 51: Introduce TargetNamespaceRegex as a way to target resources across namespaces (thank you @jamiecore)

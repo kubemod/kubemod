@@ -13,11 +13,11 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeModRuleStoreTestBed(tLogger util.TLogger) *ModRuleStoreTestBed {
+func InitializeModRuleStoreTestBed(clusterModRulesNamespace ClusterModRulesNamespace, tLogger util.TLogger) *ModRuleStoreTestBed {
 	language := expressions.NewJSONPathLanguage()
 	logger := NewTestLogger(tLogger)
 	modRuleStoreItemFactory := NewModRuleStoreItemFactory(language, logger)
-	modRuleStore := NewModRuleStore(modRuleStoreItemFactory, logger)
+	modRuleStore := NewModRuleStore(modRuleStoreItemFactory, clusterModRulesNamespace, logger)
 	modRuleStoreTestBed := NewModRuleStoreTestBed(modRuleStore)
 	return modRuleStoreTestBed
 }

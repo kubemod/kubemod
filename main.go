@@ -27,7 +27,7 @@ import (
 
 	apiv1beta1 "github.com/kubemod/kubemod/api/v1beta1"
 	"github.com/kubemod/kubemod/app"
-	"github.com/kubemod/kubemod/controllers"
+	"github.com/kubemod/kubemod/core"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -105,7 +105,7 @@ func run(config *Config) error {
 				scheme,
 				app.OperatorMetricsAddr(config.OperatorMetricsAddr),
 				app.OperatorHealthProbeAddr(config.OperatorHealthProbeAddr),
-				controllers.ClusterModRulesNamespace(config.ClusterModRulesNamespace),
+				core.ClusterModRulesNamespace(config.ClusterModRulesNamespace),
 				app.EnableLeaderElection(config.EnableLeaderElection),
 				log)
 
@@ -127,6 +127,7 @@ func run(config *Config) error {
 			_, err := app.InitializeKubeModWebApp(
 				config.WebAppAddr,
 				app.EnableDevModeLog(config.EnableDevModeLog),
+				core.ClusterModRulesNamespace(config.ClusterModRulesNamespace),
 				log)
 
 			if err != nil {

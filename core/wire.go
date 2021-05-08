@@ -54,7 +54,7 @@ func NewModRuleStoreItemTestBed(itemFactory *ModRuleStoreItemFactory) *ModRuleSt
 }
 
 // InitializeModRuleStoreTestBed instructs wire how to construct a new test bed.
-func InitializeModRuleStoreTestBed(tLogger util.TLogger) *ModRuleStoreTestBed {
+func InitializeModRuleStoreTestBed(clusterModRulesNamespace ClusterModRulesNamespace, tLogger util.TLogger) *ModRuleStoreTestBed {
 	wire.Build(
 		NewModRuleStoreTestBed,
 		NewTestLogger,

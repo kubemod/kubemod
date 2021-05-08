@@ -15,15 +15,15 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, healthProbeAddr OperatorHealthProbeAddr, clusterModRulesNamespace controllers.ClusterModRulesNamespace, enableLeaderElection EnableLeaderElection, log logr.Logger) (*KubeModOperatorApp, error) {
+func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, healthProbeAddr OperatorHealthProbeAddr, clusterModRulesNamespace core.ClusterModRulesNamespace, enableLeaderElection EnableLeaderElection, log logr.Logger) (*KubeModOperatorApp, error) {
 	manager, err := NewControllerManager(scheme, metricsAddr, healthProbeAddr, enableLeaderElection, log)
 	if err != nil {
 		return nil, err
 	}
 	language := expressions.NewJSONPathLanguage()
 	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, log)
-	modRuleStore := core.NewModRuleStore(modRuleStoreItemFactory, log)
-	modRuleReconciler, err := controllers.NewModRuleReconciler(manager, modRuleStore, clusterModRulesNamespace, log)
+	modRuleStore := core.NewModRuleStore(modRuleStoreItemFactory, clusterModRulesNamespace, log)
+	modRuleReconciler, err := controllers.NewModRuleReconciler(manager, modRuleStore, log)
 	if err != nil {
 		return nil, err
 	}
@@ -35,10 +35,10 @@ func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMe
 	return kubeModOperatorApp, nil
 }
 
-func InitializeKubeModWebApp(webAppAddr string, enableDevModeLog EnableDevModeLog, log logr.Logger) (*KubeModWebApp, error) {
+func InitializeKubeModWebApp(webAppAddr string, enableDevModeLog EnableDevModeLog, clusterModRulesNamespace core.ClusterModRulesNamespace, log logr.Logger) (*KubeModWebApp, error) {
 	language := expressions.NewJSONPathLanguage()
 	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, log)
-	kubeModWebApp, err := NewKubeModWebApp(webAppAddr, enableDevModeLog, log, modRuleStoreItemFactory)
+	kubeModWebApp, err := NewKubeModWebApp(webAppAddr, enableDevModeLog, clusterModRulesNamespace, log, modRuleStoreItemFactory)
 	if err != nil {
 		return nil, err
 	}

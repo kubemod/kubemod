@@ -42,7 +42,7 @@ var _ = Describe("ModRuleStore", func() {
 	)
 
 	BeforeEach(func() {
-		testBed := InitializeModRuleStoreTestBed(GinkgoT())
+		testBed := InitializeModRuleStoreTestBed("kubemod-system", GinkgoT())
 		rs = testBed.modRuleStore
 	})
 
@@ -60,9 +60,7 @@ var _ = Describe("ModRuleStore", func() {
 			err = yaml.Unmarshal(modRuleYAML, &modRule)
 			Expect(err).NotTo(HaveOccurred())
 
-			if modRule.Namespace == "kubemod-system" {
-				modRule.Namespace = ""
-			} else if modRule.Namespace == "" {
+			if modRule.Namespace == "" {
 				modRule.Namespace = "my-namespace"
 			}
 
@@ -185,7 +183,7 @@ var _ = Describe("ModRuleStore", func() {
 		BeforeEach(func() {
 			const loopIterations = namespacePoolSize * namePoolSize * 10
 
-			testBed := InitializeModRuleStoreTestBed(GinkgoT())
+			testBed := InitializeModRuleStoreTestBed("kubemod-system", GinkgoT())
 
 			rs = testBed.modRuleStore
 
