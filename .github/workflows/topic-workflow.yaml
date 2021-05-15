@@ -1,17 +1,12 @@
-name: 'Topic Workflow'
+name: 'Pull Request Workflow'
 
 on:
-  push:
-    branches-ignore:
-      - 'master'
-    tags-ignore:
-      - 'v*'
   pull_request:
 
 jobs:
 
   test:
-    name: Test topic branch
+    name: Test pull request
     runs-on: ubuntu-latest
     if: contains(toJson(github.event.commits), '[skip ci]') == false
 
