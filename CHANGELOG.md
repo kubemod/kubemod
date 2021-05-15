@@ -2,8 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.13.0 - 2021-05-15
 
+* 65: Target apiextensions.k8s.io/v1 for CRDs
 * 63: Remove kubemod-system namespace normalization
 
 ## 0.12.0 - 2021-04-19
