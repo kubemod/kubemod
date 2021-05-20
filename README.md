@@ -56,7 +56,7 @@ If you are upgrading from a previous version of KubeMod, run the following:
 
 ```bash
 # Delete the KubeMod certificate generation job in case KubeMod has already been installed.
-kubectl delete job -l job-name -n kubemod-system
+kubectl delete job kubemod-crt-job -n kubemod-system
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Upgrade KubeMod operator.
