@@ -85,7 +85,7 @@ docker-push:
 # Develop in docker
 docker-develop:
 	docker run --rm -it -v $(PWD):/go/src/kubemod -w /go/src/kubemod \
-			--entrypoint bash golang:1.14.7
+			--entrypoint bash golang:1.17.0
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -96,7 +96,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5 ;\
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -112,7 +112,7 @@ ifeq (, $(shell which wire))
 	WIRE_TMP_DIR=$$(mktemp -d) ;\
 	cd $$WIRE_TMP_DIR ;\
 	go mod init tmp ;\
-	go get github.com/google/wire/cmd/wire@v0.4.0 ;\
+	go install github.com/google/wire/cmd/wire@v0.5.0 ;\
 	rm -rf $$WIRE_TMP_DIR ;\
 	}
 WIRE=$(GOBIN)/wire

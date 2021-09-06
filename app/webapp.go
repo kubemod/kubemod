@@ -88,7 +88,7 @@ func run(router *gin.Engine, webAppAddr string, log logr.Logger) {
 	}()
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
-	quit := make(chan os.Signal)
+	quit := make(chan os.Signal, 1)
 
 	// kill (no param) default send syscall.SIGTERM
 	// kill -2 is syscall.SIGINT

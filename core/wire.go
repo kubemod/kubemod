@@ -1,4 +1,5 @@
-//+build wireinject
+//go:build wireinject
+// +build wireinject
 
 /*
 Licensed under the BSD 3-Clause License (the "License");

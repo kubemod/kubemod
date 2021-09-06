@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- 72: Upgrade to wire 0.5.0 and golang 1.17
 - 67: Update upgrade instructions to explicitly delete certificate generation job
 
 ## 0.13.0 - 2021-05-15
