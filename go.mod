@@ -12,7 +12,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.1.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-logr/logr v0.1.0
-	github.com/google/wire v0.4.0
+	github.com/google/wire v0.5.0
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
