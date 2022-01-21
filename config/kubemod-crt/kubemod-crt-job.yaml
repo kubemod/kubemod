@@ -4,12 +4,12 @@ metadata:
   name: crt-job
   namespace: system
 spec:
-  serviceAccountName: 
+  serviceAccountName:
   template:
     spec:
       containers:
       - name: kubemod-crt
-        image: kubemod/kubemod-crt:v1.1.0
+        image: kubemod/kubemod-crt:v1.1.2
         command:
         - /bin/sh
         - -c
