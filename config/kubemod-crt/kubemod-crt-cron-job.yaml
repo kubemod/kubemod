@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: crt-cron-job
+  namespace: system
+spec:
+  # Run monthly at midnight on the first day of the month.
+  schedule: "0 0 1 * *"
+  jobTemplate:
+    spec:
+      serviceAccountName:
+      template:
+        spec:
+          containers:
+          - name: kubemod-crt
+            image: kubemod-crt-image:latest
+            command:
+            - /bin/sh
+            - -c
+            - ./cert-renew.sh
+          restartPolicy: Never
+      backoffLimit: 4

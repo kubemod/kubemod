@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: kubemod-crt
-        image: kubemod/kubemod-crt:v1.1.3
+        image: kubemod-crt-image:latest
         command:
         - /bin/sh
         - -c
