@@ -1,2 +1,7 @@
 resources:
 - kubemod-crt-job.yaml
+- kubemod-crt-cron-job.yaml
+images:
+- name: kubemod-crt-image
+  newName: kubemod/kubemod-crt
+  newTag: v1.1.3
