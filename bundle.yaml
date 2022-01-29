@@ -348,7 +348,7 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.14.0
+        image: kubemod/kubemod:latest
         livenessProbe:
           httpGet:
             path: /healthz
@@ -508,7 +508,7 @@ webhooks:
     - roles
     scope: '*'
   sideEffects: None
-  timeoutSeconds: 3
+  timeoutSeconds: 10
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration

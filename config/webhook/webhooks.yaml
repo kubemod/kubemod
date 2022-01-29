@@ -38,7 +38,7 @@ webhooks:
   reinvocationPolicy: IfNeeded
   matchPolicy: Equivalent
   sideEffects: None
-  timeoutSeconds: 3
+  timeoutSeconds: 10
   admissionReviewVersions: ["v1beta1"]
   namespaceSelector:
     matchExpressions:

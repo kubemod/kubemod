@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ## 0.14.0 - 2022-01-29
 
+- 84: Increase dragnet webhook timeout to 10 seconds
 - 71: Implement TLS certificate rotation
 - 80: Update kubemod-crt to v1.1.3 (enables deployment to OpenShift with restricted user id ranges)
 - 72: Upgrade to wire 0.5.0 and golang 1.17
