@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.14.0 - 2022-01-29
+
+- 71: Implement TLS certificate rotation
+- 80: Update kubemod-crt to v1.1.3 (enables deployment to OpenShift with restricted user id ranges)
 - 72: Upgrade to wire 0.5.0 and golang 1.17
 - 67: Update upgrade instructions to explicitly delete certificate generation job
 
