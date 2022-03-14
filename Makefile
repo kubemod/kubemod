@@ -75,7 +75,7 @@ generate: controller-gen wire
 
 # Build the docker image
 docker-build: test
-	docker build . -t ${IMG}
+	docker build . -t ${IMG} --build-arg TARGETARCH=amd64
 	docker image prune -f
 
 # Push the docker image
