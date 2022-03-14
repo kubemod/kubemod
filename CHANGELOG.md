@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- 70: Add support for ARM64
+
 ## 0.14.0 - 2022-01-29
 
 - 84: Increase dragnet webhook timeout to 10 seconds
