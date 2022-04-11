@@ -139,6 +139,12 @@ var _ = Describe("ModRuleStore", func() {
 		Entry("patch-13 on deployment-2 should work - ModRule in kubemod-system and targetNamespaceRegex matches", []string{"patch/patch-13.yaml"}, "deployment-2.json", "patch-13-deployment-2.txt"),
 		Entry("patch-14 on deployment-2 should not work - ModRule in kubemod-system, missing targetNamespaceRegex", []string{"patch/patch-14.yaml"}, "deployment-2.json", "empty-array.txt"),
 		Entry("patch-15 on deployment-2 should not work - ModRule in kubemod-system, empty targetNamespaceRegex", []string{"patch/patch-15.yaml"}, "deployment-2.json", "empty-array.txt"),
+		Entry("patch-16 on deployment-4 should work as expected", []string{"patch/patch-16.yaml"}, "deployment-4.json", "patch-16-deployment-4.txt"),
+		Entry("patch-17 on deployment-4 should work as expected", []string{"patch/patch-17.yaml"}, "deployment-4.json", "patch-17-deployment-4.txt"),
+		Entry("patch-18 on deployment-4 should work as expected", []string{"patch/patch-18.yaml"}, "deployment-4.json", "patch-18-deployment-4.txt"),
+		Entry("patch-19 on deployment-4 should work as expected", []string{"patch/patch-19.yaml"}, "deployment-4.json", "patch-19-deployment-4.txt"),
+		Entry("patch-20 on deployment-4 should work as expected", []string{"patch/patch-20.yaml"}, "deployment-4.json", "patch-20-deployment-4.txt"),
+		Entry("patch-21 on deployment-4 should work as expected", []string{"patch/patch-21.yaml"}, "deployment-4.json", "patch-21-deployment-4.txt"),
 	)
 
 	DescribeTable("DetermineRejections", modRuleStoreDetermineRejectionsTableFunction,

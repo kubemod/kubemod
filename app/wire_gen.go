@@ -21,7 +21,7 @@ func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMe
 	if err != nil {
 		return nil, err
 	}
-	language := expressions.NewJSONPathLanguage()
+	language := expressions.NewKubeModJSONPathLanguage()
 	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, log)
 	modRuleStore := core.NewModRuleStore(modRuleStoreItemFactory, clusterModRulesNamespace, log)
 	modRuleReconciler, err := controllers.NewModRuleReconciler(manager, modRuleStore, log)
@@ -37,7 +37,7 @@ func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMe
 }
 
 func InitializeKubeModWebApp(webAppAddr string, enableDevModeLog EnableDevModeLog, clusterModRulesNamespace core.ClusterModRulesNamespace, log logr.Logger) (*KubeModWebApp, error) {
-	language := expressions.NewJSONPathLanguage()
+	language := expressions.NewKubeModJSONPathLanguage()
 	modRuleStoreItemFactory := core.NewModRuleStoreItemFactory(language, log)
 	kubeModWebApp, err := NewKubeModWebApp(webAppAddr, enableDevModeLog, clusterModRulesNamespace, log, modRuleStoreItemFactory)
 	if err != nil {

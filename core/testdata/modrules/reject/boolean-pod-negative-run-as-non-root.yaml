@@ -9,5 +9,5 @@ spec:
     - select: "$.kind"
       matchValue: Pod
 
-    - select: "$.spec.securityContext.runAsNonRoot == true"
+    - select: '$.spec.securityContext.runAsNonRoot == true'
       negate: true

@@ -59,7 +59,7 @@ func InitializeModRuleStoreTestBed(clusterModRulesNamespace ClusterModRulesNames
 	wire.Build(
 		NewModRuleStoreTestBed,
 		NewTestLogger,
-		expressions.NewJSONPathLanguage,
+		expressions.NewKubeModJSONPathLanguage,
 		NewModRuleStoreItemFactory,
 		NewModRuleStore,
 	)
@@ -72,7 +72,7 @@ func InitializeModRuleStoreItemTestBed(tLogger util.TLogger) *ModRuleStoreItemTe
 	wire.Build(
 		NewModRuleStoreItemTestBed,
 		NewTestLogger,
-		expressions.NewJSONPathLanguage,
+		expressions.NewKubeModJSONPathLanguage,
 		NewModRuleStoreItemFactory,
 	)
 

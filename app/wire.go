@@ -39,7 +39,7 @@ func InitializeKubeModOperatorApp(
 	enableLeaderElection EnableLeaderElection,
 	log logr.Logger) (*KubeModOperatorApp, error) {
 	wire.Build(
-		expressions.NewJSONPathLanguage,
+		expressions.NewKubeModJSONPathLanguage,
 		core.NewModRuleStoreItemFactory,
 		core.NewModRuleStore,
 		core.NewDragnetWebhookHandler,
@@ -56,7 +56,7 @@ func InitializeKubeModWebApp(
 	clusterModRulesNamespace core.ClusterModRulesNamespace,
 	log logr.Logger) (*KubeModWebApp, error) {
 	wire.Build(
-		expressions.NewJSONPathLanguage,
+		expressions.NewKubeModJSONPathLanguage,
 		core.NewModRuleStoreItemFactory,
 		NewKubeModWebApp,
 	)

@@ -32,7 +32,7 @@ import (
 // log is for logging in this package.
 var (
 	modrulelog       = logf.Log.WithName("modrule-resource")
-	jsonPathLanguage = expressions.NewJSONPathLanguage()
+	jsonPathLanguage = expressions.NewKubeModJSONPathLanguage()
 )
 
 // SetupWebhookWithManager hooks up the web hook with a manager.

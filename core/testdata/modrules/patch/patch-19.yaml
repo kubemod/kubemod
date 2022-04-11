@@ -1,0 +1,22 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-1
+spec:
+  type: Patch
+  # optional targetNamespaceRegex missing -- when missing, rules in 
+  # kubemod-system namespace can only target non-namespaced resources
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Deployment'
+
+  patch:
+    - op: add
+      select: '$.spec.template.spec.containers[? isNotEmpty(@.securityContext)]'
+      path: /spec/template/spec/containers/#0/securityContext
+      value: |-
+        runAsNonRoot: true
+        capabilities:
+          drop:
+            - ALL
