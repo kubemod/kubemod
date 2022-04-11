@@ -29,6 +29,7 @@ Use KubeMod to:
     * [Target resources](#target-resources)
     * [Note on idempotency](#note-on-idempotency)
     * [Debugging ModRules](#debugging-modrules)
+    * [KubeMod's version of JSONPath](#kubemods-version-of-jsonpath)
     * [Declarative kubectl apply](#declarative-kubectl-apply)
     * [Gotchas](#gotchas)
 
