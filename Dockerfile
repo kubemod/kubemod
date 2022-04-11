@@ -16,6 +16,7 @@ COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
 COPY core/ core/
+COPY jsonpath/ jsonpath/
 COPY expressions/ expressions/
 COPY util/ util/
 COPY app/ app/
