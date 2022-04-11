@@ -1061,7 +1061,7 @@ spec:
           drop:
           - ALL
 ```
-The rule uses `isEmpty` which returns `true` when the passed in path is not defined or if it points to an empty object:
+The rule uses `isEmpty` which returns `true` when the passed in path is not defined or if it points to an empty object.
 
 If we wanted to only patch the containers which have no `securityContex` defined, but leave the ones which have an empty `securityContex`, we would use the following `select`:
 
@@ -1069,7 +1069,7 @@ If we wanted to only patch the containers which have no `securityContex` defined
 select: '$.spec.template.spec.containers[? isUndefined(@.securityContex)]'
 ```
 
-If we wanted to only patch the containers which have and empty `securityContex`, but leave the ones which have no `securityContex` defined, we would use the following `select`:
+If we wanted to only patch the containers which have an empty `securityContex`, but leave the ones which have no `securityContex` defined, we would use the following `select`:
 
 ```yaml
 select: '$.spec.template.spec.containers[? isDefined(@.securityContex) && isEmpty(@.securityContex)]'
