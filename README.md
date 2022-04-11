@@ -1002,10 +1002,10 @@ KubeMod implements a modified (extended) version of [JSONPath](https://goessner.
 This version introduces the following new features:
 
 #### Value `undefined`
-- Introduces internal representation of value `undefined`.
+- Includes internal representation of value `undefined`.
 - Resolves each path that includes undefined properties to value `undefined`.
-  For example `$.a.b.c` will resolve to `undefined` if any of the `a`, `x`, `y` or `z` properties do not exist.
-- Filter out all `undefined` values on partial matches.
+  For example `$.a.b.c` will resolve to `undefined` if any of the `a`, `b` or `c` properties do not exist.
+- Filters out all `undefined` values on partial matches.
 - Makes all equality and arithmetic comparisons to `undefined` return `false`.
   For example, assuming that `$.a.b.c` is a path to undefined property, all of the following expressions will yield `false`:
   - `$.a.b.c == 12`
@@ -1030,13 +1030,13 @@ This version introduces the following new features:
 
 #### Note on presence check
 
-KubeMod's uses the above `undefined` based functions to provide both presence (`isDefined`) and negative-presence (`isUndefined`) filters - see next section for an example.
-These functions should be used in place of the standard JSONPath's presence-based `[?(@.property)]` filter (discussed here)[https://goessner.net/articles/JsonPath/].
+KubeMod uses the above `undefined` based functions to provide both presence (`isDefined`) and negative-presence (`isUndefined`) filters - see next section for an example.
+
+These functions should be used in place of the standard JSONPath's presence-based `[?(@.property)]` filter [discussed here](https://goessner.net/articles/JsonPath/).
 
 #### Usage in ModRules
 
-For example, to patch all deployments' containers which have either no `securityContext` defined or `securityContext` is empty, one would use the following KubeMod rule:
-The rule uses `isEmpty` which returns `true` when the passed in path is not defined or if it points to an empty object:
+For example, to patch all deployments' containers which have either no `securityContext` defined, or `securityContext` is empty, one would use the following KubeMod rule.
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
@@ -1060,13 +1060,16 @@ spec:
           drop:
           - ALL
 ```
+The rule uses `isEmpty` which returns `true` when the passed in path is not defined or if it points to an empty object:
 
 If we wanted to only patch the containers which have no `securityContex` defined, but leave the ones which have an empty `securityContex`, we would use the following `select`:
+
 ```yaml
 select: '$.spec.template.spec.containers[? isUndefined(@.securityContex)]'
 ```
 
 If we wanted to only patch the containers which have and empty `securityContex`, but leave the ones which have no `securityContex` defined, we would use the following `select`:
+
 ```yaml
 select: '$.spec.template.spec.containers[? isDefined(@.securityContex) && isEmpty(@.securityContex)]'
 ```
