@@ -29,6 +29,7 @@ Use KubeMod to:
     * [Target resources](#target-resources)
     * [Note on idempotency](#note-on-idempotency)
     * [Debugging ModRules](#debugging-modrules)
+    * [KubeMod's version of JSONPath](#kubemods-version-of-jsonpath)
     * [Declarative kubectl apply](#declarative-kubectl-apply)
     * [Gotchas](#gotchas)
 
@@ -430,6 +431,8 @@ A criteria item whose `select` expression yields no results is considered non-ma
 #### `select` \(string : required\)
 
 The `select` field of a criteria item is a [JSONPath](https://goessner.net/articles/JsonPath/) expression.
+
+[See more on KubeMod's version of JSONPath](#kubemods-version-of-jsonpath).
 
 When a `select` expression is evaluated against a Kubernetes object definition, it yields zero or more values.
 
@@ -992,6 +995,85 @@ KubeMod is aligned with Kubernetes' approach to [declarative object management](
 When an object is patched by a ModRule, if the object has a `kubectl.kubernetes.io/last-applied-configuration` annotation, KubeMod patches the contents of that annotation as well.
 
 KubeMod supports both client-side and server-side declarative management through `kubectl apply`.
+
+### KubeMod's version of JSONPath
+
+KubeMod implements a modified (extended) version of [JSONPath](https://goessner.net/articles/JsonPath/).
+
+This version introduces the following new features:
+
+#### Value `undefined`
+- Includes internal representation of value `undefined`.
+- Resolves each path that includes undefined properties to value `undefined`.
+  For example `$.a.b.c` will resolve to `undefined` if any of the `a`, `b` or `c` properties do not exist.
+- Filters out all `undefined` values on partial matches.
+- Makes all equality and arithmetic comparisons to `undefined` return `false`.
+  For example, assuming that `$.a.b.c` is a path to undefined property, all of the following expressions will yield `false`:
+  - `$.a.b.c == 12`
+  - `$.a.b.c != 12`
+  - `$.a.b.c > 12`
+  -  `$.a.b.c < 12`
+  -   `$.a.b.c == true`
+  -   `$.a.b.c == false`
+- Makes all boolean operators (`&&` and `||`) require boolean operands.
+
+#### `undefined`-based functions
+- `isDefined()` - returns `true` if the passed in path leads to a defined property, otherwise return `false`.
+- `isUndefined()` - returns `true` if the passed in path leads to an undefined property, otherwise return `false`.
+- `isEmpty()` - returns `true` if the passed in path leads to one of the following values:
+  - An empty array
+  - An empty object
+  - An empty string
+  - Null
+  - `undefined`
+- `isNotEmpty()` - equivalent to evaluating `!isEmpty()`
+- `length()` - returns the length of arrays, objects and strings. Returns `0` for Nulls and `undefined`.
+
+#### Note on presence check
+
+KubeMod uses the above `undefined` based functions to provide both presence (`isDefined`) and negative-presence (`isUndefined`) filters - see next section for an example.
+
+These functions should be used in place of the standard JSONPath's presence-based `[?(@.property)]` filter [discussed here](https://goessner.net/articles/JsonPath/).
+
+#### Usage in ModRules
+
+For example, to patch all deployments' containers which have either no `securityContext` defined, or `securityContext` is empty, one would use the following KubeMod rule.
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: kubemod-patch-deployments-containers-securitycontext
+  namespace: kubemod-system
+spec:
+  targetNamespaceRegex: .*
+  type: Patch
+  match:
+    - matchValue: Deployment
+      select: $.kind
+  patch:
+    - op: add
+      select: '$.spec.template.spec.containers[? isEmpty(@.securityContex)]'
+      path: '/spec/template/spec/containers/#0/securityContext'
+      value: |-
+        runAsNonRoot: true
+        capabilities:
+          drop:
+          - ALL
+```
+The rule uses `isEmpty` which returns `true` when the passed in path is not defined or if it points to an empty object.
+
+If we wanted to only patch the containers which have no `securityContex` defined, but leave the ones which have an empty `securityContex`, we would use the following `select`:
+
+```yaml
+select: '$.spec.template.spec.containers[? isUndefined(@.securityContex)]'
+```
+
+If we wanted to only patch the containers which have an empty `securityContex`, but leave the ones which have no `securityContex` defined, we would use the following `select`:
+
+```yaml
+select: '$.spec.template.spec.containers[? isDefined(@.securityContex) && isEmpty(@.securityContex)]'
+```
 
 ### Gotchas
 

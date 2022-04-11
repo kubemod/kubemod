@@ -14,12 +14,11 @@ all: manager
 
 # Run tests
 test: generate fmt vet manifests
-	go test ./core ./util -coverprofile cover.out
+	go test ./core ./util ./jsonpath -coverprofile cover.out
 
 # Run tests -v
 testv: generate fmt vet manifests
-	go test -v ./core ./util -coverprofile cover.out
-
+	go test -v ./core ./util ./jsonpath -coverprofile cover.out
 
 # Run benchmarks
 bench: generate fmt vet manifests

@@ -16,7 +16,7 @@ import (
 
 // InitializeModRuleStoreTestBed instructs wire how to construct a new test bed.
 func InitializeModRuleStoreTestBed(clusterModRulesNamespace ClusterModRulesNamespace, tLogger util.TLogger) *ModRuleStoreTestBed {
-	language := expressions.NewJSONPathLanguage()
+	language := expressions.NewKubeModJSONPathLanguage()
 	logger := NewTestLogger(tLogger)
 	modRuleStoreItemFactory := NewModRuleStoreItemFactory(language, logger)
 	modRuleStore := NewModRuleStore(modRuleStoreItemFactory, clusterModRulesNamespace, logger)
@@ -26,7 +26,7 @@ func InitializeModRuleStoreTestBed(clusterModRulesNamespace ClusterModRulesNames
 
 // InitializeModRuleStoreItemTestBed instructs wire how to construct a new test bed.
 func InitializeModRuleStoreItemTestBed(tLogger util.TLogger) *ModRuleStoreItemTestBed {
-	language := expressions.NewJSONPathLanguage()
+	language := expressions.NewKubeModJSONPathLanguage()
 	logger := NewTestLogger(tLogger)
 	modRuleStoreItemFactory := NewModRuleStoreItemFactory(language, logger)
 	modRuleStoreItemTestBed := NewModRuleStoreItemTestBed(modRuleStoreItemFactory)

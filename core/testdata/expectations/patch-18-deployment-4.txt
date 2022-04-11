@@ -1,0 +1,1 @@
+[{add /spec/template/spec/containers/1/securityContext/capabilities map[drop:[ALL]]} {add /spec/template/spec/containers/1/securityContext/runAsNonRoot true} {add /spec/template/spec/containers/2/securityContext/capabilities map[drop:[ALL]]} {remove /spec/template/spec/containers/2/securityContext/allowPrivilegeEscalation <nil>}]

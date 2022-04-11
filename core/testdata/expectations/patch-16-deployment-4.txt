@@ -1,0 +1,2 @@
+
+[{add /spec/template/spec/containers/0/securityContext map[capabilities:map[drop:[ALL]] runAsNonRoot:true]} {add /spec/template/spec/containers/1/securityContext/capabilities map[drop:[ALL]]} {add /spec/template/spec/containers/1/securityContext/runAsNonRoot true}]

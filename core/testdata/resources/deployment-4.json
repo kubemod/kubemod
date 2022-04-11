@@ -1,0 +1,142 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+     "annotations": {
+        "deployment.kubernetes.io/revision": "1",
+        "kubectl.kubernetes.io/last-applied-configuration": null
+     },
+     "creationTimestamp": "2020-09-10T18:53:39Z",
+     "generation": 1,
+     "labels": {
+        "app": "nginx",
+        "color": "blue"
+     },
+     "name": "nginx",
+     "namespace": "default",
+     "resourceVersion": "1415336",
+     "selfLink": "/apis/apps/v1/namespaces/default/deployments/nginx",
+     "uid": "231c9b25-c783-4c21-8a45-b399cc6ee1f7"
+  },
+  "spec": {
+     "progressDeadlineSeconds": 600,
+     "replicas": 1,
+     "revisionHistoryLimit": 10,
+     "selector": {
+        "matchLabels": {
+           "app": "nginx"
+        }
+     },
+     "strategy": {
+        "rollingUpdate": {
+           "maxSurge": "25%",
+           "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+     },
+     "template": {
+        "metadata": {
+           "creationTimestamp": null,
+           "labels": {
+              "app": "nginx"
+           }
+        },
+        "spec": {
+           "containers": [
+              {
+                 "image": "nginx:1.14.2",
+                 "imagePullPolicy": "IfNotPresent",
+                 "name": "nginx-1",
+                 "ports": [
+                    {
+                       "containerPort": 80,
+                       "protocol": "TCP"
+                    }
+                 ],
+                 "resources": {
+                    "limits": {
+                       "cpu": "500m",
+                       "memory": "1Gi"
+                    }
+                 },
+                 "terminationMessagePath": "/dev/termination-log",
+                 "terminationMessagePolicy": "File"
+              },
+              {
+               "image": "nginx:1.14.2",
+               "imagePullPolicy": "IfNotPresent",
+               "name": "nginx-2",
+               "ports": [
+                  {
+                     "containerPort": 80,
+                     "protocol": "TCP"
+                  }
+               ],
+               "resources": {
+                  "limits": {
+                     "cpu": "500m",
+                     "memory": "1Gi"
+                  }
+               },
+               "terminationMessagePath": "/dev/termination-log",
+               "terminationMessagePolicy": "File",
+               "securityContext": {}
+            },
+            {
+               "image": "nginx:1.14.2",
+               "imagePullPolicy": "IfNotPresent",
+               "name": "nginx-3",
+               "ports": [
+                  {
+                     "containerPort": 80,
+                     "protocol": "TCP"
+                  }
+               ],
+               "resources": {
+                  "limits": {
+                     "cpu": "500m",
+                     "memory": "1Gi"
+                  }
+               },
+               "terminationMessagePath": "/dev/termination-log",
+               "terminationMessagePolicy": "File",
+               "securityContext": {
+                  "runAsNonRoot": true,
+                  "allowPrivilegeEscalation": false
+               }
+            }            
+           ],
+           "dnsPolicy": "ClusterFirst",
+           "restartPolicy": "Always",
+           "schedulerName": "default-scheduler",
+           "securityContext": {},
+           "terminationGracePeriodSeconds": 30
+        }
+     }
+  },
+  "status": {
+     "availableReplicas": 1,
+     "conditions": [
+        {
+           "lastTransitionTime": "2020-09-10T18:53:40Z",
+           "lastUpdateTime": "2020-09-10T18:53:40Z",
+           "message": "Deployment has minimum availability.",
+           "reason": "MinimumReplicasAvailable",
+           "status": "True",
+           "type": "Available"
+        },
+        {
+           "lastTransitionTime": "2020-09-10T18:53:39Z",
+           "lastUpdateTime": "2020-09-10T18:53:40Z",
+           "message": "ReplicaSet \"nginx-8598fccb59\" has successfully progressed.",
+           "reason": "NewReplicaSetAvailable",
+           "status": "True",
+           "type": "Progressing"
+        }
+     ],
+     "observedGeneration": 1,
+     "readyReplicas": 1,
+     "replicas": 1,
+     "updatedReplicas": 1
+  }
+}
