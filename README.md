@@ -1053,7 +1053,7 @@ spec:
       select: $.kind
   patch:
     - op: add
-      select: '$.spec.template.spec.containers[? isEmpty(@.securityContex)]'
+      select: '$.spec.template.spec.containers[? isEmpty(@.securityContext)]'
       path: '/spec/template/spec/containers/#0/securityContext'
       value: |-
         runAsNonRoot: true
@@ -1063,16 +1063,16 @@ spec:
 ```
 The rule uses `isEmpty` which returns `true` when the passed in path is not defined or if it points to an empty object.
 
-If we wanted to only patch the containers which have no `securityContex` defined, but leave the ones which have an empty `securityContex`, we would use the following `select`:
+If we wanted to only patch the containers which have no `securityContext` defined, but leave the ones which have an empty `securityContext`, we would use the following `select`:
 
 ```yaml
-select: '$.spec.template.spec.containers[? isUndefined(@.securityContex)]'
+select: '$.spec.template.spec.containers[? isUndefined(@.securityContext)]'
 ```
 
-If we wanted to only patch the containers which have an empty `securityContex`, but leave the ones which have no `securityContex` defined, we would use the following `select`:
+If we wanted to only patch the containers which have an empty `securityContext`, but leave the ones which have no `securityContext` defined, we would use the following `select`:
 
 ```yaml
-select: '$.spec.template.spec.containers[? isDefined(@.securityContex) && isEmpty(@.securityContex)]'
+select: '$.spec.template.spec.containers[? isDefined(@.securityContext) && isEmpty(@.securityContext)]'
 ```
 
 ### Gotchas
