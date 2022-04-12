@@ -28,6 +28,7 @@ import (
 	evanjsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/go-logr/logr"
 	"github.com/kubemod/kubemod/api/v1beta1"
+	"github.com/kubemod/kubemod/jsonpath"
 	"github.com/kubemod/kubemod/util"
 )
 
@@ -407,7 +408,7 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 	result, err := matchSelect(context.Background(), jsonv)
 	if err != nil {
 		// There is at least one valid reason to be here - when the query tries to match a missing key
-		// such as metadata. label.missing_key.
+		// such as metadata.label.missing_key.
 		// In this case we only want to log a DBG message and negate the query.
 		si.log.V(1).Info("JSONPath query expression failure", "select", matchItem.Select, "error", err)
 
@@ -415,6 +416,7 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 	}
 
 	var expressionValues []interface{}
+	resultArrayContainedUndefined := false
 
 	// Test the result and return negative match if we got nothing back from the query.
 	switch vresult := result.(type) {
@@ -423,14 +425,29 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 	case nil:
 		return matchItem.Negate
 
+	// If the query evaluates to undefined, this is a no-match.
+	case jsonpath.UndefinedType:
+		return matchItem.Negate
+
 	// If the query itself returns a boolean, use that as the match.
 	// The query value will not be evaluated against match.matchValue, match.matchValues and match.matchRegex.
 	case bool:
 		return vresult != matchItem.Negate
 
-	// If the query returns an array, evaluate its contents against match.matchValue, match.matchValues and match.matchRegex.
+	// If the query returns an array, filter out all undefined values and then evaluate its contents against match.matchValue, match.matchValues and match.matchRegex.
 	case []interface{}:
-		expressionValues = vresult
+		// Prep an empty array where we'll put the non-undefined results.
+		expressionValues = []interface{}{}
+
+		// Filter out all undefined values.
+		for i := range vresult {
+			if !jsonpath.IsUndefined(vresult[i]) {
+				expressionValues = append(expressionValues, vresult[i])
+			}
+		}
+
+		// We'll need this flag when we evaluate matchFor = All
+		resultArrayContainedUndefined = (len(expressionValues) != len(vresult))
 
 	// If the query returns any type of value other than the ones above, evaluate that value against match.matchValue, match.matchValues and match.matchRegex.
 	case interface{}:
@@ -441,6 +458,11 @@ func (si *ModRuleStoreItem) isMatch(matchItem *v1beta1.MatchItem, jsonv interfac
 	}
 
 	if len(expressionValues) == 0 {
+		return matchItem.Negate
+	}
+
+	// MatchFor = All, but we had undefined items in the result? That's a no-match.
+	if matchItem.MatchFor == v1beta1.MatchForTypeAll && resultArrayContainedUndefined {
 		return matchItem.Negate
 	}
 

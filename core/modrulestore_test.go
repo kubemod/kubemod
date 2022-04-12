@@ -145,6 +145,13 @@ var _ = Describe("ModRuleStore", func() {
 		Entry("patch-19 on deployment-4 should work as expected", []string{"patch/patch-19.yaml"}, "deployment-4.json", "patch-19-deployment-4.txt"),
 		Entry("patch-20 on deployment-4 should work as expected", []string{"patch/patch-20.yaml"}, "deployment-4.json", "patch-20-deployment-4.txt"),
 		Entry("patch-21 on deployment-4 should work as expected", []string{"patch/patch-21.yaml"}, "deployment-4.json", "patch-21-deployment-4.txt"),
+		Entry("patch-22 on deployment-2 should work as expected", []string{"patch/patch-22.yaml"}, "deployment-2.json", "patch-22-deployment-2.txt"),
+		Entry("patch-23 on deployment-2 should work as expected", []string{"patch/patch-23.yaml"}, "deployment-2.json", "patch-23-deployment-2.txt"),
+		Entry("patch-24 on deployment-2 should work as expected", []string{"patch/patch-24.yaml"}, "deployment-2.json", "patch-24-deployment-2.txt"),
+		Entry("patch-25 on deployment-2 should work as expected", []string{"patch/patch-25.yaml"}, "deployment-2.json", "patch-25-deployment-2.txt"),
+		Entry("patch-26 on deployment-2 should work as expected", []string{"patch/patch-26.yaml"}, "deployment-2.json", "patch-26-deployment-2.txt"),
+		Entry("patch-27 on deployment-4 should work as expected", []string{"patch/patch-27.yaml"}, "deployment-4.json", "patch-27-deployment-4.txt"),
+		Entry("patch-28 on deployment-4 should work as expected", []string{"patch/patch-28.yaml"}, "deployment-4.json", "patch-28-deployment-4.txt"),
 	)
 
 	DescribeTable("DetermineRejections", modRuleStoreDetermineRejectionsTableFunction,
