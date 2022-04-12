@@ -19,7 +19,7 @@ var (
 )
 
 func (UndefinedType) String() string {
-	return "<undefined>"
+	return ""
 }
 
 func IsUndefined(v interface{}) bool {
