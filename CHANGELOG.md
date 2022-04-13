@@ -4,8 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- 87: Extend JSPONPath with select functions isUndefined, isDefined, isEmpty and isNotEmpty
-- 70: Add support for ARM64
+- 87: Extend JSPONPath with support for "undefined" values
+- 70: Add support for ARM64 (thank you @nashant)
 
 ## 0.14.0 - 2022-01-29
 
