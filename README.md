@@ -37,14 +37,17 @@ Use KubeMod to:
 
 ## Installation
 
+KubeMod requires Kubernetes 1.21 (AMD64 or ARM64).
+
 As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemod-system`.  
+
 Run the following commands to deploy KubeMod.
 
 ```bash
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Deploy KubeMod.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.14.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.15.0/bundle.yaml
 ```
 
 By default KubeMod allows you to target a limited set of high-level resource types, such as deployments and services.
@@ -61,7 +64,7 @@ kubectl delete job kubemod-crt-job -n kubemod-system
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.14.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.15.0/bundle.yaml
 ```
 
 ### Uninstall
@@ -69,7 +72,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.14.0/bundl
 To uninstall KubeMod and all its resources, run:
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.14.0/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.15.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
