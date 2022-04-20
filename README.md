@@ -37,7 +37,7 @@ Use KubeMod to:
 
 ## Installation
 
-KubeMod requires Kubernetes 1.21 (AMD64 or ARM64).
+KubeMod requires Kubernetes 1.21 or later (AMD64 or ARM64).
 
 As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemod-system`.  
 
