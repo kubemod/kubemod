@@ -4,4 +4,4 @@ resources:
 images:
 - name: kubemod-crt-image
   newName: kubemod/kubemod-crt
-  newTag: v1.2.0
+  newTag: v1.2.1

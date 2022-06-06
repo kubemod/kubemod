@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.15.1 - 2022-06-06
+
+- kubemod/kubemod-crt#15: Keep the previous certificate in the bundle as well as the new one to prevent periods of service outage
+
+## 0.15.0 - 2022-04-17
+
 - 87: Extend JSPONPath with support for "undefined" values
 - 70: Add support for ARM64 (thank you @nashant)
 

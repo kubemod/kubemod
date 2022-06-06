@@ -348,7 +348,7 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.15.0
+        image: kubemod/kubemod:v1.15.1
         livenessProbe:
           httpGet:
             path: /healthz
@@ -406,7 +406,7 @@ spec:
             - /bin/sh
             - -c
             - ./cert-renew.sh
-            image: kubemod/kubemod-crt:v1.2.0
+            image: kubemod/kubemod-crt:v1.2.1
             name: kubemod-crt
           restartPolicy: Never
   schedule: 0 0 1 * *
@@ -426,7 +426,7 @@ spec:
         - /bin/sh
         - -c
         - ./cert-renew.sh
-        image: kubemod/kubemod-crt:v1.2.0
+        image: kubemod/kubemod-crt:v1.2.1
         name: kubemod-crt
       restartPolicy: Never
 ---
