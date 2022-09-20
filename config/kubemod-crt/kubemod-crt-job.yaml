@@ -4,7 +4,6 @@ metadata:
   name: crt-job
   namespace: system
 spec:
-  serviceAccountName:
   template:
     spec:
       containers:
