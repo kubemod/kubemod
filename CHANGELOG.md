@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.15.3 - 2022-09-20
+
+- 93: FIX: CronJob in version "v1" cannot be handled as a CronJob: strict decoding error when deploying to Kubernetes 1.25.0
+
 ## 0.15.2 - 2022-06-06
 
 - kubemod/kubemod-crt#15: Keep the previous certificate in the bundle as well as the new one to prevent periods of service outage

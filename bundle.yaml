@@ -348,7 +348,7 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.15.2
+        image: kubemod/kubemod:v0.15.3
         livenessProbe:
           httpGet:
             path: /healthz
@@ -398,7 +398,6 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 4
-      serviceAccountName: null
       template:
         spec:
           containers:
@@ -418,7 +417,6 @@ metadata:
   namespace: kubemod-system
 spec:
   backoffLimit: 4
-  serviceAccountName: null
   template:
     spec:
       containers:

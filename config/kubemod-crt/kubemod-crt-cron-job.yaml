@@ -8,7 +8,6 @@ spec:
   schedule: "0 0 1 * *"
   jobTemplate:
     spec:
-      serviceAccountName:
       template:
         spec:
           containers:
