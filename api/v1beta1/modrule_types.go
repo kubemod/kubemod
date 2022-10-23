@@ -34,6 +34,7 @@ type ModRuleSpec struct {
 	// - "Reject" - the rule rejects the creation of all matching resources.
 	Type ModRuleType `json:"type"`
 
+	// ExecutionTier is a value between -32767 and 32766.
 	// ExecutionTier controls when this ModRule will be executed as it relates to the other ModRules loaded in the system.
 	// ModRules are matched and executed in tiers, starting with the lowest tier.
 	// The results of executing all ModRules in a tier are passed as input to the ModRules in the next tier.

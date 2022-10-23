@@ -37,13 +37,14 @@ spec:
             description: ModRuleSpec defines the desired state of ModRule
             properties:
               executionTier:
-                description: ExecutionTier controls when this ModRule will be executed
-                  as it relates to the other ModRules loaded in the system. ModRules
-                  are matched and executed in tiers, starting with the lowest tier.
-                  The results of executing all ModRules in a tier are passed as input
-                  to the ModRules in the next tier. This cascading execution continues
-                  until the highest tier of ModRules has been executed. ModRules in
-                  the same tier are executed in indeterminate order.
+                description: ExecutionTier is a value between -32767 and 32766. ExecutionTier
+                  controls when this ModRule will be executed as it relates to the
+                  other ModRules loaded in the system. ModRules are matched and executed
+                  in tiers, starting with the lowest tier. The results of executing
+                  all ModRules in a tier are passed as input to the ModRules in the
+                  next tier. This cascading execution continues until the highest
+                  tier of ModRules has been executed. ModRules in the same tier are
+                  executed in indeterminate order.
                 type: integer
               match:
                 description: Match is a list of match items which consist of select

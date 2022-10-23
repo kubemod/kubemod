@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"sync"
 
@@ -37,6 +38,17 @@ type ModRuleStore struct {
 	clusterModRulesNamespace string
 	rwLock                   sync.RWMutex
 	log                      logr.Logger
+}
+
+// Custom type used to sort ModRuleStoreItem slices by ExecutionTier.
+type ByExecutionTier []*ModRuleStoreItem
+
+func (a ByExecutionTier) Len() int { return len(a) }
+func (a ByExecutionTier) Less(i, j int) bool {
+	return a[i].modRule.Spec.ExecutionTier < a[j].modRule.Spec.ExecutionTier
+}
+func (a ByExecutionTier) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
 }
 
 var (
@@ -95,6 +107,9 @@ func (s *ModRuleStore) Put(modRule *v1beta1.ModRule) error {
 	} else {
 		s.modRuleListMap[namespace] = append(namespaceModRules, modRuleStoreItem)
 	}
+
+	// Sort the modrules by execution tier - this will help relieve pressure on getMatchingModRuleStoreItems.
+	sort.Sort(ByExecutionTier(s.modRuleListMap[namespace]))
 
 	return nil
 }
