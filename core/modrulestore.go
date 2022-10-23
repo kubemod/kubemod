@@ -129,6 +129,9 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, minExecuti
 	currentExecutionTier = math.MaxInt16
 	var potentialRules []*ModRuleStoreItem
 
+	s.rwLock.RLock()
+	defer s.rwLock.RUnlock()
+
 	processPotentialRule := func(mrsi *ModRuleStoreItem) {
 		if mrsi.modRule.Spec.ExecutionTier < currentExecutionTier {
 			// The new potential rule is in a lower execution tier than the last one we've encountered:
