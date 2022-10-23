@@ -17,6 +17,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 
@@ -76,7 +77,7 @@ func (s *ModRuleStore) Put(modRule *v1beta1.ModRule) error {
 		// Short-circuit the call to findModRuleIndexByName - we know the new modrule has never been added to the set before.
 		existingModRuleIndex = -1
 	} else {
-		// This modrule may have been added to the nameset slice before.
+		// This modrule may have been added to the namespace slice before.
 		// Find its index.
 		existingModRuleIndex = findItemIndexByName(namespaceModRules, modRule.Name)
 	}
@@ -123,27 +124,46 @@ func (s *ModRuleStore) Delete(namespace string, name string) {
 }
 
 // getMatchingModRuleStoreItems returns a slice with all the mod rules which match the given unmarshalled JSON.
-func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleType v1beta1.ModRuleType, jsonv interface{}) []*ModRuleStoreItem {
-	modRules := []*ModRuleStoreItem{}
+// It also returns the execution tier of the returned modrules, or math.MaxInt16 in case no modrules were found in a tier higher than minExecutionTier.
+func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, minExecutionTier int16, modRuleType v1beta1.ModRuleType, jsonv interface{}) (modRules []*ModRuleStoreItem, currentExecutionTier int16) {
+	currentExecutionTier = math.MaxInt16
+	var potentialRules []*ModRuleStoreItem
 
-	potentialRules := []*ModRuleStoreItem{}
+	processPotentialRule := func(mrsi *ModRuleStoreItem) {
+		if mrsi.modRule.Spec.ExecutionTier < currentExecutionTier {
+			// The new potential rule is in a lower execution tier than the last one we've encountered:
+			// reset the current execution tier and the list of potential rules.
+			currentExecutionTier = mrsi.modRule.Spec.ExecutionTier
+			potentialRules = nil
+		}
+
+		if mrsi.modRule.Spec.ExecutionTier == currentExecutionTier {
+			potentialRules = append(potentialRules, mrsi)
+		}
+	}
 
 	// First look at cluster-wide mod rules.
 	// If the resource is a non-namespaced object (its namespace is empty),
 	// or the resource's namespace matches the mod rule's TargetNamespaceRegex,
 	// then the mod rule is a potential match and subject to further examination by the heavier .IsMatch().
 	for _, mrsi := range s.modRuleListMap[s.clusterModRulesNamespace] {
-		if (namespace == "" && mrsi.compiledTargetNamespaceRegex == nil) ||
-			(mrsi.compiledTargetNamespaceRegex != nil &&
-				mrsi.compiledTargetNamespaceRegex.Match([]byte(namespace))) {
-			potentialRules = append(potentialRules, mrsi)
+		if mrsi.modRule.Spec.ExecutionTier >= minExecutionTier &&
+			((namespace == "" && mrsi.compiledTargetNamespaceRegex == nil) ||
+				(mrsi.compiledTargetNamespaceRegex != nil && mrsi.compiledTargetNamespaceRegex.Match([]byte(namespace)))) {
+
+			processPotentialRule(mrsi)
+
 		}
 	}
 
-	// If the resource is namespaced, add the mod rules deployed to that same namespace
-	// to the list of potentially matching mod rules.
+	// If the resource is namespaced, add the mod rules deployed to that same namespace to the list of potentially matching mod rules.
+	// Make sure to add only rules with an execution tier higher or equal to the min required execution tier.
 	if namespace != "" {
-		potentialRules = append(potentialRules, s.modRuleListMap[namespace]...)
+		for _, mrsi := range s.modRuleListMap[namespace] {
+			if mrsi.modRule.Spec.ExecutionTier >= minExecutionTier {
+				processPotentialRule(mrsi)
+			}
+		}
 	}
 
 	// Perform the actual matching.
@@ -153,7 +173,7 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, modRuleTyp
 		}
 	}
 
-	return modRules
+	return
 }
 
 // Extract the value of a JSON-unmarshalled object pointed at by a colon-separated path.
@@ -203,6 +223,8 @@ func extractLastAppliedConfiguration(jsonv interface{}) []byte {
 func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, operationLog logr.Logger) (interface{}, []ctrljsonpatch.JsonPatchOperation, error) {
 	var modifiedJSON = originalJSON
 	jsonv := interface{}(nil)
+	var currentExecutionTier int16 = math.MinInt16
+	var matchingModRules []*ModRuleStoreItem
 	var log logr.Logger
 
 	// If we are getting operation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
@@ -226,40 +248,47 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 		Target:    &jsonv,
 	}
 
-	// Find all matching Patch rules.
-	matchingModRules := s.getMatchingModRuleStoreItems(namespace, v1beta1.ModRuleTypePatch, jsonv)
+	for {
+		// Find all matching Patch rules for the first execution tier higher than the previous execution tier.
+		matchingModRules, currentExecutionTier = s.getMatchingModRuleStoreItems(namespace, currentExecutionTier+1, v1beta1.ModRuleTypePatch, jsonv)
 
-	// Apply the patches of each matching rule.
-	for _, mrsi := range matchingModRules {
-		epatch, err := mrsi.calculatePatch(&templateContext, jsonv, operationLog)
-
-		// If an error occurred while calculating the patch for a ModRule, simply log it and continue to the next one.
-		if err != nil {
-			log.Error(err, "failed calculating patch for ModRule", "rule", mrsi.modRule.GetNamespacedName())
-			continue
+		// No rules matching execution tier higher than the latest execution tier were found - break out of here.
+		if currentExecutionTier == math.MaxInt16 {
+			break
 		}
 
-		modifiedJSON, err = epatch.ApplyWithOptions(modifiedJSON, jsonPatchApplyOptions)
+		// Apply the patches of each matching rule.
+		for _, mrsi := range matchingModRules {
+			epatch, err := mrsi.calculatePatch(&templateContext, jsonv, operationLog)
 
-		// If an error occurred while applying the patch for a ModRule, simply log it and continue to the next one.
-		if err != nil {
-			log.Error(err, "failed applying patch for ModRule", "rule", mrsi.modRule.GetNamespacedName())
-			continue
-		}
+			// If an error occurred while calculating the patch for a ModRule, simply log it and continue to the next one.
+			if err != nil {
+				log.Error(err, "failed calculating patch for ModRule", "rule", mrsi.modRule.GetNamespacedName())
+				continue
+			}
 
-		err = json.Unmarshal(modifiedJSON, &jsonv)
-
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Apply the same patch to the kubectl last-applied-configuration annotation.
-		if lastAppliedConfigurationJSON != nil {
-			lastAppliedConfigurationJSON, err = epatch.ApplyWithOptions(lastAppliedConfigurationJSON, jsonPatchApplyOptions)
+			modifiedJSON, err = epatch.ApplyWithOptions(modifiedJSON, jsonPatchApplyOptions)
 
 			// If an error occurred while applying the patch for a ModRule, simply log it and continue to the next one.
 			if err != nil {
-				log.Error(err, "failed applying patch for ModRule to last-applied-configuration annotation", "rule", mrsi.modRule.GetNamespacedName())
+				log.Error(err, "failed applying patch for ModRule", "rule", mrsi.modRule.GetNamespacedName())
+				continue
+			}
+
+			err = json.Unmarshal(modifiedJSON, &jsonv)
+
+			if err != nil {
+				return nil, nil, err
+			}
+
+			// Apply the same patch to the kubectl last-applied-configuration annotation.
+			if lastAppliedConfigurationJSON != nil {
+				lastAppliedConfigurationJSON, err = epatch.ApplyWithOptions(lastAppliedConfigurationJSON, jsonPatchApplyOptions)
+
+				// If an error occurred while applying the patch for a ModRule, simply log it and continue to the next one.
+				if err != nil {
+					log.Error(err, "failed applying patch for ModRule to last-applied-configuration annotation", "rule", mrsi.modRule.GetNamespacedName())
+				}
 			}
 		}
 	}
@@ -287,6 +316,8 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 
 // DetermineRejections checks if the given object should be rejected based on the current Reject ModRules stored in the namespace.
 func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}, operationLog logr.Logger) []string {
+	var currentExecutionTier int16 = math.MinInt16
+	var matchingModRules []*ModRuleStoreItem
 	var rejectionMessages = []string{}
 	var log logr.Logger
 
@@ -297,30 +328,37 @@ func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}, 
 		log = s.log
 	}
 
-	// Find all matching Reject rules.
-	matchingModRules := s.getMatchingModRuleStoreItems(namespace, v1beta1.ModRuleTypeReject, jsonv)
-
 	templateContext := RejectTemplateContext{
 		Namespace: namespace,
 		Target:    &jsonv,
 	}
 
-	// Enumerate all matching reject rules and evaluate their messages.
-	for _, mrsi := range matchingModRules {
+	for {
+		// Find all matching Reject rules for the first execution tier higher than the previous execution tier.
+		matchingModRules, currentExecutionTier = s.getMatchingModRuleStoreItems(namespace, currentExecutionTier+1, v1beta1.ModRuleTypeReject, jsonv)
 
-		if mrsi.rejectMessageTemplate != nil {
-			vb := strings.Builder{}
-			err := mrsi.rejectMessageTemplate.Execute(&vb, templateContext)
+		// No rules matching execution tier higher than the latest execution tier were found - break out of here.
+		if currentExecutionTier == math.MaxInt16 {
+			break
+		}
 
-			if err != nil {
-				// Log the template error, but do not stop the rejection.
-				log.Error(err, "invalid rejectMessage template", "rule", mrsi.modRule.GetNamespacedName(), "rejectMessage text", *mrsi.modRule.Spec.RejectMessage)
-				rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s", mrsi.modRule.GetNamespacedName()))
+		// Enumerate all matching reject rules and evaluate their messages.
+		for _, mrsi := range matchingModRules {
+
+			if mrsi.rejectMessageTemplate != nil {
+				vb := strings.Builder{}
+				err := mrsi.rejectMessageTemplate.Execute(&vb, templateContext)
+
+				if err != nil {
+					// Log the template error, but do not stop the rejection.
+					log.Error(err, "invalid rejectMessage template", "rule", mrsi.modRule.GetNamespacedName(), "rejectMessage text", *mrsi.modRule.Spec.RejectMessage)
+					rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s", mrsi.modRule.GetNamespacedName()))
+				} else {
+					rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s: \"%s\"", mrsi.modRule.GetNamespacedName(), vb.String()))
+				}
 			} else {
-				rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s: \"%s\"", mrsi.modRule.GetNamespacedName(), vb.String()))
+				rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s", mrsi.modRule.GetNamespacedName()))
 			}
-		} else {
-			rejectionMessages = append(rejectionMessages, fmt.Sprintf("%s", mrsi.modRule.GetNamespacedName()))
 		}
 	}
 

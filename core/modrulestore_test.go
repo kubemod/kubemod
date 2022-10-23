@@ -118,7 +118,7 @@ var _ = Describe("ModRuleStore", func() {
 		expectation, err := ioutil.ReadFile(path.Join("testdata/expectations/", expectationFile))
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fmt.Sprintf("%s", strings.Join(rejections, ", "))).To(Equal(strings.TrimSpace(string(expectation))))
+		Expect(strings.Join(rejections, ", ")).To(Equal(strings.TrimSpace(string(expectation))))
 	}
 
 	DescribeTable("CalculatePatch", modRuleStoreCalculatePatchTableFunction,
@@ -216,10 +216,10 @@ var _ = Describe("ModRuleStore", func() {
 					},
 					Spec: v1beta1.ModRuleSpec{
 						Match: []v1beta1.MatchItem{
-							v1beta1.MatchItem{
+							{
 								Select: `$.kind == "Pod"`,
 							},
-							v1beta1.MatchItem{
+							{
 								Select: `$.metadata.labels.app =~ "nginx"`,
 							},
 						},
