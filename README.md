@@ -371,6 +371,7 @@ kind: ModRule
 
 spec:
   type: ...
+  executionTier: ...
 
   match:
     ...
@@ -791,8 +792,29 @@ Setting this field allows for the deployment of ModRules which apply to resource
 Field `rejectMessage` is an optional message displayed when a resource is rejected by a `Reject` ModRule.
 The field is a Golang template evaluated in the context of the object being rejected
 
-
 ## Miscellaneous
+
+### Execution tiers
+
+`ModRules` are matched and executed in tiers.
+
+When executing `ModRules` against a Kubernetes resource, KubeMod executes all `ModRules` in the lowest tier first, then passes the patched results to the next tier of `ModRules`.
+This cascading execution continues until the highest tier of `ModRules` has been executed.
+
+Set the `executionTier` property of a `ModRule` to control which tier it belongs to.
+The execution tier of a ModRule can be set to any integer value between `-32767` and `32766`. It defaults to `0`.
+
+The execution tier pipeline can be used to create powerful systems of `ModRules`.
+
+For example, let's say that we have a `ModRule` with `executionTier` of `1` which replaces all Docker Hub container images of all deployments with corresponding images hosted in a private container registry.
+Then another `ModRule` with `executionTier` of `2` can be created to detect deployments with private container registry images and inject an appropriate `imagePullSecrets` secret into the Deployment's pods.
+
+The second `ModRule` will trigger for all deployments which refer to the private container registry, including the ones that originally used Docker Hub images, but were modified by the first `ModRule` to use the private registry. This tiered execution behavior allows us to develop less redundant and more generic `ModRules`.
+
+#### Gotchas
+
+When multiple `ModRules` in the same execution tier match the same resource object, all of the ModRule patches are executed against the object in an indeterminate order.
+Be careful when creating `ModRules` int the same execution tier - make sure that their match criteria and patch sections don't overlap leading to unexpected behavior.
 
 ### Namespaced and cluster-wide resources
 
@@ -1077,15 +1099,6 @@ If we wanted to only patch the containers which have an empty `securityContext`,
 ```yaml
 select: '$.spec.template.spec.containers[? isDefined(@.securityContext) && isEmpty(@.securityContext)]'
 ```
-
-### Gotchas
-
-When multiple ModRules match the same resource object, all of the ModRule patches are executed against the object in an indeterminate order.
-
-This is by design.
-
-Be careful when creating ModRules such that their match criteria and patch sections don't overlap leading to unexpected behavior.
-
 
 [ci-img]: https://github.com/kubemod/kubemod/workflows/Master%20Workflow/badge.svg
 [ci]: https://github.com/kubemod/kubemod/actions
