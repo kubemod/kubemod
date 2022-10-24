@@ -152,6 +152,9 @@ var _ = Describe("ModRuleStore", func() {
 		Entry("patch-26 on deployment-2 should work as expected", []string{"patch/patch-26.yaml"}, "deployment-2.json", "patch-26-deployment-2.txt"),
 		Entry("patch-27 on deployment-4 should work as expected", []string{"patch/patch-27.yaml"}, "deployment-4.json", "patch-27-deployment-4.txt"),
 		Entry("patch-28 on deployment-4 should work as expected", []string{"patch/patch-28.yaml"}, "deployment-4.json", "patch-28-deployment-4.txt"),
+		Entry("simple tiered execution should work as expected", []string{"patch/patch-29.yaml", "patch/patch-30.yaml"}, "deployment-1.json", "patch-29-30-deployment-1.txt"),
+		Entry("tiered execution with two ModRules in second tier should work as expected", []string{"patch/patch-29.yaml", "patch/patch-30.yaml", "patch/patch-31.yaml"}, "deployment-1.json", "patch-29-30-31-deployment-1.txt"),
+		Entry("tiered execution with three tiers should work as expected", []string{"patch/patch-29.yaml", "patch/patch-30.yaml", "patch/patch-31.yaml", "patch/patch-32.yaml"}, "deployment-1.json", "patch-29-30-31-32-deployment-1.txt"),
 	)
 
 	DescribeTable("DetermineRejections", modRuleStoreDetermineRejectionsTableFunction,
