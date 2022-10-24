@@ -16,6 +16,7 @@ package v1beta1
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 
 	"github.com/kubemod/kubemod/expressions"
@@ -101,6 +102,11 @@ func (r *ModRule) validateModRule() error {
 
 	if r.Spec.Type != ModRuleTypeReject && r.Spec.RejectMessage != nil {
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("rejectMessage"), *r.Spec.RejectMessage, "field 'rejectMessage' should be present only for ModRules of type Reject"))
+	}
+
+	// MinInt16 and MaxInt16 are invalid execution tier values.
+	if r.Spec.ExecutionTier == math.MinInt16 || r.Spec.ExecutionTier == math.MaxInt16 {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("executionTier"), r.Spec.ExecutionTier, "field 'executionTier' should be an integer value between -32767 and 32766"))
 	}
 
 	// Validate the ModRule match items.

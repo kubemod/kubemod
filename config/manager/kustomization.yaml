@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: kubemod/kubemod
-  newTag: v0.15.3
+  newTag: latest

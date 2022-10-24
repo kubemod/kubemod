@@ -1,0 +1,23 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-31
+spec:
+  type: Patch
+  executionTier: 1
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Deployment'
+
+    - select: '$.metadata.labels.color'
+      matchValue: 'red'
+
+  patch:
+    - op: add
+      path: /metadata/labels/size
+      value: medium
+
+    - op: add
+      path: /metadata/labels/color
+      value: orange

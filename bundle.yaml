@@ -28,68 +28,48 @@ spec:
         description: ModRule is the Schema for the modrules API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
             description: ModRuleSpec defines the desired state of ModRule
             properties:
+              executionTier:
+                description: ExecutionTier controls when this ModRule will be executed as it relates to the other ModRules loaded in the system. ModRules are matched and executed in tiers, starting with the lowest tier. ModRules in the lowest tier are executed first. Then the results of the execution is passed to the ModRules in the next tier. This cascading execution continues until the highest tier of ModRules has been executed. ModRules in the same tier are executed in indeterminate order.
+                type: integer
               match:
-                description: Match is a list of match items which consist of select
-                  queries and expected match values or regular expressions. When all
-                  match items for an object are positive, the rule is in effect.
+                description: Match is a list of match items which consist of select queries and expected match values or regular expressions. When all match items for an object are positive, the rule is in effect.
                 items:
                   description: MatchItem represents a single match query.
                   properties:
                     matchFor:
-                      description: 'MatchFor instructs how to match the results against
-                        the match... requirements. Valid values are: - "Any" - the
-                        match is considered positive if any of the results of select
-                        have a match. - "All" - the match is considered positive only
-                        if all of the results of select have a match.'
+                      description: 'MatchFor instructs how to match the results against the match... requirements. Valid values are: - "Any" - the match is considered positive if any of the results of select have a match. - "All" - the match is considered positive only if all of the results of select have a match.'
                       enum:
                       - Any
                       - All
                       type: string
                     matchRegex:
-                      description: MatchRegex specifies the regular expression to
-                        compare the result of Select by. The match is considered positive
-                        if at least one of the results of evaluating the select query
-                        yields a match when compared to value.
+                      description: MatchRegex specifies the regular expression to compare the result of Select by. The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to value.
                       nullable: true
                       type: string
                     matchValue:
-                      description: MatchValue specifies the exact value to match the
-                        result of Select by. The match is considered positive if at
-                        least one of the results of evaluating the select query yields
-                        a match when compared to matchValue.
+                      description: MatchValue specifies the exact value to match the result of Select by. The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to matchValue.
                       nullable: true
                       type: string
                     matchValues:
-                      description: MatchValues specifies a list of values to match
-                        the result of Select by. The match is considered positive
-                        if at least one of the results of evaluating the select query
-                        yields a match when compared to any of the values in the array.
+                      description: MatchValues specifies a list of values to match the result of Select by. The match is considered positive if at least one of the results of evaluating the select query yields a match when compared to any of the values in the array.
                       items:
                         type: string
                       type: array
                     negate:
-                      description: Negate indicates whether the match result should
-                        be to inverted. Defaults to false.
+                      description: Negate indicates whether the match result should be to inverted. Defaults to false.
                       type: boolean
                     select:
-                      description: 'Select is a JSONPath query expression: https://goessner.net/articles/JsonPath/
-                        which yields zero or more values. If no match value or regex
-                        is specified, if the query yields a non-empty result, the
-                        match is considered positive.'
+                      description: 'Select is a JSONPath query expression: https://goessner.net/articles/JsonPath/ which yields zero or more values. If no match value or regex is specified, if the query yields a non-empty result, the match is considered positive.'
                       type: string
                   required:
                   - select
@@ -97,17 +77,12 @@ spec:
                 minItems: 1
                 type: array
               patch:
-                description: Patch is a list of patch operations to perform on the
-                  matching resources at the time of creation. The value part of a
-                  patch operation can be a golang template which accepts the resource
-                  as its context. This field must be provided for ModRules of type
-                  "patch"
+                description: Patch is a list of patch operations to perform on the matching resources at the time of creation. The value part of a patch operation can be a golang template which accepts the resource as its context. This field must be provided for ModRules of type "patch"
                 items:
                   description: PatchOperation represents a single JSON Patch operation.
                   properties:
                     op:
-                      description: Operation is the type of JSON Path operation to
-                        perform against the target element.
+                      description: Operation is the type of JSON Path operation to perform against the target element.
                       enum:
                       - add
                       - replace
@@ -117,30 +92,10 @@ spec:
                       description: Path is the JSON path to the target element.
                       type: string
                     select:
-                      description: 'Optional JSONPath query expression: https://goessner.net/articles/JsonPath/
-                        used to construct path. A patch operation is created for each
-                        result of the query. A placeholder is created for each wildcard
-                        and filter in the expression. These placeholders can be used
-                        when constructing "path". For example, if select is "$.spec.containers[*].ports[?@.containerPort
-                        == 80]" placeholder #0 will point to the index of "containers"
-                        and #1 will point to the index of "ports". This allows us
-                        to define paths such as "/spec/template/spec/containers/#0/securityContext"'
+                      description: 'Optional JSONPath query expression: https://goessner.net/articles/JsonPath/ used to construct path. A patch operation is created for each result of the query. A placeholder is created for each wildcard and filter in the expression. These placeholders can be used when constructing "path". For example, if select is "$.spec.containers[*].ports[?@.containerPort == 80]" placeholder #0 will point to the index of "containers" and #1 will point to the index of "ports". This allows us to define paths such as "/spec/template/spec/containers/#0/securityContext"'
                       type: string
                     value:
-                      description: 'Value is the JSON representation of the modification.
-                        The value is a golang template which is evaluated against
-                        the context of the target resource. KubeMod performs some
-                        analysis of the result of the template evaluation in order
-                        to infer its JSON type: - If the value matches the format
-                        of a JavaScript number, it is considered to be a number. -
-                        If the value matches a boolean literal (true/false), it is
-                        considered to be a boolean literal. - If the value matches
-                        ''null'', it is considered to be null. - If the value is surrounded
-                        by double-quotes, it is considered to be a string. - If the
-                        value is surrounded by brackets, it is considered to be a
-                        JSON array. - If the value is surrounded by curly braces,
-                        it is considered to be a JSON object. - If none of the above
-                        is true, the value is considered to be a string.'
+                      description: 'Value is the JSON representation of the modification. The value is a golang template which is evaluated against the context of the target resource. KubeMod performs some analysis of the result of the template evaluation in order to infer its JSON type: - If the value matches the format of a JavaScript number, it is considered to be a number. - If the value matches a boolean literal (true/false), it is considered to be a boolean literal. - If the value matches ''null'', it is considered to be null. - If the value is surrounded by double-quotes, it is considered to be a string. - If the value is surrounded by brackets, it is considered to be a JSON array. - If the value is surrounded by curly braces, it is considered to be a JSON object. - If none of the above is true, the value is considered to be a string.'
                       nullable: true
                       type: string
                   required:
@@ -149,25 +104,19 @@ spec:
                   type: object
                 type: array
               rejectMessage:
-                description: RejectMessage is an optional message displayed when a
-                  resource is rejected by a Reject ModRule. The field is a Golang
-                  template evaluated in the context of the object being rejected.
+                description: RejectMessage is an optional message displayed when a resource is rejected by a Reject ModRule. The field is a Golang template evaluated in the context of the object being rejected.
                 type: string
               targetNamespaceRegex:
-                description: TargetNamespaceRegex is optional and only applies to
-                  ModRules in "kubemod-system" namespace. Its usage enables cluster-wide
-                  matching of namespaced resources.
+                description: TargetNamespaceRegex is optional and only applies to ModRules in "kubemod-system" namespace. Its usage enables cluster-wide matching of namespaced resources.
                 type: string
               type:
-                description: 'Type describes the type of a ModRule. Valid values are:
-                  - "Patch" - the rule performs modifications on all the matching
-                  resources as they are created. - "Reject" - the rule rejects the
-                  creation of all matching resources.'
+                description: 'Type describes the type of a ModRule. Valid values are: - "Patch" - the rule performs modifications on all the matching resources as they are created. - "Reject" - the rule rejects the creation of all matching resources.'
                 enum:
                 - Patch
                 - Reject
                 type: string
             required:
+            - executionTier
             - match
             - type
             type: object
@@ -348,16 +297,13 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.15.3
+        image: kubemod/kubemod:latest
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8083
         name: manager
         ports:
-        - containerPort: 9443
-          name: webhook-server
-          protocol: TCP
         - containerPort: 8081
           name: api
           protocol: TCP
@@ -366,6 +312,9 @@ spec:
           protocol: TCP
         - containerPort: 8083
           name: health
+          protocol: TCP
+        - containerPort: 9443
+          name: webhook-server
           protocol: TCP
         readinessProbe:
           httpGet:

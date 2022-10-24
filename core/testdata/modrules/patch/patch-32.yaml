@@ -1,0 +1,18 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-32
+spec:
+  type: Patch
+  executionTier: 2
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Deployment'
+
+    - select: '$.metadata.labels.size'
+      matchValue: 'medium'
+
+  patch:
+    - op: remove
+      path: /metadata/labels/size
