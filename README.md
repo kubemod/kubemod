@@ -25,13 +25,13 @@ Use KubeMod to:
     * [Match section](#match-section)
     * [Patch section](#patch-section)
 * [Miscellaneous](#miscellaneous)
+    * [Execution tiers](#execution-tiers)
     * [Namespaced and cluster-wide resources](#namespaced-and-cluster-wide-resources)
     * [Target resources](#target-resources)
     * [Note on idempotency](#note-on-idempotency)
     * [Debugging ModRules](#debugging-modrules)
     * [KubeMod's version of JSONPath](#kubemods-version-of-jsonpath)
     * [Declarative kubectl apply](#declarative-kubectl-apply)
-    * [Gotchas](#gotchas)
 
 ---
 
@@ -47,7 +47,7 @@ Run the following commands to deploy KubeMod.
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Deploy KubeMod.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.15.3/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.16.0/bundle.yaml
 ```
 
 By default KubeMod allows you to target a limited set of high-level resource types, such as deployments and services.
@@ -64,7 +64,7 @@ kubectl delete job kubemod-crt-job -n kubemod-system
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.15.3/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.16.0/bundle.yaml
 ```
 
 ### Uninstall
@@ -72,7 +72,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.15.3/bundl
 To uninstall KubeMod and all its resources, run:
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.15.3/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.16.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
