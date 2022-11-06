@@ -16,10 +16,13 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -42,7 +45,7 @@ func NewDragnetWebhookHandler(manager manager.Manager, modRuleStore *ModRuleStor
 	}
 }
 
-// Handle trigers the main mutating logic.
+// Handle triggers the main mutating logic.
 func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
 	log := h.log.WithValues("request uid", req.UID, "namespace", req.Namespace, "resource", fmt.Sprintf("%v/%v", req.Resource.Resource, req.Name), "operation", req.Operation)
 
@@ -54,8 +57,16 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 		storeNamespace = ""
 	}
 
+	// Inject syntheticRefs into object.
+	objectJson, err := h.injectSyntheticRefs(ctx, req.Object.Raw, storeNamespace)
+
+	if err != nil {
+		log.Error(err, "Failed to inject syntheticRefs into object manifest")
+		return admission.Allowed("failed to obtain namespace")
+	}
+
 	// First run patch operations.
-	patchedJSON, patch, err := h.modRuleStore.CalculatePatch(storeNamespace, req.Object.Raw, log)
+	patchedJSON, patch, err := h.modRuleStore.CalculatePatch(storeNamespace, objectJson, log)
 
 	if err != nil {
 		log.Error(err, "Failed to calculate patch")
@@ -75,10 +86,55 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 
 	// If we are here, then the object and its patch passed all rejection rules.
 	// Check if we actually had a patch and if yes, return that to Kubernetes for processing.
-	if patch != nil && len(patch) > 0 {
+	if len(patch) > 0 {
 		log.Info("Applying ModRule patch", "patch", patch)
 		return admission.Patched("patched ok", patch...)
 	}
 
 	return admission.Allowed("non-patched ok")
+}
+
+func (h *DragnetWebhookHandler) injectSyntheticRefs(ctx context.Context, originalJSON []byte, namespace string) ([]byte, error) {
+	obj := &unstructured.Unstructured{}
+	syntheticRefs := make(map[string]interface{})
+
+	// If the target is a namespaced object, grab the namespace from the manager's client.
+	if namespace != "" {
+		ns := &unstructured.Unstructured{}
+		ns.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "",
+			Kind:    "Namespace",
+			Version: "v1",
+		})
+
+		err := h.client.Get(ctx, client.ObjectKey{Name: namespace}, ns)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to retrieve namespace '%s' : %v", namespace, err)
+		}
+
+		// Remove managedFields - we don't need this and it only litters the namespace manifest.
+		ns.SetManagedFields(nil)
+		// Remove annotation kubectl.kubernetes.io/last-applied-configuration as it simply duplicates the namespace manifest.
+		annotations := ns.GetAnnotations()
+		delete(annotations, "kubectl.kubernetes.io/last-applied-configuration")
+		ns.SetAnnotations(annotations)
+
+		syntheticRefs["namespace"] = ns
+	}
+
+	err := json.Unmarshal(originalJSON, obj)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode webhook request object's manifest into JSON: %v", err)
+	}
+
+	// Set KubeMod syntheticRefs field.
+	obj.UnstructuredContent()["syntheticRefs"] = syntheticRefs
+
+	// Remove verbose managedFields as it is useless for the purposes of modrules,
+	// but at the same time it's quite verbose and potentially slows down modrule processing.
+	obj.SetManagedFields(nil)
+
+	return json.Marshal(obj)
 }

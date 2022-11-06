@@ -27,6 +27,7 @@ Use KubeMod to:
 * [Miscellaneous](#miscellaneous)
     * [Execution tiers](#execution-tiers)
     * [Namespaced and cluster-wide resources](#namespaced-and-cluster-wide-resources)
+    * [Synthetic references](#synthetic-references)
     * [Target resources](#target-resources)
     * [Note on idempotency](#note-on-idempotency)
     * [Debugging ModRules](#debugging-modrules)
@@ -836,6 +837,59 @@ If a namespace has label `admission.kubemod.io/ignore` equal to `"true"`, KubeMo
 By default, the following namespaces are tagged with the above label:
 - `kube-system`
 - `kubemod-system`
+
+### Synthetic references
+
+KubeMod 0.17.0 introduces synthetic references - a map of external object manifests injected at the root of every Kubernetes object processed by KubeMod.
+
+The map appears as attribute `syntheticRefs` injected at the root of the target object.
+Currently the only external manifest injected in `syntheticRefs` is the manifest of the `namespace` of namespaced objects.
+This unlocks use cases where a ModRule can be matched against objects not only based on their own manifest, but also based on those objects' namespaced.
+In addition, since `syntheticRefs` exists in the body of the object, it can be used when constructing patch values.
+
+Here's an example ModRule which matches all pods created in namespaces labeled with `color` equal to `blue`.
+The ModRule mutates those pods by tagging them with a label `flavor`, whose value is set to the value of the `flavor` inherited from the pod's namespace.
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: patch-my-namespace-pod
+  
+  # This is a cluster-wide rule - we need to create it in the kubemod-system namespace.
+  namespace: kubemod-system
+spec:
+  type: Patch
+  # We need to set targetNamespaceRegex to a regular expression,
+  # otherwise the namespace will only apply to non-namespaced objects.
+  # In this case we set it to match all namespaces - we will narrow down the filter
+  # to the appropriate namespaces in the match section below.
+  targetNamespaceRegex: ".*"
+
+  match:
+    # Match pods...
+    - select: '$.kind'
+      matchValue: 'Pod'
+
+    # ...which are created/updated in a namespace whose "color" label is set to "blue"...
+    - select: '$.syntheticRefs.namespace.metadata.labels.color'
+      matchValue: 'blue'
+
+    # ...and have a "flavor" label.
+    - select: '$.syntheticRefs.namespace.metadata.labels.flavor'
+
+
+  patch:
+    # Mutate the pod by setting its "flavor" label to the value of its namespace's "flavor" label.
+    - op: add
+      path: /metadata/labels/flavor
+      value: '{{ .Target.syntheticRefs.namespace.metadata.labels.flavor }}'
+```
+
+**Note**:
+
+This particular ModRule targets object created in multiple namespaces - this is the reason it is created in the `kubemod-system` namespace.
+In addition,  we need to set `targetNamespaceRegex` to a regular expression. Leaving `targetNamespaceRegex` blank would instruct KubeMod to use this ModRule only against non-namespaced objects. In this case we set the regular expression to match all namespaces - we narrow down the filter to the appropriate namespaces in the `match` section.
 
 ### Target resources
 
