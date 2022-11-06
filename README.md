@@ -48,7 +48,7 @@ Run the following commands to deploy KubeMod.
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Deploy KubeMod.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.16.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.17.0/bundle.yaml
 ```
 
 By default KubeMod allows you to target a limited set of high-level resource types, such as deployments and services.
@@ -65,7 +65,7 @@ kubectl delete job kubemod-crt-job -n kubemod-system
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.16.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.17.0/bundle.yaml
 ```
 
 ### Uninstall
@@ -73,7 +73,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.16.0/bundl
 To uninstall KubeMod and all its resources, run:
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.16.0/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.17.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
@@ -843,27 +843,29 @@ By default, the following namespaces are tagged with the above label:
 KubeMod 0.17.0 introduces synthetic references - a map of external object manifests injected at the root of every Kubernetes object processed by KubeMod.
 
 The map appears as attribute `syntheticRefs` injected at the root of the target object.
+
 Currently the only external manifest injected in `syntheticRefs` is the manifest of the `namespace` of namespaced objects.
-This unlocks use cases where a ModRule can be matched against objects not only based on their own manifest, but also based on those objects' namespaced.
-In addition, since `syntheticRefs` exists in the body of the object, it can be used when constructing patch values.
+This unlocks use cases where a ModRule can be matched against objects not only based on their own manifest, but also the manifests of their namespaces.
+
+In addition, since `syntheticRefs` exists in the body of the object, it can be used when constructing `patch` values.
 
 Here's an example ModRule which matches all pods created in namespaces labeled with `color` equal to `blue`.
-The ModRule mutates those pods by tagging them with a label `flavor`, whose value is set to the value of the `flavor` inherited from the pod's namespace.
+The ModRule mutates those pods by tagging them with a label `flavor`, whose value is inherited from the `flavor` label of the pod's namespace.
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
 kind: ModRule
 metadata:
-  name: patch-my-namespace-pod
+  name: add-flavor-modrule
   
   # This is a cluster-wide rule - we need to create it in the kubemod-system namespace.
   namespace: kubemod-system
+
 spec:
   type: Patch
+
   # We need to set targetNamespaceRegex to a regular expression,
   # otherwise the namespace will only apply to non-namespaced objects.
-  # In this case we set it to match all namespaces - we will narrow down the filter
-  # to the appropriate namespaces in the match section below.
   targetNamespaceRegex: ".*"
 
   match:
@@ -889,7 +891,10 @@ spec:
 **Note**:
 
 This particular ModRule targets object created in multiple namespaces - this is the reason it is created in the `kubemod-system` namespace.
-In addition,  we need to set `targetNamespaceRegex` to a regular expression. Leaving `targetNamespaceRegex` blank would instruct KubeMod to use this ModRule only against non-namespaced objects. In this case we set the regular expression to match all namespaces - we narrow down the filter to the appropriate namespaces in the `match` section.
+
+In addition,  we set `targetNamespaceRegex` to a regular expression. Leaving `targetNamespaceRegex` blank would instruct KubeMod to use this ModRule only against non-namespaced objects.
+
+In this case we set the regular expression to match all namespaces ( `.*`) - we narrow down the filter to the appropriate namespaces in the `match` section.
 
 ### Target resources
 
