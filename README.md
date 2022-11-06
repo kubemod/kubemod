@@ -840,9 +840,7 @@ By default, the following namespaces are tagged with the above label:
 
 ### Synthetic references
 
-KubeMod 0.17.0 introduces synthetic references - a map of external object manifests injected at the root of every Kubernetes object processed by KubeMod.
-
-The map appears as attribute `syntheticRefs` injected at the root of the target object.
+KubeMod 0.17.0 introduces `syntheticRefs` - a map of external object manifests injected at the root of every Kubernetes object processed by KubeMod.
 
 Currently the only external manifest injected in `syntheticRefs` is the manifest of the `namespace` of namespaced objects.
 This unlocks use cases where a ModRule can be matched against objects not only based on their own manifest, but also the manifests of their namespaces.
