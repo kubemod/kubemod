@@ -1,0 +1,20 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: patch-my-namespace-pod
+  namespace: kubemod-system
+spec:
+  type: Patch
+  targetNamespaceRegex: ".*"
+
+  match:
+    - select: '$.syntheticRefs.namespace.metadata.labels.color'
+      matchValue: 'blue'
+
+    - select: '$.kind'
+      matchValue: 'Pod'
+
+  patch:
+    - op: add
+      path: /metadata/labels/flavor
+      value: '{{ .Target.syntheticRefs.namespace.metadata.labels.flavor }}'
