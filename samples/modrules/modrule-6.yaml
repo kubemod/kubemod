@@ -1,17 +1,20 @@
 apiVersion: api.kubemod.io/v1beta1
 kind: ModRule
 metadata:
-  name: reject-namespace-deletion
+  name: patch-my-namespace-pod
   namespace: kubemod-system
 spec:
-  type: Reject
-  operation:
-    - DELETE
-
-  rejectMessage: 'deletion of protected namespaces is not allowed'
+  type: Patch
+  targetNamespaceRegex: ".*"
 
   match:
-    - select: '$.kind'
-      matchValue: 'Namespace'
+    - select: '$.syntheticRefs.namespace.metadata.labels.color'
+      matchValue: 'blue'
 
-    - select: '$.metadata.labels.protected =~ "yes"'
+    - select: '$.kind'
+      matchValue: 'Pod'
+
+  patch:
+    - op: add
+      path: /metadata/labels/flavor
+      value: '{{ .Target.syntheticRefs.namespace.metadata.labels.flavor }}'
