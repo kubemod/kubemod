@@ -37,6 +37,7 @@ spec:
             description: ModRuleSpec defines the desired state of ModRule
             properties:
               executionTier:
+                default: 0
                 description: ExecutionTier is a value between -32767 and 32766. ExecutionTier
                   controls when this ModRule will be executed as it relates to the
                   other ModRules loaded in the system. ModRules are matched and executed
@@ -172,7 +173,6 @@ spec:
                 - Reject
                 type: string
             required:
-            - executionTier
             - match
             - type
             type: object
