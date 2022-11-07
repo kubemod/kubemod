@@ -9,4 +9,4 @@ kubectl get secret webhook-server-cert -o=jsonpath="{.data['tls\.key']}" -n kube
 
 # Start telepresence.
 echo "Starting telepresence..."
-telepresence --swap-deployment kubemod-operator --namespace kubemod-system
+telepresence intercept kubemod-operator --namespace kubemod-system --port 9443:443
