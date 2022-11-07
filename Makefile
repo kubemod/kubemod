@@ -84,7 +84,7 @@ docker-push:
 # Develop in docker
 docker-develop:
 	docker run --rm -it -v $(PWD):/go/src/kubemod -w /go/src/kubemod \
-			--entrypoint bash golang:1.17.0
+			--entrypoint bash golang:1.18.0
 
 # find or download controller-gen
 # download controller-gen if necessary
