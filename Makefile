@@ -13,6 +13,7 @@ endif
 all: manager
 
 # Run tests
+.PHONY: test
 test: generate fmt vet manifests
 	go test ./core ./util ./jsonpath -coverprofile cover.out
 
@@ -23,7 +24,6 @@ testv: generate fmt vet manifests
 # Run benchmarks
 bench: generate fmt vet manifests
 	go test ./core ./util -run=XXX -bench=.
-
 
 # Build manager binary
 manager: generate fmt vet
@@ -118,3 +118,4 @@ WIRE=$(GOBIN)/wire
 else
 WIRE=$(shell which wire)
 endif
+

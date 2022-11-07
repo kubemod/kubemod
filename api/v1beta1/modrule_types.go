@@ -42,6 +42,14 @@ type ModRuleSpec struct {
 	// ModRules in the same tier are executed in indeterminate order.
 	ExecutionTier int16 `json:"executionTier"`
 
+	// Operation describes the operation of a ModRule.
+	// Valid values are:
+	// - "CREATE" - the rule performs modifications on all the matching resources as they are created.
+	// - "UPDATE" - the rule performs modifications on all the matching resources as they are updated.
+	// - "DELETE" - the rule performs modifications on all the matching resources as they are deleted.
+	// +optional
+	Operation []ModRuleOperation `json:"operation"`
+
 	// Match is a list of match items which consist of select queries and expected match values or regular expressions.
 	// When all match items for an object are positive, the rule is in effect.
 	// +kubebuilder:validation:MinItems=1
@@ -147,6 +155,11 @@ const (
 // Only one of the following ModRule types may be specified.
 // +kubebuilder:validation:Enum=Patch;Reject
 type ModRuleType string
+
+// ModRuleOperation describes the operation a ModRule is executed on.
+// Only the following ModRule operations may be specified.
+// +kubebuilder:validation:Enum=CREATE;UPDATE;DELETE
+type ModRuleOperation string
 
 const (
 	// ModRuleTypePatch describes a ModRule which performs modifications on the target resource.

@@ -68,7 +68,7 @@ var _ = Describe("ModRuleStore", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		_, patch, err := rs.CalculatePatch("my-namespace", resourceJSON, nil)
+		_, patch, err := rs.CalculatePatch("CREATE", "my-namespace", resourceJSON, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Sort the patch because the order returned by CalculatePatch is unstable.
@@ -113,7 +113,7 @@ var _ = Describe("ModRuleStore", func() {
 			}
 		}
 
-		rejections := rs.DetermineRejections("my-namespace", jsonv, nil)
+		rejections := rs.DetermineRejections("CREATE", "my-namespace", jsonv, nil)
 
 		expectation, err := ioutil.ReadFile(path.Join("testdata/expectations/", expectationFile))
 		Expect(err).NotTo(HaveOccurred())
