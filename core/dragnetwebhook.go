@@ -68,7 +68,7 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 	}
 
 	// Inject syntheticRefs into object.
-	objectJson, err := h.injectSyntheticRefs(ctx, req.Object.Raw, storeNamespace)
+	obj, err := h.injectSyntheticRefs(ctx, req.Object.Raw, storeNamespace)
 
 	if err != nil {
 		log.Error(err, "Failed to inject syntheticRefs into object manifest")
