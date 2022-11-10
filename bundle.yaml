@@ -39,6 +39,7 @@ spec:
             description: ModRuleSpec defines the desired state of ModRule
             properties:
               executionTier:
+                default: 0
                 description: ExecutionTier is a value between -32767 and 32766. ExecutionTier controls when this ModRule will be executed as it relates to the other ModRules loaded in the system. ModRules are matched and executed in tiers, starting with the lowest tier. The results of executing all ModRules in a tier are passed as input to the ModRules in the next tier. This cascading execution continues until the highest tier of ModRules has been executed. ModRules in the same tier are executed in indeterminate order.
                 type: integer
               match:
@@ -116,7 +117,6 @@ spec:
                 - Reject
                 type: string
             required:
-            - executionTier
             - match
             - type
             type: object
@@ -305,7 +305,7 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.17.0
+        image: kubemod/kubemod:v0.17.1
         livenessProbe:
           httpGet:
             path: /healthz
