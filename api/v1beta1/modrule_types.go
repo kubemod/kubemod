@@ -40,6 +40,8 @@ type ModRuleSpec struct {
 	// The results of executing all ModRules in a tier are passed as input to the ModRules in the next tier.
 	// This cascading execution continues until the highest tier of ModRules has been executed.
 	// ModRules in the same tier are executed in indeterminate order.
+	// +optional
+	// +kubebuilder:default=0
 	ExecutionTier int16 `json:"executionTier"`
 
 	// Operation describes the operation of a ModRule.
