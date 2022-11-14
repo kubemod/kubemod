@@ -17,7 +17,6 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"golang.org/x/exp/slices"
 	"math"
 	"sort"
 	"strings"
@@ -195,7 +194,13 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(admissionOperation v1beta1.M
 
 		// If there are admission operations defined on the ModRule, check if any of them matches the admission request operation.
 		if len(mrsi.modRule.Spec.AdmissionOperations) != 0 {
-			if !slices.Contains(mrsi.modRule.Spec.AdmissionOperations, admissionOperation) {
+			matchedAdmissionRequest := false
+			for i := range mrsi.modRule.Spec.AdmissionOperations {
+				if admissionOperation == mrsi.modRule.Spec.AdmissionOperations[i] {
+					matchedAdmissionRequest = true
+				}
+			}
+			if !matchedAdmissionRequest {
 				continue
 			}
 		}
