@@ -804,7 +804,7 @@ If you want to limit the whole `ModRule` to a specific type of operation, you ca
 Allowed values are:
 
 ```yaml
-admissionOperation:
+admissionOperations:
   - CREATE
   - UPDATE
   - DELETE
