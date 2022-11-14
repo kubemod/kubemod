@@ -44,13 +44,13 @@ type ModRuleSpec struct {
 	// +kubebuilder:default=0
 	ExecutionTier int16 `json:"executionTier"`
 
-	// Operation describes the operation of a ModRule.
+	// AdmissionOperations specifies which admission hook operations this ModRule applies to.
 	// Valid values are:
-	// - "CREATE" - the rule performs modifications on all the matching resources as they are created.
-	// - "UPDATE" - the rule performs modifications on all the matching resources as they are updated.
-	// - "DELETE" - the rule performs modifications on all the matching resources as they are deleted.
-	// +optional
-	Operation []ModRuleOperation `json:"operation"`
+	// - "CREATE" - the rule applies to all matching resources as they are created.
+	// - "UPDATE" - the rule applies to all matching resources as they are updated.
+	// - "DELETE" - the rule applies to all matching resources as they are deleted.
+	// By default, a ModRule applies to all admission operations.
+	AdmissionOperations []ModRuleAdmissionOperation `json:"admissionOperations"`
 
 	// Match is a list of match items which consist of select queries and expected match values or regular expressions.
 	// When all match items for an object are positive, the rule is in effect.
@@ -158,10 +158,10 @@ const (
 // +kubebuilder:validation:Enum=Patch;Reject
 type ModRuleType string
 
-// ModRuleOperation describes the operation a ModRule is executed on.
-// Only the following ModRule operations may be specified.
+// ModRuleAdmissionOperation describes the operation a ModRule is executed on.
+// Only the following ModRuleAdmissionOperation(s) may be specified.
 // +kubebuilder:validation:Enum=CREATE;UPDATE;DELETE
-type ModRuleOperation string
+type ModRuleAdmissionOperation string
 
 const (
 	// ModRuleTypePatch describes a ModRule which performs modifications on the target resource.

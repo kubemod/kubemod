@@ -5,7 +5,8 @@ metadata:
   namespace: kubemod-system
 spec:
   type: Reject
-  operation:
+
+  admissionOperations:
     - DELETE
 
   rejectMessage: 'deletion of protected namespaces is not allowed'

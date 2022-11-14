@@ -50,8 +50,8 @@ func NewDragnetWebhookHandler(manager manager.Manager, modRuleStore *ModRuleStor
 func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
 	log := h.log.WithValues("request uid", req.UID, "namespace", req.Namespace, "resource", fmt.Sprintf("%v/%v", req.Resource.Resource, req.Name), "operation", req.Operation)
 
-	// if the request target operation is a deletion the received object will be nil
-	// in order to allow rejections based on the object we therefore have to
+	// If the request target operation is a deletion, the received object will be nil.
+	// We therefore use the object being deleted as the target passed to the ModRule calculations.
 	var obj []byte
 	if req.Operation != "DELETE" {
 		obj = req.Object.Raw
@@ -68,7 +68,7 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 	}
 
 	// Inject syntheticRefs into object.
-	obj, err := h.injectSyntheticRefs(ctx, req.Object.Raw, storeNamespace)
+	obj, err := h.injectSyntheticRefs(ctx, obj, storeNamespace)
 
 	if err != nil {
 		log.Error(err, "Failed to inject syntheticRefs into object manifest")
@@ -76,7 +76,7 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 	}
 
 	// First run patch operations.
-	patchedJSON, patch, err := h.modRuleStore.CalculatePatch(v1beta1.ModRuleOperation(req.Operation), storeNamespace, obj, log)
+	patchedJSON, patch, err := h.modRuleStore.CalculatePatch(v1beta1.ModRuleAdmissionOperation(req.Operation), storeNamespace, obj, log)
 
 	if err != nil {
 		log.Error(err, "Failed to calculate patch")
@@ -85,7 +85,7 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 	}
 
 	// Then test the result against the set of relevant Reject rules.
-	rejections := h.modRuleStore.DetermineRejections(v1beta1.ModRuleOperation(req.Operation), storeNamespace, patchedJSON, log)
+	rejections := h.modRuleStore.DetermineRejections(v1beta1.ModRuleAdmissionOperation(req.Operation), storeNamespace, patchedJSON, log)
 
 	if len(rejections) > 0 {
 		rejectionMessages := strings.Join(rejections, ",")

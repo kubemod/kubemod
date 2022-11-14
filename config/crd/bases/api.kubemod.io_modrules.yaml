@@ -36,6 +36,25 @@ spec:
           spec:
             description: ModRuleSpec defines the desired state of ModRule
             properties:
+              admissionOperation:
+                description: 'AdmissionOperations describe the desired operation,
+                  a ModRule should be applied on. Valid values are (multiple values
+                  are allowed, if non is specified, all will be used): - "CREATE"
+                  - the rule performs modifications on all the matching resources
+                  as they are created. - "UPDATE" - the rule performs modifications
+                  on all the matching resources as they are updated. - "DELETE" -
+                  the rule performs modifications on all the matching resources as
+                  they are deleted.'
+                items:
+                  description: ModRuleAdmissionOperation describes the operation a
+                    ModRule is executed on. Only the following ModRule operations
+                    may be specified.
+                  enum:
+                  - CREATE
+                  - UPDATE
+                  - DELETE
+                  type: string
+                type: array
               executionTier:
                 default: 0
                 description: ExecutionTier is a value between -32767 and 32766. ExecutionTier
@@ -100,22 +119,6 @@ spec:
                   - select
                   type: object
                 minItems: 1
-                type: array
-              operation:
-                description: 'Operation describes the operation of a ModRule. Valid
-                  values are: - "CREATE" - the rule performs modifications on all
-                  the matching resources as they are created. - "UPDATE" - the rule
-                  performs modifications on all the matching resources as they are
-                  updated. - "DELETE" - the rule performs modifications on all the
-                  matching resources as they are deleted.'
-                items:
-                  description: ModRuleOperation describes the operation a ModRule
-                    is executed on. Only the following ModRule operations may be specified.
-                  enum:
-                  - CREATE
-                  - UPDATE
-                  - DELETE
-                  type: string
                 type: array
               patch:
                 description: Patch is a list of patch operations to perform on the
