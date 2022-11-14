@@ -10,6 +10,7 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+.PHONY: all
 all: manager
 
 # Run tests
@@ -18,76 +19,93 @@ test: generate fmt vet manifests
 	go test ./core ./util ./jsonpath -coverprofile cover.out
 
 # Run tests -v
+.PHONY: testv
 testv: generate fmt vet manifests
 	go test -v ./core ./util ./jsonpath -coverprofile cover.out
 
 # Run benchmarks
+.PHONY: bench
 bench: generate fmt vet manifests
 	go test ./core ./util -run=XXX -bench=.
 
 # Build manager binary
+.PHONY: manager
 manager: generate fmt vet
 	go build -o bin/kubemod main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
+.PHONY: run
 run: generate fmt vet manifests
 	go run ./main.go
 
 # Install CRDs into a cluster
+.PHONY: install
 install: manifests
 	kustomize build config/crd | kubectl apply -f -
 
 # Uninstall CRDs from a cluster
+.PHONY: uninstall
 uninstall: manifests
 	kustomize build config/crd | kubectl delete -f -
 
+.PHONY: bundle
 bundle: manifests
 	cd config/manager && kustomize edit set image controller=${IMG}
 	kustomize build config/default > bundle.yaml
 
 # Deploy kubemod in production mode in the configured Kubernetes cluster in ~/.kube/config
+.PHONY: deploy
 deploy: manifests
 	cd config/manager && kustomize edit set image controller=${IMG}
 	kustomize build config/default | kubectl apply -f -
 
 # Deploy kubemod in production mode in the configured Kubernetes cluster in ~/.kube/config
+.PHONY: undeploy
 undeploy: manifests
 	cd config/manager && kustomize edit set image controller=${IMG}
 	kustomize build config/default | kubectl delete -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
+.PHONY: manifests
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Run go fmt against code
+.PHONY: fmt
 fmt:
 	go fmt ./...
 
 # Run go vet against code
+.PHONY: vet
 vet:
 	go vet ./...
 
 # Generate code
+.PHONY: generate
 generate: controller-gen wire
 	$(CONTROLLER_GEN) object:headerFile="misc/boilerplate.go.txt" paths="./..."
 	$(WIRE) ./...
 
 # Build the docker image
+.PHONY: docker-build
 docker-build: test
 	docker build . -t ${IMG} --build-arg TARGETARCH=amd64
 	docker image prune -f
 
 # Push the docker image
+.PHONY: docker-push
 docker-push:
 	docker push ${IMG}
 
 # Develop in docker
+.PHONY: docker-develop
 docker-develop:
 	docker run --rm -it -v $(PWD):/go/src/kubemod -w /go/src/kubemod \
 			--entrypoint bash golang:1.18.0
 
 # find or download controller-gen
 # download controller-gen if necessary
+.PHONY: controller-gen
 controller-gen:
 ifeq (, $(shell which controller-gen))
 	@{ \
@@ -104,6 +122,7 @@ CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
 # find or download wire
+.PHONY: wire
 wire:
 ifeq (, $(shell which wire))
 	@{ \
