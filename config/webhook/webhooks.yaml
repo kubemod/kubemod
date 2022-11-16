@@ -75,7 +75,6 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
-    - DELETE
     scope: '*'
 
 ---

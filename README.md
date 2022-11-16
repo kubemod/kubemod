@@ -813,6 +813,9 @@ admissionOperations:
 This property is optional and will default to an empty list, which will execute the `ModRule` against
 all operations.
 
+*Note: In order for the `DELETE` operation to be observed you have to enable it within the 
+`MutatingWebhookConfiguration`.*
+
 ### Execution tiers
 
 `ModRules` are matched and executed in tiers.
