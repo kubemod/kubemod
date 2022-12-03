@@ -57,6 +57,11 @@ func (r *ModRule) Default() {
 			mi.MatchFor = MatchForTypeAny
 		}
 	}
+
+	// If no admission operations are specified, default to CREATE and UPDATE.
+	if len(r.Spec.AdmissionOperations) == 0 {
+		r.Spec.AdmissionOperations = []ModRuleAdmissionOperation{"CREATE", "UPDATE"}
+	}
 }
 
 var _ webhook.Validator = &ModRule{}

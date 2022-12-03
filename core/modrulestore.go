@@ -148,6 +148,19 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(admissionOperation v1beta1.M
 	defer s.rwLock.RUnlock()
 
 	processPotentialRule := func(mrsi *ModRuleStoreItem) {
+
+		// Discard the rule if it does not apply to the current request operation.
+		matchedAdmissionRequest := false
+		for _, mrsiAdmissionOperation := range mrsi.modRule.Spec.AdmissionOperations {
+			if admissionOperation == mrsiAdmissionOperation {
+				matchedAdmissionRequest = true
+				break
+			}
+		}
+		if !matchedAdmissionRequest {
+			return
+		}
+
 		if mrsi.modRule.Spec.ExecutionTier < currentExecutionTier {
 			// The new potential rule is in a lower execution tier than the last one we've encountered:
 			// reset the current execution tier and the list of potential rules.
@@ -186,31 +199,9 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(admissionOperation v1beta1.M
 
 	// Perform the actual matching.
 	for _, mrsi := range potentialRules {
-
-		// skip adding ModRule if type doesn't match
-		if mrsi.modRule.Spec.Type != modRuleType {
-			continue
+		if mrsi.modRule.Spec.Type == modRuleType && mrsi.IsMatch(jsonv) {
+			modRules = append(modRules, mrsi)
 		}
-
-		// If there are admission operations defined on the ModRule, check if any of them matches the admission request operation.
-		if len(mrsi.modRule.Spec.AdmissionOperations) != 0 {
-			matchedAdmissionRequest := false
-			for i := range mrsi.modRule.Spec.AdmissionOperations {
-				if admissionOperation == mrsi.modRule.Spec.AdmissionOperations[i] {
-					matchedAdmissionRequest = true
-				}
-			}
-			if !matchedAdmissionRequest {
-				continue
-			}
-		}
-
-		// skip adding ModRule if the selection doesn't match
-		if !mrsi.IsMatch(jsonv) {
-			continue
-		}
-
-		modRules = append(modRules, mrsi)
 	}
 
 	return
@@ -267,7 +258,7 @@ func (s *ModRuleStore) CalculatePatch(admissionOperation v1beta1.ModRuleAdmissio
 	var matchingModRules []*ModRuleStoreItem
 	var log logr.Logger
 
-	// If we are getting admissionOperation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
+	// If we are getting operation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
 	if operationLog != nil {
 		log = operationLog.WithName("core")
 	} else {
@@ -361,7 +352,7 @@ func (s *ModRuleStore) DetermineRejections(admissionOperation v1beta1.ModRuleAdm
 	var rejectionMessages = []string{}
 	var log logr.Logger
 
-	// If we are getting admissionOperation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
+	// If we are getting operation-specific log, use it, otherwise, use the singleton log we have for the ModRuleStore item.
 	if operationLog != nil {
 		log = operationLog.WithName("core")
 	} else {

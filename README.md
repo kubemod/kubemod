@@ -798,8 +798,8 @@ The field is a Golang template evaluated in the context of the object being reje
 
 ### Operation type
 
-Admission requests have different operation types. A `ModRule` will handle all of these types by default.
-If you want to limit the whole `ModRule` to a specific type of operation, you can do so the operation property.
+Admission requests have different operation types. A `ModRule` will handle `CREATE` and `UPDATE` operations by default.
+If you want to limit the `ModRule` to a specific list of operations, you can do so through the `addmissionOperations` property.
 
 Allowed values are:
 
@@ -810,11 +810,7 @@ admissionOperations:
   - DELETE
 ```
 
-This property is optional and will default to an empty list, which will execute the `ModRule` against
-all operations.
-
-*Note: In order for the `DELETE` operation to be observed you have to enable it within the 
-`MutatingWebhookConfiguration`.*
+This property is optional and will default to an empty list, which will execute the `ModRule` against `CREATE` and `UPDATE` operations
 
 ### Execution tiers
 

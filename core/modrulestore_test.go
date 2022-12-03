@@ -60,6 +60,9 @@ var _ = Describe("ModRuleStore", func() {
 			err = yaml.Unmarshal(modRuleYAML, &modRule)
 			Expect(err).NotTo(HaveOccurred())
 
+			// Fill out default values for missing properties.
+			modRule.Default()
+
 			if modRule.Namespace == "" {
 				modRule.Namespace = "my-namespace"
 			}
@@ -100,6 +103,9 @@ var _ = Describe("ModRuleStore", func() {
 			modRule := v1beta1.ModRule{}
 			err = yaml.Unmarshal(modRuleYAML, &modRule)
 			Expect(err).NotTo(HaveOccurred())
+
+			// Fill out default values for missing properties.
+			modRule.Default()
 
 			modRule.Namespace = "my-namespace"
 
