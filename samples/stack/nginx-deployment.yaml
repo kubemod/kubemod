@@ -13,6 +13,9 @@ spec:
     metadata:
       labels:
         app: nginx
+      annotations:
+        admission.kubemod.io/enable-node-synthetic-ref: "true"
+        node.alpha.kubernetes.io/ttl: ""
     spec:
       containers:
       - name: nginx
@@ -24,3 +27,8 @@ spec:
           limits:
             cpu: "500m"
             memory: "1Gi"
+        env:
+          - name: INJECTED_NODE_TTL
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['node.alpha.kubernetes.io/ttl']

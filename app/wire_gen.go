@@ -29,7 +29,8 @@ func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMe
 		return nil, err
 	}
 	dragnetWebhookHandler := core.NewDragnetWebhookHandler(manager, modRuleStore, log)
-	kubeModOperatorApp, err := NewKubeModOperatorApp(scheme, manager, modRuleReconciler, dragnetWebhookHandler, log)
+	podBindingWebhookHandler := core.NewPodBindingWebhookHandler(manager, log)
+	kubeModOperatorApp, err := NewKubeModOperatorApp(scheme, manager, modRuleReconciler, dragnetWebhookHandler, podBindingWebhookHandler, log)
 	if err != nil {
 		return nil, err
 	}

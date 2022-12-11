@@ -43,6 +43,7 @@ func InitializeKubeModOperatorApp(
 		core.NewModRuleStoreItemFactory,
 		core.NewModRuleStore,
 		core.NewDragnetWebhookHandler,
+		core.NewPodBindingWebhookHandler,
 		controllers.NewModRuleReconciler,
 		NewControllerManager,
 		NewKubeModOperatorApp,
