@@ -52,7 +52,7 @@ func (h *PodBindingWebhookHandler) Handle(ctx context.Context, req admission.Req
 		err := json.Unmarshal(req.Object.Raw, binding)
 
 		if err != nil {
-			log.Error(err, "failed to decode webhook request object's manifest into JSON")
+			log.Error(err, "failed to decode webhook pods/binding request object's manifest into JSON")
 			return admission.Allowed("failed to decode webhook request object's manifest into JSON")
 		}
 
