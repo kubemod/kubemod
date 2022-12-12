@@ -18,6 +18,7 @@ require (
 	github.com/onsi/gomega v1.10.2
 	github.com/segmentio/ksuid v1.0.3
 	go.uber.org/zap v1.10.0
+	golang.org/x/sys v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.0.1
 	k8s.io/apimachinery v0.18.6
 	k8s.io/client-go v0.18.6

@@ -15,6 +15,7 @@ spec:
         app: nginx
       annotations:
         admission.kubemod.io/enable-node-synthetic-ref: "true"
+        # The following annotation will be populated by modrule-7.
         node.alpha.kubernetes.io/ttl: ""
     spec:
       containers:
