@@ -50,6 +50,7 @@ type ModRuleSpec struct {
 	// - "UPDATE" - the rule applies to all matching resources as they are updated.
 	// - "DELETE" - the rule applies to all matching resources as they are deleted.
 	// By default, a ModRule applies to all admission operations.
+	// +optional
 	AdmissionOperations []ModRuleAdmissionOperation `json:"admissionOperations"`
 
 	// Match is a list of match items which consist of select queries and expected match values or regular expressions.
