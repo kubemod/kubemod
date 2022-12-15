@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.18.1 - 2022-12-15
+
+- 109: Make admissionOperations backward compatible with previously deployed ModRules
+
 ## 0.18.0 - 2022-12-15
 
 - 103: Support ModRules based on the operation type (thank you @orbatschow)
