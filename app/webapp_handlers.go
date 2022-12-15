@@ -27,6 +27,7 @@ type DryRunResponse struct {
 
 const (
 	dryRunNamespace string = "dryrun-namespace"
+	dryRunOperation string = ""
 )
 
 // Set up the web app HTTP routes.
@@ -79,7 +80,7 @@ func (app *KubeModWebApp) dryRunHandler(c *gin.Context) {
 	}
 
 	// First run the patch operations.
-	patched, patch, err := store.CalculatePatch(dryRunNamespace, originalJSON, app.log)
+	patched, patch, err := store.CalculatePatch(v1beta1.ModRuleAdmissionOperation(dryRunOperation), dryRunNamespace, originalJSON, app.log)
 
 	if err != nil {
 		app.reportBadRequest(c, err)
@@ -87,7 +88,7 @@ func (app *KubeModWebApp) dryRunHandler(c *gin.Context) {
 	}
 
 	// Try rejections against the after-patch manifest.
-	rejections := store.DetermineRejections(dryRunNamespace, patched, app.log)
+	rejections := store.DetermineRejections(v1beta1.ModRuleAdmissionOperation(dryRunOperation), dryRunNamespace, patched, app.log)
 
 	// If there is a valid patch, calculate the diff in unified diff format.
 	var diff string

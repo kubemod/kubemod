@@ -140,7 +140,7 @@ func (s *ModRuleStore) Delete(namespace string, name string) {
 
 // getMatchingModRuleStoreItems returns a slice with all the mod rules which match the given unmarshalled JSON.
 // It also returns the execution tier of the returned modrules, or math.MaxInt16 in case no modrules were found in a tier higher than minExecutionTier.
-func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, minExecutionTier int16, modRuleType v1beta1.ModRuleType, jsonv interface{}) (modRules []*ModRuleStoreItem, currentExecutionTier int16) {
+func (s *ModRuleStore) getMatchingModRuleStoreItems(admissionOperation v1beta1.ModRuleAdmissionOperation, namespace string, minExecutionTier int16, modRuleType v1beta1.ModRuleType, jsonv interface{}) (modRules []*ModRuleStoreItem, currentExecutionTier int16) {
 	currentExecutionTier = math.MaxInt16
 	var potentialRules []*ModRuleStoreItem
 
@@ -148,6 +148,19 @@ func (s *ModRuleStore) getMatchingModRuleStoreItems(namespace string, minExecuti
 	defer s.rwLock.RUnlock()
 
 	processPotentialRule := func(mrsi *ModRuleStoreItem) {
+
+		// Discard the rule if it does not apply to the current request operation.
+		matchedAdmissionRequest := false
+		for _, mrsiAdmissionOperation := range mrsi.modRule.Spec.AdmissionOperations {
+			if admissionOperation == mrsiAdmissionOperation {
+				matchedAdmissionRequest = true
+				break
+			}
+		}
+		if !matchedAdmissionRequest {
+			return
+		}
+
 		if mrsi.modRule.Spec.ExecutionTier < currentExecutionTier {
 			// The new potential rule is in a lower execution tier than the last one we've encountered:
 			// reset the current execution tier and the list of potential rules.
@@ -238,7 +251,7 @@ func extractLastAppliedConfiguration(jsonv interface{}) []byte {
 
 // CalculatePatch calculates the set of patch operations to apply against a given resource
 // based on the ModRules matching the resource.
-func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, operationLog logr.Logger) (interface{}, []ctrljsonpatch.JsonPatchOperation, error) {
+func (s *ModRuleStore) CalculatePatch(admissionOperation v1beta1.ModRuleAdmissionOperation, namespace string, originalJSON []byte, operationLog logr.Logger) (interface{}, []ctrljsonpatch.JsonPatchOperation, error) {
 	var modifiedJSON = originalJSON
 	jsonv := interface{}(nil)
 	var currentExecutionTier int16 = math.MinInt16
@@ -268,7 +281,7 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 
 	for {
 		// Find all matching Patch rules for the first execution tier higher than the previous execution tier.
-		matchingModRules, currentExecutionTier = s.getMatchingModRuleStoreItems(namespace, currentExecutionTier+1, v1beta1.ModRuleTypePatch, jsonv)
+		matchingModRules, currentExecutionTier = s.getMatchingModRuleStoreItems(admissionOperation, namespace, currentExecutionTier+1, v1beta1.ModRuleTypePatch, jsonv)
 
 		// No rules matching execution tier higher than the latest execution tier were found - break out of here.
 		if currentExecutionTier == math.MaxInt16 {
@@ -333,7 +346,7 @@ func (s *ModRuleStore) CalculatePatch(namespace string, originalJSON []byte, ope
 }
 
 // DetermineRejections checks if the given object should be rejected based on the current Reject ModRules stored in the namespace.
-func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}, operationLog logr.Logger) []string {
+func (s *ModRuleStore) DetermineRejections(admissionOperation v1beta1.ModRuleAdmissionOperation, namespace string, jsonv interface{}, operationLog logr.Logger) []string {
 	var currentExecutionTier int16 = math.MinInt16
 	var matchingModRules []*ModRuleStoreItem
 	var rejectionMessages = []string{}
@@ -353,7 +366,7 @@ func (s *ModRuleStore) DetermineRejections(namespace string, jsonv interface{}, 
 
 	for {
 		// Find all matching Reject rules for the first execution tier higher than the previous execution tier.
-		matchingModRules, currentExecutionTier = s.getMatchingModRuleStoreItems(namespace, currentExecutionTier+1, v1beta1.ModRuleTypeReject, jsonv)
+		matchingModRules, currentExecutionTier = s.getMatchingModRuleStoreItems(admissionOperation, namespace, currentExecutionTier+1, v1beta1.ModRuleTypeReject, jsonv)
 
 		// No rules matching execution tier higher than the latest execution tier were found - break out of here.
 		if currentExecutionTier == math.MaxInt16 {

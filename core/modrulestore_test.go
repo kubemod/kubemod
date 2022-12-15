@@ -60,6 +60,9 @@ var _ = Describe("ModRuleStore", func() {
 			err = yaml.Unmarshal(modRuleYAML, &modRule)
 			Expect(err).NotTo(HaveOccurred())
 
+			// Fill out default values for missing properties.
+			modRule.Default()
+
 			if modRule.Namespace == "" {
 				modRule.Namespace = "my-namespace"
 			}
@@ -68,7 +71,7 @@ var _ = Describe("ModRuleStore", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		_, patch, err := rs.CalculatePatch("my-namespace", resourceJSON, nil)
+		_, patch, err := rs.CalculatePatch("CREATE", "my-namespace", resourceJSON, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		// Sort the patch because the order returned by CalculatePatch is unstable.
@@ -101,6 +104,9 @@ var _ = Describe("ModRuleStore", func() {
 			err = yaml.Unmarshal(modRuleYAML, &modRule)
 			Expect(err).NotTo(HaveOccurred())
 
+			// Fill out default values for missing properties.
+			modRule.Default()
+
 			modRule.Namespace = "my-namespace"
 
 			err = rs.Put(&modRule)
@@ -113,7 +119,7 @@ var _ = Describe("ModRuleStore", func() {
 			}
 		}
 
-		rejections := rs.DetermineRejections("my-namespace", jsonv, nil)
+		rejections := rs.DetermineRejections("CREATE", "my-namespace", jsonv, nil)
 
 		expectation, err := ioutil.ReadFile(path.Join("testdata/expectations/", expectationFile))
 		Expect(err).NotTo(HaveOccurred())

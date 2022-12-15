@@ -25,6 +25,7 @@ Use KubeMod to:
     * [Match section](#match-section)
     * [Patch section](#patch-section)
 * [Miscellaneous](#miscellaneous)
+    * [Operation type](#operation-type)
     * [Execution tiers](#execution-tiers)
     * [Namespaced and cluster-wide resources](#namespaced-and-cluster-wide-resources)
     * [Synthetic references](#synthetic-references)
@@ -794,6 +795,22 @@ Field `rejectMessage` is an optional message displayed when a resource is reject
 The field is a Golang template evaluated in the context of the object being rejected
 
 ## Miscellaneous
+
+### Operation type
+
+Admission requests have different operation types. A `ModRule` will handle `CREATE` and `UPDATE` operations by default.
+If you want to limit the `ModRule` to a specific list of operations, you can do so through the `addmissionOperations` property.
+
+Allowed values are:
+
+```yaml
+admissionOperations:
+  - CREATE
+  - UPDATE
+  - DELETE
+```
+
+This property is optional and will default to an empty list, which will execute the `ModRule` against `CREATE` and `UPDATE` operations
 
 ### Execution tiers
 
