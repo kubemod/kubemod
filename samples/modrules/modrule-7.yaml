@@ -1,19 +1,18 @@
 apiVersion: api.kubemod.io/v1beta1
 kind: ModRule
 metadata:
-  name: patch-pod-with-node-annotations
+  name: reject-namespace-deletion
   namespace: kubemod-system
 spec:
-  type: Patch
-  targetNamespaceRegex: ".*"
+  type: Reject
+
+  admissionOperations:
+    - DELETE
+
+  rejectMessage: 'deletion of protected namespaces is not allowed'
 
   match:
-    - select: '$.syntheticRefs.node.metadata.annotations["node.alpha.kubernetes.io/ttl"]'
-
     - select: '$.kind'
-      matchValue: 'Pod'
+      matchValue: 'Namespace'
 
-  patch:
-    - op: add
-      path: /metadata/annotations/node.alpha.kubernetes.io~1ttl
-      value: '"{{ index .Target.syntheticRefs.node.metadata.annotations "node.alpha.kubernetes.io/ttl"}}"'
+    - select: '$.metadata.labels.protected =~ "yes"'

@@ -75,6 +75,7 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
+    - DELETE
     scope: '*'
 - name: podbinding.kubemod.io
   clientConfig:

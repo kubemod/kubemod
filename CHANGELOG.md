@@ -4,9 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.18.1 - 2022-12-15
+
+- 109: Make admissionOperations backward compatible with previously deployed ModRules
+
+## 0.18.0 - 2022-12-15
+
+- 103: Support ModRules based on the operation type (thank you @orbatschow)
+
 ## 0.17.1 - 2022-11-12
 
-- 105: Fix breaking changes introduced with ExecutionTier
+- 105: Fix breaking changes introduced with ExecutionTier (thank you @orbatschow)
 
 ## 0.17.0 - 2022-11-06
 
@@ -18,7 +26,7 @@ All notable changes to this project will be documented in this file.
 
 ## 0.15.3 - 2022-09-20
 
-- 93: FIX: CronJob in version "v1" cannot be handled as a CronJob: strict decoding error when deploying to Kubernetes 1.25.0
+- 93: FIX: CronJob in version "v1" cannot be handled as a CronJob: strict decoding error when deploying to Kubernetes 1.25.0 (thank you @arkaitzj)
 
 ## 0.15.2 - 2022-06-06
 
