@@ -17,7 +17,7 @@ spec:
         # Turning on node synthetic ref will make KubeMod monitor for pod scheduling events.
         # When the pod gets scheduled, KubeMod injects a synthetic ref to the pod's node
         # and triggers all UPDATE modrules that match this pod.
-        admission.kubemod.io/enable-node-synthetic-ref: "true"
+        ref.kubemod.io/inject-node-ref: "true"
     spec:
       containers:
       - name: nginx

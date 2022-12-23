@@ -18,8 +18,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kubemod/kubemod/api/v1beta1"
 	"strings"
+
+	"github.com/kubemod/kubemod/api/v1beta1"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -123,10 +124,10 @@ func (h *DragnetWebhookHandler) injectSyntheticRefs(ctx context.Context, origina
 		return nil, fmt.Errorf("failed to decode webhook request object's manifest into JSON: %v", err)
 	}
 
-	// If the target object is a pod, check if the pod has a node name set by KubeMod in annotation admission.kubemod.io/nodename
+	// If the target object is a pod, check if the pod has a node name set by KubeMod in annotation ref.kubemod.io/nodename
 	// and if yes, inject the pod's node manifest into the synthetic refs.
 	if isPod(obj.UnstructuredContent()) {
-		nodeName, ok, err := unstructured.NestedString(obj.UnstructuredContent(), "metadata", "annotations", "admission.kubemod.io/nodename")
+		nodeName, ok, err := unstructured.NestedString(obj.UnstructuredContent(), "metadata", "annotations", "ref.kubemod.io/nodename")
 
 		if ok && err == nil && nodeName != "" {
 			err = h.injectPodNodeSyntheticRef(ctx, nodeName, syntheticRefs)
@@ -194,10 +195,10 @@ func (h *DragnetWebhookHandler) injectPodNodeSyntheticRef(ctx context.Context, n
 	err := h.client.Get(ctx, client.ObjectKey{Name: nodeName}, node)
 
 	if err != nil {
-		return fmt.Errorf("failed to retrieve node '%s' : %v", nodeName, err)
+		return fmt.Errorf("failed to retrieve node '%s': %v", nodeName, err)
 	}
 
-	// Remove managedFields - we don't need this and it only litters the namespace manifest.
+	// Remove managedFields - we don't need this and it only litters the manifest.
 	node.SetManagedFields(nil)
 
 	syntheticRefs["node"] = node

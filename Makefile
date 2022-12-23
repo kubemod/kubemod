@@ -82,7 +82,8 @@ vet:
 
 # Generate code
 .PHONY: generate
-generate: controller-gen wire
+generate: controller-gen wire mockgen
+	$(MOCKGEN) -destination ./mocks/k8s_client_mock.go -package mocks sigs.k8s.io/controller-runtime/pkg/client Client
 	$(CONTROLLER_GEN) object:headerFile="misc/boilerplate.go.txt" paths="./..."
 	$(WIRE) ./...
 
@@ -138,3 +139,19 @@ else
 WIRE=$(shell which wire)
 endif
 
+# find or download mockgen
+.PHONY: mockgen
+mockgen:
+ifeq (, $(shell which mockgen))
+	@{ \
+	set -e ;\
+	MOCKGEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$MOCKGEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go install github.com/golang/mock/mockgen@v1.6.0 ;\
+	rm -rf $$MOCKGEN_TMP_DIR ;\
+	}
+MOCKGEN=$(GOBIN)/mockgen
+else
+MOCKGEN=$(shell which mockgen)
+endif

@@ -18,9 +18,11 @@ import (
 	"github.com/go-logr/logr"
 )
 
-// TLogger is an interface which implements Logf.
+// TLogger is an interface which implements Logf, Errorf, and Fatalf.
 type TLogger interface {
 	Logf(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
+	Fatalf(format string, args ...interface{})
 }
 
 // TestLogger is a logr.Logger that prints through a testing.T object.

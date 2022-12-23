@@ -63,7 +63,7 @@ func (h *PodBindingWebhookHandler) Handle(ctx context.Context, req admission.Req
 			return admission.Allowed("failed to obtain target data from pod binding")
 		}
 
-		// Grab the name of the node and update the pod by attaching an admission.kubemod.io/nodename annotation.
+		// Grab the name of the node and update the pod by attaching an ref.kubemod.io/nodename annotation.
 		pod := &unstructured.Unstructured{}
 		pod.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   "",
@@ -84,15 +84,15 @@ func (h *PodBindingWebhookHandler) Handle(ctx context.Context, req admission.Req
 			annotations = map[string]string{}
 		}
 
-		if enableNodeSyntheticRef, ok := annotations["admission.kubemod.io/enable-node-synthetic-ref"]; ok && enableNodeSyntheticRef == "true" {
-			annotations["admission.kubemod.io/nodename"] = nodeName
+		if injectNodeSyntheticRef, ok := annotations["ref.kubemod.io/inject-node-ref"]; ok && injectNodeSyntheticRef == "true" {
+			annotations["ref.kubemod.io/nodename"] = nodeName
 
 			pod.SetAnnotations(annotations)
 
 			err = h.client.Update(ctx, pod)
 
 			if err != nil {
-				log.Error(err, "failed to update pod with annotation admission.kubemod.io/nodename", "podNamespace", podNamespace, "podName", podName)
+				log.Error(err, "failed to inject annotation ref.kubemod.io/nodename into pod", "podNamespace", podNamespace, "podName", podName)
 				return admission.Allowed("failed to obtain pod")
 			}
 		}
