@@ -19,6 +19,7 @@ COPY core/ core/
 COPY jsonpath/ jsonpath/
 COPY expressions/ expressions/
 COPY util/ util/
+COPY mocks/ mocks/
 COPY app/ app/
 
 # Build
