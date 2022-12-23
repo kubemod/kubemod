@@ -4,7 +4,7 @@
 
 KubeMod is a universal [Kubernetes mutating operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/).
 
-It introduces `ModRule` &mdash; a custom Kubernetes resource which allows you to intercept the deployment of any Kubernetes object and apply targeted modifications to it or reject it before it is deployed to the cluster.
+It introduces `ModRule` - a custom Kubernetes resource which intercepts the deployment of any Kubernetes object and applies targeted modifications to it, or rejects it before it is deployed to the cluster.
 
 Use KubeMod to:
 
@@ -1051,7 +1051,7 @@ kubectl api-resources --verbs list -o name
 
 ### Note on idempotency
 
-Make sure your patch ModRules are idempotent &mdash; executing them multiple times against the same object should lead to no changes beyond the first execution.
+Make sure your patch ModRules are idempotent - executing them multiple times against the same object should lead to no changes beyond the first execution.
 
 This is important because Kubernetes will pass the same object through KubeMod every time its state changes. For example, when a `Deployment` resource is created, its `status` field changes multiple times after its creation.
 
@@ -1108,7 +1108,7 @@ Now let's take a look at the next `add` operation.
 
 It targets path `/spec/template/spec/containers/-1` to inject a sidecar container into the Deployment's manifest.
 
-Index `-1` is relative &mdash; it indicates the index after the last element of an array.
+Index `-1` is relative. It indicates the index after the last element of an array.
 This rule is not idempotent.
 Running it multiple times against the same deployment will inject `my-sidecar` container multiple times.
 
