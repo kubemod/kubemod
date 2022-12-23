@@ -928,11 +928,11 @@ In order to capture the node which a pod has been scheduled on, KubeMod listens 
 
 If KubeMod intercepts a pod scheduling event for a pod which has annotation `ref.kubemod.io/inject-node-ref` set to `"true"`, KubeMod updates the pod by injecting annotation `ref.kubemod.io/node` whose value is set to the name of the node.
 
-This triggers an `UPDATE` operation, which is again captured by KubeMod. When KubeMod intercepts pod operations for pods with annotation `ref.kubemod.io/node`, it injects the node manifest into the pod's synthetic references, this making them available for matching and patching operations.
+This triggers an `UPDATE` operation, which is again captured by KubeMod. When KubeMod intercepts pod operations for pods with annotation `ref.kubemod.io/node`, it injects the node manifest into the pod's synthetic references, thus making them available for ModRule matching and patching.
 
-This enables a wide array of use cases not natively supported by Kubernetes.
+This enables a wide array of use cases not natively supported by Kubernetes (see https://github.com/kubernetes/kubernetes/issues/40610).
 
-For example, the following cluster-wide ModRule will inject a pod with it's node's availability region and zone:
+For example, the following cluster-wide ModRule will inject a pod with it's node's availability region and zone, as soon as the pod gets scheduled to a node:
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
@@ -943,8 +943,6 @@ metadata:
 spec:
   type: Patch
   targetNamespaceRegex: ".*"
-  # Pods are not scheduled on nodes at creation time.
-  # We only want to trigger this rule on the UPDATE operation triggered by KubeMod pod schedule detection.
   admissionOperations:
     - UPDATE
 
@@ -953,23 +951,25 @@ spec:
     - select: '$.kind'
       matchValue: 'Pod'
     # ...which have access to the node's manifest through the synthetic ref injected by KubeMod.
-    - select: '$.syntheticRefs.node.metadata.annotations'
+    - select: '$.syntheticRefs.node.metadata.labels'
 
   patch:
-    # Grab the node's region and zone and put them in the pod's corresponding annotations.
+    # Grab the node's region and zone and put them in the pod's corresponding labels.
     - op: add
-      path: /metadata/annotations/topology.kubernetes.io~1region
-      value: '"{{ index .Target.syntheticRefs.node.metadata.annotations "topology.kubernetes.io/region"}}"'
+      path: /metadata/labels/topology.kubernetes.io~1region
+      value: '"{{ index .Target.syntheticRefs.node.metadata.labels "topology.kubernetes.io/region"}}"'
     - op: add
-      path: /metadata/annotations/topology.kubernetes.io~1zone
-      value: '"{{ index .Target.syntheticRefs.node.metadata.annotations "topology.kubernetes.io/zone"}}"'
+      path: /metadata/labels/topology.kubernetes.io~1zone
+      value: '"{{ index .Target.syntheticRefs.node.metadata.labels "topology.kubernetes.io/zone"}}"'
 ```
 
-The above mod rule will apply to any pod which has the following annotation:
+The above ModRule will apply to any pod created in any namespace as long as it has the following annotation:
 
 ```yaml
 ref.kubemod.io/inject-node-ref: "true"
 ```
+
+If you want to have this rule apply to pods which don't have this annotation, you can create another ModRule which injects `ref.kubemod.io/inject-node-ref` into any pod that matches a given criteria, or to all pods that are created in the cluster.
 
 ### Target resources
 

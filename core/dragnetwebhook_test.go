@@ -86,7 +86,7 @@ var _ = Describe("DragnetWebhookHandler", func() {
 		testBed.mockK8sClient.EXPECT().Get(gomock.Any(), client.ObjectKey{Name: "my-node-1234"}, gomock.Any()).
 			DoAndReturn(func(ctx context.Context, key client.ObjectKey, node *unstructured.Unstructured) error {
 				// Stamp out the node's region and zone.
-				node.SetAnnotations(map[string]string{
+				node.SetLabels(map[string]string{
 					"topology.kubernetes.io/region": "us-west-2",
 					"topology.kubernetes.io/zone":   "us-west-2b",
 				})
@@ -109,11 +109,11 @@ var _ = Describe("DragnetWebhookHandler", func() {
 		Expect(len(response.Patches)).To(Equal(2))
 
 		Expect(response.Patches[0].Operation).To(Equal("add"))
-		Expect(response.Patches[0].Path).To(Equal("/metadata/annotations/topology.kubernetes.io~1region"))
+		Expect(response.Patches[0].Path).To(Equal("/metadata/labels/topology.kubernetes.io~1region"))
 		Expect(response.Patches[0].Value).To(Equal("us-west-2"))
 
 		Expect(response.Patches[1].Operation).To(Equal("add"))
-		Expect(response.Patches[1].Path).To(Equal("/metadata/annotations/topology.kubernetes.io~1zone"))
+		Expect(response.Patches[1].Path).To(Equal("/metadata/labels/topology.kubernetes.io~1zone"))
 		Expect(response.Patches[1].Value).To(Equal("us-west-2b"))
 	})
 

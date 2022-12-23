@@ -12,12 +12,12 @@ spec:
     - select: '$.kind'
       matchValue: 'Pod'
 
-    - select: '$.syntheticRefs.node.metadata.annotations'
+    - select: '$.syntheticRefs.node.metadata.labels'
 
   patch:
     - op: add
-      path: /metadata/annotations/topology.kubernetes.io~1region
-      value: '"{{ index .Target.syntheticRefs.node.metadata.annotations "topology.kubernetes.io/region"}}"'
+      path: /metadata/labels/topology.kubernetes.io~1region
+      value: '"{{ index .Target.syntheticRefs.node.metadata.labels "topology.kubernetes.io/region"}}"'
     - op: add
-      path: /metadata/annotations/topology.kubernetes.io~1zone
-      value: '"{{ index .Target.syntheticRefs.node.metadata.annotations "topology.kubernetes.io/zone"}}"'
+      path: /metadata/labels/topology.kubernetes.io~1zone
+      value: '"{{ index .Target.syntheticRefs.node.metadata.labels "topology.kubernetes.io/zone"}}"'
