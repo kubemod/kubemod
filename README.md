@@ -860,10 +860,14 @@ By default, the following namespaces are tagged with the above label:
 
 KubeMod 0.17.0 introduces `syntheticRefs` - a map of external resource manifests injected at the root of every Kubernetes resource processed by KubeMod.
 
-Currently the only external manifest injected in `syntheticRefs` is the manifest of the `namespace` of namespaced objects.
 This unlocks use cases where a ModRule can be matched against objects not only based on their own manifest, but also the manifests of their namespaces.
 
 In addition, since `syntheticRefs` exists in the body of the target resource, it can be used when constructing `patch` values.
+
+Currently KubeMod injects the following manifests in `syntheticRefs`:
+
+- `namespace`: The manifest of the namespace of the target, if the target is a namespaced object.
+- `node`: The manifest of the node of a pod (See [Node synthetic reference](#node-synthetic-reference) below for more information).
 
 Here's an example ModRule which matches all pods created in namespaces labeled with `color` equal to `blue`.
 The ModRule mutates those pods by tagging them with a label `flavor`, whose value is inherited from the `flavor` label of the pod's namespace.
@@ -917,6 +921,55 @@ In this case we set the regular expression to match all namespaces (`.*`) - we n
 The `syntheticRefs` map exists in the object's manifest only for the purpose of participating in KubeMod's `match` and `patch` processing.
 
 It is not actually inserted in the resulting resource manifest ultimately sent to the cluster.
+
+#### Node synthetic reference
+
+In order to capture the node which a pod has been scheduled on, KubeMod listens to pod scheduling events.
+
+If KubeMod intercepts a pod scheduling event for a pod which has annotation `ref.kubemod.io/inject-node-ref` set to `"true"`, KubeMod updates the pod by injecting annotation `ref.kubemod.io/node` whose value is set to the name of the node.
+
+This triggers an `UPDATE` operation, which is again captured by KubeMod. When KubeMod intercepts pod operations for pods with annotation `ref.kubemod.io/node`, it injects the node manifest into the pod's synthetic references, this making them available for matching and patching operations.
+
+This enables a wide array of use cases not natively supported by Kubernetes.
+
+For example, the following cluster-wide ModRule will inject a pod with it's node's availability region and zone:
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: inject-node-annotations
+  namespace: kubemod-system
+spec:
+  type: Patch
+  targetNamespaceRegex: ".*"
+  # Pods are not scheduled on nodes at creation time.
+  # We only want to trigger this rule on the UPDATE operation triggered by KubeMod pod schedule detection.
+  admissionOperations:
+    - UPDATE
+
+  match:
+    # Match pods...
+    - select: '$.kind'
+      matchValue: 'Pod'
+    # ...which have access to the node's manifest through the synthetic ref injected by KubeMod.
+    - select: '$.syntheticRefs.node.metadata.annotations'
+
+  patch:
+    # Grab the node's region and zone and put them in the pod's corresponding annotations.
+    - op: add
+      path: /metadata/annotations/topology.kubernetes.io~1region
+      value: '"{{ index .Target.syntheticRefs.node.metadata.annotations "topology.kubernetes.io/region"}}"'
+    - op: add
+      path: /metadata/annotations/topology.kubernetes.io~1zone
+      value: '"{{ index .Target.syntheticRefs.node.metadata.annotations "topology.kubernetes.io/zone"}}"'
+```
+
+The above mod rule will apply to any pod which has the following annotation:
+
+```yaml
+ref.kubemod.io/inject-node-ref: "true"
+```
 
 ### Target resources
 
