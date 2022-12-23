@@ -858,16 +858,16 @@ By default, the following namespaces are tagged with the above label:
 
 ### Synthetic references
 
-KubeMod 0.17.0 introduces `syntheticRefs` - a map of external resource manifests injected at the root of every Kubernetes resource processed by KubeMod.
+KubeMod 0.17.0 introduced `syntheticRefs` - a map of external resource manifests injected at the root of every Kubernetes resource processed by KubeMod.
 
-This unlocks use cases where a ModRule can be matched against objects not only based on their own manifest, but also the manifests of their namespaces.
+Synthetic references unlock use cases where a ModRule can be matched against objects not only based on their own manifest, but also the manifests of their namespaces.
 
 In addition, since `syntheticRefs` exists in the body of the target resource, it can be used when constructing `patch` values.
 
 Currently KubeMod injects the following manifests in `syntheticRefs`:
 
 - `namespace`: The manifest of the namespace of the target, if the target is a namespaced object.
-- `node`: The manifest of the node of a pod (See [Node synthetic reference](#node-synthetic-reference) below for more information).
+- `node`: The manifest of the node of a pod (See [Node synthetic references](#node-synthetic-references) below for more information).
 
 Here's an example ModRule which matches all pods created in namespaces labeled with `color` equal to `blue`.
 The ModRule mutates those pods by tagging them with a label `flavor`, whose value is inherited from the `flavor` label of the pod's namespace.
@@ -922,7 +922,9 @@ The `syntheticRefs` map exists in the object's manifest only for the purpose of 
 
 It is not actually inserted in the resulting resource manifest ultimately sent to the cluster.
 
-#### Node synthetic reference
+#### Node synthetic references
+
+KubeMod 0.19.0 introduced `node` synthetic reference for ModRules targeting pod manifests.
 
 In order to capture the node which a pod has been scheduled on, KubeMod listens to pod scheduling events.
 
