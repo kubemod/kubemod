@@ -1,0 +1,23 @@
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: modrule-33
+spec:
+  type: Patch
+  
+  admissionOperations:
+    - UPDATE
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Pod'
+
+    - select: '$.syntheticRefs.node.metadata.labels'
+
+  patch:
+    - op: add
+      path: /metadata/labels/topology.kubernetes.io~1region
+      value: '"{{ index .Target.syntheticRefs.node.metadata.labels "topology.kubernetes.io/region"}}"'
+    - op: add
+      path: /metadata/labels/topology.kubernetes.io~1zone
+      value: '"{{ index .Target.syntheticRefs.node.metadata.labels "topology.kubernetes.io/zone"}}"'

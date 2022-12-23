@@ -5,7 +5,20 @@
     - ""
     resources:
     - namespaces
+    - nodes
     verbs:
     - list
     - get
     - watch
+- op: add
+  path: /rules/-1
+  value:
+    apiGroups:
+    - ""
+    resources:
+    - pods
+    verbs:
+    - list
+    - get
+    - watch
+    - update

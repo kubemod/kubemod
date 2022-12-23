@@ -8,7 +8,9 @@ package core
 
 import (
 	"github.com/go-logr/logr"
+	"github.com/golang/mock/gomock"
 	"github.com/kubemod/kubemod/expressions"
+	"github.com/kubemod/kubemod/mocks"
 	"github.com/kubemod/kubemod/util"
 )
 
@@ -22,6 +24,19 @@ func InitializeModRuleStoreTestBed(clusterModRulesNamespace ClusterModRulesNames
 	modRuleStore := NewModRuleStore(modRuleStoreItemFactory, clusterModRulesNamespace, logger)
 	modRuleStoreTestBed := NewModRuleStoreTestBed(modRuleStore)
 	return modRuleStoreTestBed
+}
+
+// InitializeDragnetWebhookHandlerTestBed instructs wire how to construct a new test bed.
+func InitializeDragnetWebhookHandlerTestBed(clusterModRulesNamespace ClusterModRulesNamespace, tLogger util.TLogger) *DragnetWebhookHandlerTestBed {
+	language := expressions.NewKubeModJSONPathLanguage()
+	logger := NewTestLogger(tLogger)
+	modRuleStoreItemFactory := NewModRuleStoreItemFactory(language, logger)
+	modRuleStore := NewModRuleStore(modRuleStoreItemFactory, clusterModRulesNamespace, logger)
+	testReporter := NewMockTestReporter(tLogger)
+	controller := NewGoMockController(testReporter)
+	mockClient := NewK8sMockClient(controller)
+	dragnetWebhookHandlerTestBed := NewDragnetWebhookHandlerTestBed(modRuleStore, controller, mockClient, logger)
+	return dragnetWebhookHandlerTestBed
 }
 
 // InitializeModRuleStoreItemTestBed instructs wire how to construct a new test bed.
@@ -45,9 +60,32 @@ type ModRuleStoreItemTestBed struct {
 	itemFactory *ModRuleStoreItemFactory
 }
 
+// DragnetWebhookHandlerTestBed is used in DragnetWebhookHandler test.
+type DragnetWebhookHandlerTestBed struct {
+	mockCtrl      *gomock.Controller
+	mockK8sClient *mocks.MockClient
+	modRuleStore  *ModRuleStore
+	log           logr.Logger
+}
+
 // NewLogger instantiates a new testing logger.
 func NewTestLogger(tLogger util.TLogger) logr.Logger {
 	return util.TestLogger{TLogger: tLogger}
+}
+
+// NewMockTestReporter converts a TLogger to gomock.TestReporter.
+func NewMockTestReporter(tLogger util.TLogger) gomock.TestReporter {
+	return tLogger
+}
+
+// NewGoMockController instantiates a new mock controller.
+func NewGoMockController(testReporter gomock.TestReporter) *gomock.Controller {
+	return gomock.NewController(testReporter)
+}
+
+// NewK8sMockClient instantiates a new K8S client mock.
+func NewK8sMockClient(mockCtrl *gomock.Controller) *mocks.MockClient {
+	return mocks.NewMockClient(mockCtrl)
 }
 
 // NewModRuleStoreTestBed instantiates a new test bed.
@@ -61,5 +99,15 @@ func NewModRuleStoreTestBed(modRuleStore *ModRuleStore) *ModRuleStoreTestBed {
 func NewModRuleStoreItemTestBed(itemFactory *ModRuleStoreItemFactory) *ModRuleStoreItemTestBed {
 	return &ModRuleStoreItemTestBed{
 		itemFactory: itemFactory,
+	}
+}
+
+// NewDragnetWebhookHandlerTestBed instantiates a new test bed.
+func NewDragnetWebhookHandlerTestBed(modRuleStore *ModRuleStore, mockCtrl *gomock.Controller, mockK8sClient *mocks.MockClient, log logr.Logger) *DragnetWebhookHandlerTestBed {
+	return &DragnetWebhookHandlerTestBed{
+		mockCtrl:      mockCtrl,
+		mockK8sClient: mockK8sClient,
+		modRuleStore:  modRuleStore,
+		log:           log,
 	}
 }

@@ -11,12 +11,14 @@ require (
 	github.com/evanphx/json-patch/v5 v5.1.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-logr/logr v0.1.0
+	github.com/golang/mock v1.2.0
 	github.com/google/wire v0.5.0
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.2
 	github.com/segmentio/ksuid v1.0.3
 	go.uber.org/zap v1.10.0
+	golang.org/x/sys v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.0.1
 	k8s.io/apimachinery v0.18.6
 	k8s.io/client-go v0.18.6
@@ -71,7 +73,6 @@ require (
 	golang.org/x/crypto v0.0.0-20200414173820-0848c9571904 // indirect
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
-	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect

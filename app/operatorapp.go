@@ -36,6 +36,7 @@ func NewKubeModOperatorApp(
 	manager manager.Manager,
 	modRuleReconciler *controllers.ModRuleReconciler,
 	coreDragnetWebhookHandler *core.DragnetWebhookHandler,
+	corePodBindingWebhookHandler *core.PodBindingWebhookHandler,
 	log logr.Logger,
 ) (*KubeModOperatorApp, error) {
 
@@ -63,6 +64,13 @@ func NewKubeModOperatorApp(
 		"/dragnet-webhook",
 		&webhook.Admission{
 			Handler: coreDragnetWebhookHandler,
+		},
+	)
+
+	hookServer.Register(
+		"/podbinding-webhook",
+		&webhook.Admission{
+			Handler: corePodBindingWebhookHandler,
 		},
 	)
 

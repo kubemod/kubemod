@@ -18,8 +18,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kubemod/kubemod/api/v1beta1"
 	"strings"
+
+	"github.com/kubemod/kubemod/api/v1beta1"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -41,7 +42,7 @@ type DragnetWebhookHandler struct {
 func NewDragnetWebhookHandler(manager manager.Manager, modRuleStore *ModRuleStore, log logr.Logger) *DragnetWebhookHandler {
 	return &DragnetWebhookHandler{
 		client:       manager.GetClient(),
-		log:          log.WithName("modrule-webhook"),
+		log:          log.WithName("dragnet-webhook"),
 		modRuleStore: modRuleStore,
 	}
 }
@@ -72,7 +73,7 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 
 	if err != nil {
 		log.Error(err, "Failed to inject syntheticRefs into object manifest")
-		return admission.Allowed("failed to obtain namespace")
+		return admission.Allowed("failed to inject syntheticRefs into object manifest")
 	}
 
 	// First run patch operations.
@@ -107,36 +108,34 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 func (h *DragnetWebhookHandler) injectSyntheticRefs(ctx context.Context, originalJSON []byte, namespace string) ([]byte, error) {
 	obj := &unstructured.Unstructured{}
 	syntheticRefs := make(map[string]interface{})
+	var err error
 
 	// If the target is a namespaced object, grab the namespace from the manager's client.
 	if namespace != "" {
-		ns := &unstructured.Unstructured{}
-		ns.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   "",
-			Kind:    "Namespace",
-			Version: "v1",
-		})
-
-		err := h.client.Get(ctx, client.ObjectKey{Name: namespace}, ns)
-
+		err = h.injectNamespaceSyntheticRef(ctx, namespace, syntheticRefs)
 		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve namespace '%s' : %v", namespace, err)
+			return nil, fmt.Errorf("failed to inject namespace synthetic ref: %v", err)
 		}
-
-		// Remove managedFields - we don't need this and it only litters the namespace manifest.
-		ns.SetManagedFields(nil)
-		// Remove annotation kubectl.kubernetes.io/last-applied-configuration as it simply duplicates the namespace manifest.
-		annotations := ns.GetAnnotations()
-		delete(annotations, "kubectl.kubernetes.io/last-applied-configuration")
-		ns.SetAnnotations(annotations)
-
-		syntheticRefs["namespace"] = ns
 	}
 
-	err := json.Unmarshal(originalJSON, obj)
+	err = json.Unmarshal(originalJSON, obj)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode webhook request object's manifest into JSON: %v", err)
+	}
+
+	// If the target object is a pod, check if the pod has a node name set by KubeMod in annotation ref.kubemod.io/nodename
+	// and if yes, inject the pod's node manifest into the synthetic refs.
+	if isPod(obj.UnstructuredContent()) {
+		nodeName, ok, err := unstructured.NestedString(obj.UnstructuredContent(), "metadata", "annotations", "ref.kubemod.io/nodename")
+
+		if ok && err == nil && nodeName != "" {
+			err = h.injectPodNodeSyntheticRef(ctx, nodeName, syntheticRefs)
+
+			if err != nil {
+				return nil, fmt.Errorf("failed to inject node synthetic ref: %v", err)
+			}
+		}
 	}
 
 	// Set KubeMod syntheticRefs field.
@@ -147,4 +146,61 @@ func (h *DragnetWebhookHandler) injectSyntheticRefs(ctx context.Context, origina
 	obj.SetManagedFields(nil)
 
 	return json.Marshal(obj)
+}
+
+func isPod(obj map[string]interface{}) bool {
+	kind, ok, err := unstructured.NestedString(obj, "kind")
+
+	if ok && err == nil && kind == "Pod" {
+		return true
+	}
+
+	return false
+}
+
+func (h *DragnetWebhookHandler) injectNamespaceSyntheticRef(ctx context.Context, namespace string, syntheticRefs map[string]interface{}) error {
+	ns := &unstructured.Unstructured{}
+	ns.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Kind:    "Namespace",
+		Version: "v1",
+	})
+
+	err := h.client.Get(ctx, client.ObjectKey{Name: namespace}, ns)
+
+	if err != nil {
+		return fmt.Errorf("failed to retrieve namespace '%s' : %v", namespace, err)
+	}
+
+	// Remove managedFields - we don't need this and it only litters the namespace manifest.
+	ns.SetManagedFields(nil)
+	// Remove annotation kubectl.kubernetes.io/last-applied-configuration as it simply duplicates the namespace manifest.
+	annotations := ns.GetAnnotations()
+	delete(annotations, "kubectl.kubernetes.io/last-applied-configuration")
+	ns.SetAnnotations(annotations)
+
+	syntheticRefs["namespace"] = ns
+	return nil
+}
+
+func (h *DragnetWebhookHandler) injectPodNodeSyntheticRef(ctx context.Context, nodeName string, syntheticRefs map[string]interface{}) error {
+	node := &unstructured.Unstructured{}
+
+	node.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Kind:    "Node",
+		Version: "v1",
+	})
+
+	err := h.client.Get(ctx, client.ObjectKey{Name: nodeName}, node)
+
+	if err != nil {
+		return fmt.Errorf("failed to retrieve node '%s': %v", nodeName, err)
+	}
+
+	// Remove managedFields - we don't need this and it only litters the manifest.
+	node.SetManagedFields(nil)
+
+	syntheticRefs["node"] = node
+	return nil
 }

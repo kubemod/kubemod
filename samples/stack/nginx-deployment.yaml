@@ -13,6 +13,11 @@ spec:
     metadata:
       labels:
         app: nginx
+      annotations:
+        # Turning on node synthetic ref will make KubeMod monitor for pod scheduling events.
+        # When the pod gets scheduled, KubeMod injects a synthetic ref to the pod's node
+        # and triggers all UPDATE modrules that match this pod.
+        ref.kubemod.io/inject-node-ref: "true"
     spec:
       containers:
       - name: nginx
@@ -24,3 +29,9 @@ spec:
           limits:
             cpu: "500m"
             memory: "1Gi"
+        env:
+          - name: INJECTED_NODE_TTL
+            valueFrom:
+              fieldRef:
+                # The following annotation will be populated by modrule-7.
+                fieldPath: metadata.annotations['node.alpha.kubernetes.io/ttl']

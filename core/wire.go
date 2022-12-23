@@ -18,7 +18,9 @@ limitations under the License.
 package core
 
 import (
+	"github.com/golang/mock/gomock"
 	"github.com/kubemod/kubemod/expressions"
+	"github.com/kubemod/kubemod/mocks"
 	"github.com/kubemod/kubemod/util"
 
 	"github.com/go-logr/logr"
@@ -35,9 +37,32 @@ type ModRuleStoreItemTestBed struct {
 	itemFactory *ModRuleStoreItemFactory
 }
 
+// DragnetWebhookHandlerTestBed is used in DragnetWebhookHandler test.
+type DragnetWebhookHandlerTestBed struct {
+	mockCtrl      *gomock.Controller
+	mockK8sClient *mocks.MockClient
+	modRuleStore  *ModRuleStore
+	log           logr.Logger
+}
+
 // NewLogger instantiates a new testing logger.
 func NewTestLogger(tLogger util.TLogger) logr.Logger {
 	return util.TestLogger{TLogger: tLogger}
+}
+
+// NewMockTestReporter converts a TLogger to gomock.TestReporter.
+func NewMockTestReporter(tLogger util.TLogger) gomock.TestReporter {
+	return tLogger
+}
+
+// NewGoMockController instantiates a new mock controller.
+func NewGoMockController(testReporter gomock.TestReporter) *gomock.Controller {
+	return gomock.NewController(testReporter)
+}
+
+// NewK8sMockClient instantiates a new K8S client mock.
+func NewK8sMockClient(mockCtrl *gomock.Controller) *mocks.MockClient {
+	return mocks.NewMockClient(mockCtrl)
 }
 
 // NewModRuleStoreTestBed instantiates a new test bed.
@@ -54,10 +79,36 @@ func NewModRuleStoreItemTestBed(itemFactory *ModRuleStoreItemFactory) *ModRuleSt
 	}
 }
 
+// NewDragnetWebhookHandlerTestBed instantiates a new test bed.
+func NewDragnetWebhookHandlerTestBed(modRuleStore *ModRuleStore, mockCtrl *gomock.Controller, mockK8sClient *mocks.MockClient, log logr.Logger) *DragnetWebhookHandlerTestBed {
+	return &DragnetWebhookHandlerTestBed{
+		mockCtrl:      mockCtrl,
+		mockK8sClient: mockK8sClient,
+		modRuleStore:  modRuleStore,
+		log:           log,
+	}
+}
+
 // InitializeModRuleStoreTestBed instructs wire how to construct a new test bed.
 func InitializeModRuleStoreTestBed(clusterModRulesNamespace ClusterModRulesNamespace, tLogger util.TLogger) *ModRuleStoreTestBed {
 	wire.Build(
 		NewModRuleStoreTestBed,
+		NewTestLogger,
+		expressions.NewKubeModJSONPathLanguage,
+		NewModRuleStoreItemFactory,
+		NewModRuleStore,
+	)
+
+	return nil
+}
+
+// InitializeDragnetWebhookHandlerTestBed instructs wire how to construct a new test bed.
+func InitializeDragnetWebhookHandlerTestBed(clusterModRulesNamespace ClusterModRulesNamespace, tLogger util.TLogger) *DragnetWebhookHandlerTestBed {
+	wire.Build(
+		NewDragnetWebhookHandlerTestBed,
+		NewMockTestReporter,
+		NewGoMockController,
+		NewK8sMockClient,
 		NewTestLogger,
 		expressions.NewKubeModJSONPathLanguage,
 		NewModRuleStoreItemFactory,

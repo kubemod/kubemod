@@ -77,7 +77,33 @@ webhooks:
     - UPDATE
     - DELETE
     scope: '*'
-
+- name: podbinding.kubemod.io
+  clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
+      path: /podbinding-webhook
+  failurePolicy: Fail
+  sideEffects: None
+  timeoutSeconds: 10
+  admissionReviewVersions: ["v1beta1"]
+  namespaceSelector:
+    matchExpressions:
+      - key: admission.kubemod.io/ignore
+        operator: NotIn
+        values: ["true"]
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    resources:
+    - pods/binding
+    operations:
+    - CREATE
+    - UPDATE
+    scope: '*'
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
