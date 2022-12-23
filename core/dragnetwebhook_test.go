@@ -18,6 +18,7 @@ import (
 	"context"
 	"io/ioutil"
 	"path"
+	"sort"
 
 	"github.com/golang/mock/gomock"
 	"github.com/kubemod/kubemod/api/v1beta1"
@@ -107,6 +108,11 @@ var _ = Describe("DragnetWebhookHandler", func() {
 		Expect(response).ToNot(BeNil())
 
 		Expect(len(response.Patches)).To(Equal(2))
+
+		// Sort the patch because the order returned by CalculatePatch is unstable.
+		sort.SliceStable(response.Patches, func(i, j int) bool {
+			return (response.Patches[i].Operation + response.Patches[i].Path) < (response.Patches[j].Operation + response.Patches[j].Path)
+		})
 
 		Expect(response.Patches[0].Operation).To(Equal("add"))
 		Expect(response.Patches[0].Path).To(Equal("/metadata/labels/topology.kubernetes.io~1region"))
