@@ -936,7 +936,7 @@ This triggers an `UPDATE` operation, which is again captured by KubeMod. When Ku
 
 This enables a wide array of use cases not natively supported by Kubernetes (see https://github.com/kubernetes/kubernetes/issues/40610).
 
-For example, the following cluster-wide ModRule will inject a pod with it's node's availability region and zone, as soon as the pod gets scheduled to a node:
+For example, the following cluster-wide ModRule will inject a pod with it's node's availability region and zone, as soon as the pod gets scheduled on a node:
 
 ```yaml
 apiVersion: api.kubemod.io/v1beta1
