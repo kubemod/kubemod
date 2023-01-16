@@ -4,7 +4,7 @@
 
 KubeMod is a universal [Kubernetes mutating operator](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/).
 
-It introduces `ModRule` - a custom Kubernetes resource which can intercept the deployment of any Kubernetes object and apply targeted modifications to it, or reject it before it is deployed to the cluster.
+It introduces `ModRule` - a custom Kubernetes resource that can intercept the deployment of any Kubernetes object and apply targeted modifications to it, or reject it before it is deployed to the cluster.
 
 Use KubeMod to:
 
