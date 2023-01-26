@@ -975,6 +975,36 @@ ref.kubemod.io/inject-node-ref: "true"
 
 If you want to have this rule apply to pods which don't have this annotation, you can create another ModRule which injects `ref.kubemod.io/inject-node-ref` into any pod that matches a given criteria, or to all pods that are created in the cluster.
 
+Here's a cluster-wide ModRule which will inject `ref.kubemod.io/inject-node-ref` into every Pod created in the cluster.
+
+Note the double-quotes surrounded by single quotes around the value of `true` at the bottom of the ModRule.
+This ensures that annotation `ref.kubemod.io/inject-node-ref` is set to string value `"true"` instead of boolean value `true`.
+
+```yaml
+apiVersion: api.kubemod.io/v1beta1
+kind: ModRule
+metadata:
+  name: patch-pod-with-inject-node-ref
+  namespace: kubemod-system
+spec:
+  type: Patch
+  targetNamespaceRegex: ".*"
+  admissionOperations:
+    - CREATE
+
+  match:
+    - select: '$.kind'
+      matchValue: 'Pod'
+    - select: '$.metadata.annotations["ref.kubemod.io/inject-node-ref"]'
+      matchValue: 'true'
+      negate: true
+
+  patch:
+    - op: add
+      path: /metadata/annotations/ref.kubemod.io~1inject-node-ref
+      value: '"true"'
+```
+
 ### Target resources
 
 By default, KubeMod targets the following list of resources:
