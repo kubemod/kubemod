@@ -422,7 +422,6 @@ spec:
             port: 8083
         resources:
           limits:
-            cpu: 100m
             memory: 100Mi
           requests:
             cpu: 100m
@@ -437,6 +436,21 @@ spec:
         secret:
           defaultMode: 420
           secretName: webhook-server-cert
+      topologySpreadConstraints:
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: kubemod-operator
+            control-plane: controller-manager
+        maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+      - labelSelector:
+          matchLabels:
+            app.kubernetes.io/component: kubemod-operator
+            control-plane: controller-manager
+        maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
 ---
 apiVersion: batch/v1
 kind: CronJob
