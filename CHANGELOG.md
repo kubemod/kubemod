@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- 115: Implement topologySpreadConstraints and remove cpu limits
+
 ## 0.18.1 - 2022-12-15
 
 - 109: Make admissionOperations backward compatible with previously deployed ModRules
