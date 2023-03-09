@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- 115: Implement topologySpreadConstraints and remove cpu limits
+## 0.20.0 - 2023-03-09
+
+- 115: Implement topologySpreadConstraints and remove cpu limits (thank you @runningman84)
+
+## 0.19.1 - 2022-12-23
+
+- 107: Inject node manifest in syntheticRefs to make it visible in pod ModRules
 
 ## 0.18.1 - 2022-12-15
 

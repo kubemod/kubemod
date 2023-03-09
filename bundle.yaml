@@ -397,7 +397,7 @@ spec:
         - /kubemod
         - -operator
         - -webapp
-        image: kubemod/kubemod:v0.19.1
+        image: kubemod/kubemod:v0.20.0
         livenessProbe:
           httpGet:
             path: /healthz
@@ -422,6 +422,7 @@ spec:
             port: 8083
         resources:
           limits:
+            cpu: 100m
             memory: 100Mi
           requests:
             cpu: 100m
@@ -431,11 +432,6 @@ spec:
           name: cert
           readOnly: true
       terminationGracePeriodSeconds: 10
-      volumes:
-      - name: cert
-        secret:
-          defaultMode: 420
-          secretName: webhook-server-cert
       topologySpreadConstraints:
       - labelSelector:
           matchLabels:
@@ -451,6 +447,11 @@ spec:
         maxSkew: 1
         topologyKey: kubernetes.io/hostname
         whenUnsatisfiable: DoNotSchedule
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: webhook-server-cert
 ---
 apiVersion: batch/v1
 kind: CronJob
