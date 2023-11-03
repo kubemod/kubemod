@@ -1268,9 +1268,8 @@ If we wanted to only patch the containers which have an empty `securityContext`,
 select: '$.spec.template.spec.containers[? isDefined(@.securityContext) && isEmpty(@.securityContext)]'
 ```
 
-[ci-img]: https://github.com/kubemod/kubemod/workflows/Master%20Workflow/badge.svg
+[ci-img]: https://github.com/kubemod/kubemod/actions/workflows/main-workflow.yaml/badge.svg
 [ci]: https://github.com/kubemod/kubemod/actions
-[ci-img]: https://gitlab.com/kubemod/kubemod/badges/master/pipeline.svg
 [goreport-img]: https://goreportcard.com/badge/github.com/kubemod/kubemod
 [goreport]: https://goreportcard.com/report/github.com/kubemod/kubemod
 [cov-img]: https://codecov.io/gh/kubemod/kubemod/branch/master/graph/badge.svg
