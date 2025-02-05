@@ -141,12 +141,12 @@ func (r *ModRule) validateModRule() error {
 		}
 	}
 
-	// Validate the patch value templates and optional select queries.
+	// Validate the patch value and select templates and optional select queries.
 	for i, po := range r.Spec.Patch {
 		if po.Value != nil {
 			value := *po.Value
 
-			// Test the template.
+			// Test the value template.
 			_, err := util.NewSafeTemplate(po.Path).Parse(util.PreProcessModRuleGoTemplate(value))
 
 			if err != nil {
@@ -155,6 +155,16 @@ func (r *ModRule) validateModRule() error {
 
 			// Test the select query.
 			if po.Select != nil && *po.Select != "" {
+				sel := *po.Select
+
+				// Test select as a Golang template.
+				_, err = util.NewSafeTemplate(po.Path).Parse(util.PreProcessModRuleGoTemplate(sel))
+
+				if err != nil {
+					allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("patch").Index(i).Child("select"), value, fmt.Sprintf("%v", err)))
+				}
+
+				// Test select as a JSONPath query.
 				_, err = jsonPathLanguage.NewEvaluable(*po.Select)
 
 				if err != nil {
