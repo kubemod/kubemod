@@ -16,7 +16,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, healthProbeAddr OperatorHealthProbeAddr, clusterModRulesNamespace core.ClusterModRulesNamespace, enableLeaderElection EnableLeaderElection, log logr.Logger) (*KubeModOperatorApp, error) {
+func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMetricsAddr, healthProbeAddr OperatorHealthProbeAddr, clusterModRulesNamespace core.ClusterModRulesNamespace, enableLeaderElection EnableLeaderElection, syntheticRefsConfig core.SyntheticRefsConfig, log logr.Logger) (*KubeModOperatorApp, error) {
 	manager, err := NewControllerManager(scheme, metricsAddr, healthProbeAddr, enableLeaderElection, log)
 	if err != nil {
 		return nil, err
@@ -28,8 +28,8 @@ func InitializeKubeModOperatorApp(scheme *runtime.Scheme, metricsAddr OperatorMe
 	if err != nil {
 		return nil, err
 	}
-	dragnetWebhookHandler := core.NewDragnetWebhookHandler(manager, modRuleStore, log)
-	podBindingWebhookHandler := core.NewPodBindingWebhookHandler(manager, log)
+	dragnetWebhookHandler := core.NewDragnetWebhookHandler(manager, modRuleStore, syntheticRefsConfig, log)
+	podBindingWebhookHandler := core.NewPodBindingWebhookHandler(manager, syntheticRefsConfig, log)
 	kubeModOperatorApp, err := NewKubeModOperatorApp(scheme, manager, modRuleReconciler, dragnetWebhookHandler, podBindingWebhookHandler, log)
 	if err != nil {
 		return nil, err

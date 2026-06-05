@@ -37,6 +37,7 @@ func InitializeKubeModOperatorApp(
 	healthProbeAddr OperatorHealthProbeAddr,
 	clusterModRulesNamespace core.ClusterModRulesNamespace,
 	enableLeaderElection EnableLeaderElection,
+	syntheticRefsConfig core.SyntheticRefsConfig,
 	log logr.Logger) (*KubeModOperatorApp, error) {
 	wire.Build(
 		expressions.NewKubeModJSONPathLanguage,

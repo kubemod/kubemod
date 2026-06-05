@@ -30,3 +30,6 @@ dump.yaml
 
 # Telepresence
 telepresence.log
+
+# Superpowers design/plan docs - keep local, never commit/push
+/docs/superpowers/

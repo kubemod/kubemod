@@ -52,6 +52,9 @@ type Config struct {
 	OperatorHealthProbeAddr  string
 	ClusterModRulesNamespace string
 
+	DisableNamespaceSyntheticRefs bool
+	DisableNodeSyntheticRefs      bool
+
 	EnableLeaderElection bool
 	EnableDevModeLog     bool
 }
@@ -67,6 +70,10 @@ func main() {
 	flag.StringVar(&config.OperatorMetricsAddr, "operator-metrics-addr", ":8082", "The address the operator metric endpoint binds to.")
 	flag.StringVar(&config.OperatorHealthProbeAddr, "operator-health-probe-addr", ":8083", "The address the operator health endpoints binds to.")
 	flag.StringVar(&config.ClusterModRulesNamespace, "cluster-modrules-namespace", "kubemod-system", "The namespace where cluster-wide ModRules are deployed.")
+	flag.BoolVar(&config.DisableNamespaceSyntheticRefs, "disable-namespace-synthetic-refs", false,
+		"When set, KubeMod will not fetch and inject the namespace synthetic ref into resource manifests.")
+	flag.BoolVar(&config.DisableNodeSyntheticRefs, "disable-node-synthetic-refs", false,
+		"When set, KubeMod will not fetch/inject node synthetic refs, and the pod-binding webhook will skip stamping the ref.kubemod.io/nodename annotation.")
 	flag.BoolVar(&config.EnableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for KubeMod operator. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -107,6 +114,10 @@ func run(config *Config) error {
 				app.OperatorHealthProbeAddr(config.OperatorHealthProbeAddr),
 				core.ClusterModRulesNamespace(config.ClusterModRulesNamespace),
 				app.EnableLeaderElection(config.EnableLeaderElection),
+				core.SyntheticRefsConfig{
+					DisableNamespaceRefs: config.DisableNamespaceSyntheticRefs,
+					DisableNodeRefs:      config.DisableNodeSyntheticRefs,
+				},
 				log)
 
 			if err != nil {

@@ -32,18 +32,20 @@ import (
 
 // DragnetWebhookHandler is the main entrypoint to KubeMod's mutating admission webhook.
 type DragnetWebhookHandler struct {
-	client       client.Client
-	decoder      *admission.Decoder
-	log          logr.Logger
-	modRuleStore *ModRuleStore
+	client              client.Client
+	decoder             *admission.Decoder
+	log                 logr.Logger
+	modRuleStore        *ModRuleStore
+	syntheticRefsConfig SyntheticRefsConfig
 }
 
 // NewDragnetWebhookHandler constructs a new core webhook handler.
-func NewDragnetWebhookHandler(manager manager.Manager, modRuleStore *ModRuleStore, log logr.Logger) *DragnetWebhookHandler {
+func NewDragnetWebhookHandler(manager manager.Manager, modRuleStore *ModRuleStore, syntheticRefsConfig SyntheticRefsConfig, log logr.Logger) *DragnetWebhookHandler {
 	return &DragnetWebhookHandler{
-		client:       manager.GetClient(),
-		log:          log.WithName("dragnet-webhook"),
-		modRuleStore: modRuleStore,
+		client:              manager.GetClient(),
+		log:                 log.WithName("dragnet-webhook"),
+		modRuleStore:        modRuleStore,
+		syntheticRefsConfig: syntheticRefsConfig,
 	}
 }
 
@@ -108,25 +110,23 @@ func (h *DragnetWebhookHandler) Handle(ctx context.Context, req admission.Reques
 func (h *DragnetWebhookHandler) injectSyntheticRefs(ctx context.Context, originalJSON []byte, namespace string) ([]byte, error) {
 	obj := &unstructured.Unstructured{}
 	syntheticRefs := make(map[string]interface{})
-	var err error
 
-	// If the target is a namespaced object, grab the namespace from the manager's client.
-	if namespace != "" {
+	err := json.Unmarshal(originalJSON, obj)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode webhook request object's manifest into JSON: %v", err)
+	}
+
+	// If the target is a namespaced object, grab the namespace from the manager's client - unless namespace refs are disabled.
+	if namespace != "" && !h.syntheticRefsConfig.DisableNamespaceRefs {
 		err = h.injectNamespaceSyntheticRef(ctx, namespace, syntheticRefs)
 		if err != nil {
 			return nil, fmt.Errorf("failed to inject namespace synthetic ref: %v", err)
 		}
 	}
 
-	err = json.Unmarshal(originalJSON, obj)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode webhook request object's manifest into JSON: %v", err)
-	}
-
-	// If the target object is a pod, check if the pod has a node name set by KubeMod in annotation ref.kubemod.io/nodename
-	// and if yes, inject the pod's node manifest into the synthetic refs.
-	if isPod(obj.UnstructuredContent()) {
+	// If the target object is a pod with a ref.kubemod.io/nodename annotation, inject the node manifest - unless node refs are disabled.
+	if !h.syntheticRefsConfig.DisableNodeRefs && isPod(obj.UnstructuredContent()) {
 		nodeName, ok, err := unstructured.NestedString(obj.UnstructuredContent(), "metadata", "annotations", "ref.kubemod.io/nodename")
 
 		if ok && err == nil && nodeName != "" {
@@ -138,8 +138,10 @@ func (h *DragnetWebhookHandler) injectSyntheticRefs(ctx context.Context, origina
 		}
 	}
 
-	// Set KubeMod syntheticRefs field.
-	obj.UnstructuredContent()["syntheticRefs"] = syntheticRefs
+	// Set the syntheticRefs field unless the feature is fully disabled, in which case the property is omitted entirely.
+	if !(h.syntheticRefsConfig.DisableNamespaceRefs && h.syntheticRefsConfig.DisableNodeRefs) {
+		obj.UnstructuredContent()["syntheticRefs"] = syntheticRefs
+	}
 
 	// Remove verbose managedFields as it is useless for the purposes of modrules,
 	// but at the same time it's quite verbose and potentially slows down modrule processing.
