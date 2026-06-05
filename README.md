@@ -1005,6 +1005,24 @@ spec:
       value: '"true"'
 ```
 
+#### Disabling synthetic refs
+
+Synthetic ref injection issues live Kubernetes API calls on every admission
+(a `GET` for the object's `Namespace`, and a `GET` for the `Node` of annotated
+pods, plus the pod-binding webhook's pod update). Operators that do not use
+synthetic refs can disable them with these flags:
+
+| Flag | Default | Effect |
+| ---- | ------- | ------ |
+| `-disable-namespace-synthetic-refs` | `false` | Skips fetching/injecting the `namespace` synthetic ref. |
+| `-disable-node-synthetic-refs` | `false` | Skips fetching/injecting the `node` synthetic ref, and the pod-binding webhook skips stamping `ref.kubemod.io/nodename`. |
+
+When **both** flags are set, the `syntheticRefs` property is omitted entirely
+from the manifest used for ModRule matching and patching. When only one is set,
+`syntheticRefs` still contains the remaining ref (or an empty object when that ref
+does not apply to the resource). These flags are off by default, so existing
+behavior is unchanged.
+
 ### Target resources
 
 By default, KubeMod targets the following list of resources:

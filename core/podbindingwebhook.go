@@ -29,21 +29,28 @@ import (
 
 // PodBindingWebhookHandler is the main entrypoint to KubeMod's pod binding interception admission webhook.
 type PodBindingWebhookHandler struct {
-	client  client.Client
-	decoder *admission.Decoder
-	log     logr.Logger
+	client              client.Client
+	decoder             *admission.Decoder
+	log                 logr.Logger
+	syntheticRefsConfig SyntheticRefsConfig
 }
 
 // NewPodBindingWebhookHandler constructs a new core webhook handler.
-func NewPodBindingWebhookHandler(manager manager.Manager, log logr.Logger) *PodBindingWebhookHandler {
+func NewPodBindingWebhookHandler(manager manager.Manager, syntheticRefsConfig SyntheticRefsConfig, log logr.Logger) *PodBindingWebhookHandler {
 	return &PodBindingWebhookHandler{
-		client: manager.GetClient(),
-		log:    log.WithName("podbinding-webhook"),
+		client:              manager.GetClient(),
+		log:                 log.WithName("podbinding-webhook"),
+		syntheticRefsConfig: syntheticRefsConfig,
 	}
 }
 
 // Handle triggers the main mutating logic.
 func (h *PodBindingWebhookHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
+	// If node synthetic refs are disabled, there is no need to stamp ref.kubemod.io/nodename onto the pod.
+	if h.syntheticRefsConfig.DisableNodeRefs {
+		return admission.Allowed("ok")
+	}
+
 	if req.Resource.Resource == "pods" && req.SubResource == "binding" {
 		log := h.log.WithValues("request uid", req.UID, "namespace", req.Namespace, "resource", fmt.Sprintf("%v/%v", req.Resource.Resource, req.Name), "operation", req.Operation)
 

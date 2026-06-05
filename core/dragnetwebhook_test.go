@@ -16,6 +16,7 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"path"
 	"sort"
@@ -121,6 +122,75 @@ var _ = Describe("DragnetWebhookHandler", func() {
 		Expect(response.Patches[1].Operation).To(Equal("add"))
 		Expect(response.Patches[1].Path).To(Equal("/metadata/labels/topology.kubernetes.io~1zone"))
 		Expect(response.Patches[1].Value).To(Equal("us-west-2b"))
+	})
+
+	It("should omit syntheticRefs entirely and make no API calls when both refs are disabled", func() {
+		resourceJSON, err := ioutil.ReadFile(path.Join("testdata/resources/", "pod-7.json"))
+		Expect(err).NotTo(HaveOccurred())
+
+		handler = &DragnetWebhookHandler{
+			client:              testBed.mockK8sClient,
+			log:                 testBed.log,
+			modRuleStore:        testBed.modRuleStore,
+			syntheticRefsConfig: SyntheticRefsConfig{DisableNamespaceRefs: true, DisableNodeRefs: true},
+		}
+
+		result, err := handler.injectSyntheticRefs(context.Background(), resourceJSON, "my-namespace")
+		Expect(err).NotTo(HaveOccurred())
+
+		obj := map[string]interface{}{}
+		Expect(json.Unmarshal(result, &obj)).To(Succeed())
+		Expect(obj).NotTo(HaveKey("syntheticRefs"))
+	})
+
+	It("should inject only the node ref (no namespace API call) when namespace refs are disabled", func() {
+		resourceJSON, err := ioutil.ReadFile(path.Join("testdata/resources/", "pod-7.json"))
+		Expect(err).NotTo(HaveOccurred())
+
+		handler = &DragnetWebhookHandler{
+			client:              testBed.mockK8sClient,
+			log:                 testBed.log,
+			modRuleStore:        testBed.modRuleStore,
+			syntheticRefsConfig: SyntheticRefsConfig{DisableNamespaceRefs: true},
+		}
+
+		// Only the node Get is expected; a namespace Get would be an unexpected call and fail the test.
+		testBed.mockK8sClient.EXPECT().Get(gomock.Any(), client.ObjectKey{Name: "my-node-1234"}, gomock.Any()).Return(nil)
+
+		result, err := handler.injectSyntheticRefs(context.Background(), resourceJSON, "my-namespace")
+		Expect(err).NotTo(HaveOccurred())
+
+		obj := map[string]interface{}{}
+		Expect(json.Unmarshal(result, &obj)).To(Succeed())
+		refs, ok := obj["syntheticRefs"].(map[string]interface{})
+		Expect(ok).To(BeTrue())
+		Expect(refs).To(HaveKey("node"))
+		Expect(refs).NotTo(HaveKey("namespace"))
+	})
+
+	It("should inject only the namespace ref (no node API call) when node refs are disabled", func() {
+		resourceJSON, err := ioutil.ReadFile(path.Join("testdata/resources/", "pod-7.json"))
+		Expect(err).NotTo(HaveOccurred())
+
+		handler = &DragnetWebhookHandler{
+			client:              testBed.mockK8sClient,
+			log:                 testBed.log,
+			modRuleStore:        testBed.modRuleStore,
+			syntheticRefsConfig: SyntheticRefsConfig{DisableNodeRefs: true},
+		}
+
+		// Only the namespace Get is expected; a node Get would be an unexpected call and fail the test.
+		testBed.mockK8sClient.EXPECT().Get(gomock.Any(), client.ObjectKey{Name: "my-namespace"}, gomock.Any()).Return(nil)
+
+		result, err := handler.injectSyntheticRefs(context.Background(), resourceJSON, "my-namespace")
+		Expect(err).NotTo(HaveOccurred())
+
+		obj := map[string]interface{}{}
+		Expect(json.Unmarshal(result, &obj)).To(Succeed())
+		refs, ok := obj["syntheticRefs"].(map[string]interface{})
+		Expect(ok).To(BeTrue())
+		Expect(refs).To(HaveKey("namespace"))
+		Expect(refs).NotTo(HaveKey("node"))
 	})
 
 })
