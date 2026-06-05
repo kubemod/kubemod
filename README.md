@@ -43,7 +43,7 @@ Use KubeMod to:
 
 KubeMod requires Kubernetes 1.21 or later, architecture AMD64 or ARM64.
 
-As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemod-system`.  
+As a Kubernetes operator, KubeMod is deployed into its own namespace — `kubemod-system`.
 
 Run the following commands to deploy KubeMod.
 
@@ -51,7 +51,7 @@ Run the following commands to deploy KubeMod.
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Deploy KubeMod.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.20.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.21.0/bundle.yaml
 ```
 
 By default KubeMod allows you to target a limited set of high-level resource types, such as deployments and services.
@@ -68,7 +68,7 @@ kubectl delete job kubemod-crt-job -n kubemod-system
 # Make KubeMod ignore Kubernetes' system namespace.
 kubectl label namespace kube-system admission.kubemod.io/ignore=true --overwrite
 # Upgrade KubeMod operator.
-kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.20.0/bundle.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.21.0/bundle.yaml
 ```
 
 ### Uninstall
@@ -76,7 +76,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubemod/kubemod/v0.20.0/bundl
 To uninstall KubeMod and all its resources, run:
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.20.0/bundle.yaml
+kubectl delete -f https://raw.githubusercontent.com/kubemod/kubemod/v0.21.0/bundle.yaml
 ```
 
 **Note**: Uninstalling KubeMod will also remove all your ModRules deployed to all Kubernetes namespaces.
@@ -348,7 +348,7 @@ spec:
   type: Reject
 
   rejectMessage: 'All workloads must run as non-root user'
-  
+
   match:
     # Reject Deployments and StatefulSets...
     - select: '$.kind'
@@ -879,7 +879,7 @@ apiVersion: api.kubemod.io/v1beta1
 kind: ModRule
 metadata:
   name: add-flavor-modrule
-  
+
   # This is a cluster-wide rule - we need to create it in the kubemod-system namespace.
   namespace: kubemod-system
 
@@ -1121,7 +1121,7 @@ spec:
     # Match Deployments...
     - select: '$.kind'
       matchValue: Deployment
-    
+
     # ...which have label app = whatever...
     - select: '$.metadata.labels.app'
       matchValue: 'whatever'
@@ -1130,7 +1130,7 @@ spec:
     - select: '$.spec.template.spec.containers[*].name'
       matchValue: 'my-sidecar'
       negate: true
-    
+
   patch:
     # Operations on non-array fields are idempotent by default.
     - op: add

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.21.0 - 2026-06-05
+
+- 124: Disable unused KubeMod `syntheticRefs` to cut Kubernetes API-server load
+
 ## 0.20.0 - 2023-03-09
 
 - 115: Implement topologySpreadConstraints and remove cpu limits (thank you @runningman84)
